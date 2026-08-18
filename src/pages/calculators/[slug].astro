@@ -1,0 +1,36 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import CalculatorCard from '../../components/CalculatorCard.astro';
+import { calculators } from '../../data/calculators.js';
+export function getStaticPaths() { return calculators.map((calculator) => ({ params: { slug: calculator.slug }, props: { calculator } })); }
+const { calculator } = Astro.props;
+const related = calculators.filter((item) => item.slug !== calculator.slug && item.category === calculator.category).slice(0, 3);
+const schema = { '@context': 'https://schema.org', '@type': 'WebApplication', name: calculator.title, applicationCategory: 'CalculatorApplication', operatingSystem: 'Any', offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }, description: calculator.description };
+---
+<Layout title={`${calculator.title} – Free & Easy | ClearCalc`} description={calculator.description}>
+  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+  <section class="tool-hero"><a href="/">← All calculators</a><span class="category">{calculator.category}</span><h1>{calculator.title}</h1><p>{calculator.description}</p></section>
+  <section class="tool-layout">
+    <form class="calculator" data-slug={calculator.slug}>
+      <div class="form-heading"><span class="calc-icon">{calculator.icon}</span><h2>Enter your details</h2></div>
+      {calculator.fields.map(([name, label, type, value, suffix]) => <label>{label}<div class="input-wrap">{type === 'select' ? <select name={name}>{calculator.options.map(([optionValue, optionLabel]) => <option value={optionValue}>{optionLabel}</option>)}</select> : <input name={name} type={type} value={value} required />}{suffix && <span>{suffix}</span>}</div></label>)}
+      <button class="button" type="submit">Calculate</button>
+    </form>
+    <aside class="result" aria-live="polite"><span class="eyebrow">YOUR RESULT</span><strong id="result-headline">Enter values to begin</strong><div id="result-details"><p>Your result and helpful details will appear here.</p></div></aside>
+  </section>
+  <section class="article"><h2>How this {calculator.title.toLowerCase()} works</h2><p>This tool uses the values you enter to produce an immediate estimate. Review every input before relying on the result, especially when comparing loans, planning a major purchase, or making a health decision.</p><h2>How to use the result</h2><p>Use the answer as a starting point for planning and comparison. Try several realistic scenarios to understand how changing an input affects the outcome. The calculator runs locally in your browser and the values you enter are not sent to us.</p><div class="notice"><strong>Important:</strong> This calculator provides general information, not financial, medical, legal, or tax advice.</div></section>
+  {related.length > 0 && <section class="section"><h2>Related calculators</h2><div class="card-grid">{related.map((item) => <CalculatorCard item={item} />)}</div></section>}
+  <script>
+    import { calculate } from '../../lib/calculate.js';
+    const form = document.querySelector('.calculator');
+    form?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const values = Object.fromEntries(new FormData(form).entries());
+      try {
+        const result = calculate(form.dataset.slug, values);
+        document.querySelector('#result-headline').textContent = result.headline;
+        document.querySelector('#result-details').innerHTML = result.details.map((line) => `<p>${line}</p>`).join('');
+      } catch { document.querySelector('#result-headline').textContent = 'Please check your inputs'; }
+    });
+  </script>
+</Layout>

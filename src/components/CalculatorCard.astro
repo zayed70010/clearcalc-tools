@@ -1,0 +1,7 @@
+---
+const { item } = Astro.props;
+---
+<a class="calc-card" href={`/calculators/${item.slug}/`}>
+  <span class="calc-icon">{item.icon}</span><span class="category">{item.category}</span>
+  <h3>{item.title}</h3><p>{item.description}</p><strong>Open calculator →</strong>
+</a>

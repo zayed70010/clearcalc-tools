@@ -1,0 +1,13 @@
+---
+import Layout from '../layouts/Layout.astro';
+import CalculatorCard from '../components/CalculatorCard.astro';
+import { calculators, categories } from '../data/calculators.js';
+---
+<Layout title="Free Online Calculators | ClearCalc Tools" description="Accurate, fast online calculators for finance, health, math, dates, education, and everyday life.">
+  <section class="hero"><div><span class="eyebrow">FREE • FAST • PRIVATE</span><h1>Calculate with confidence.</h1><p>Clear answers for money, health, school, and everyday decisions. No signup required.</p><a class="button" href="#calculators">Explore calculators</a></div><div class="hero-panel"><span>Quick calculation</span><strong>Simple inputs.</strong><strong>Clear results.</strong><strong>Useful explanations.</strong></div></section>
+  <section class="trust"><span>✓ No account</span><span>✓ Mobile friendly</span><span>✓ Transparent formulas</span></section>
+  <section id="calculators" class="section"><div class="section-heading"><div><span class="eyebrow">CALCULATOR LIBRARY</span><h2>Popular calculators</h2></div><p>Choose a tool and get an answer in seconds.</p></div>
+    {categories.map((category) => <div class="category-section"><h3 class="category-title">{category}</h3><div class="card-grid">{calculators.filter((item) => item.category === category).map((item) => <CalculatorCard item={item} />)}</div></div>)}
+  </section>
+  <section class="content-band"><h2>Designed to make numbers easier</h2><p>Every ClearCalc tool focuses on one job, explains the result, and works directly in your browser. Results are estimates and should be checked with a qualified professional for important financial or health decisions.</p></section>
+</Layout>
