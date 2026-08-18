@@ -2,7 +2,7 @@
 import '../styles/global.css';
 const { title = 'ClearCalc Tools', description = 'Fast, free, and easy-to-use online calculators.' } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
-const base = import.meta.env.BASE_URL;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 ---
 <!doctype html>
 <html lang="en">

@@ -1,6 +1,6 @@
 ---
 const { item } = Astro.props;
-const base = import.meta.env.BASE_URL;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 ---
 <a class="calc-card" href={`${base}calculators/${item.slug}/`}>
   <span class="calc-icon">{item.icon}</span><span class="category">{item.category}</span>
