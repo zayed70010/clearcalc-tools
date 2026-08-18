@@ -4,12 +4,13 @@ import CalculatorCard from '../../components/CalculatorCard.astro';
 import { calculators } from '../../data/calculators.js';
 export function getStaticPaths() { return calculators.map((calculator) => ({ params: { slug: calculator.slug }, props: { calculator } })); }
 const { calculator } = Astro.props;
+const base = import.meta.env.BASE_URL;
 const related = calculators.filter((item) => item.slug !== calculator.slug && item.category === calculator.category).slice(0, 3);
 const schema = { '@context': 'https://schema.org', '@type': 'WebApplication', name: calculator.title, applicationCategory: 'CalculatorApplication', operatingSystem: 'Any', offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }, description: calculator.description };
 ---
 <Layout title={`${calculator.title} – Free & Easy | ClearCalc`} description={calculator.description}>
   <script type="application/ld+json" set:html={JSON.stringify(schema)} />
-  <section class="tool-hero"><a href="/">← All calculators</a><span class="category">{calculator.category}</span><h1>{calculator.title}</h1><p>{calculator.description}</p></section>
+  <section class="tool-hero"><a href={base}>← All calculators</a><span class="category">{calculator.category}</span><h1>{calculator.title}</h1><p>{calculator.description}</p></section>
   <section class="tool-layout">
     <form class="calculator" data-slug={calculator.slug}>
       <div class="form-heading"><span class="calc-icon">{calculator.icon}</span><h2>Enter your details</h2></div>
