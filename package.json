@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "assets": "node scripts/generate-assets.mjs",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
@@ -11,6 +12,7 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.6.0",
-    "astro": "^7.2.3"
+    "astro": "^7.2.3",
+    "sharp": "^0.35.3"
   }
 }

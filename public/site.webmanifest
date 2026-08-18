@@ -1,0 +1,13 @@
+{
+  "name": "ClearCalc Tools",
+  "short_name": "ClearCalc",
+  "description": "Fast, free, and easy-to-use online calculators.",
+  "start_url": "/clearcalc-tools/",
+  "display": "standalone",
+  "background_color": "#fbfcf7",
+  "theme_color": "#13251f",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
