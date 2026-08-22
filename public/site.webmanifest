@@ -2,7 +2,7 @@
   "name": "ClearCalc Tools",
   "short_name": "ClearCalc",
   "description": "Fast, free, and easy-to-use online calculators.",
-  "start_url": "/clearcalc-tools/",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#fbfcf7",
   "theme_color": "#13251f",
