@@ -2,36 +2,49 @@
 import Layout from '../../layouts/Layout.astro';
 import CalculatorCard from '../../components/CalculatorCard.astro';
 import { calculators } from '../../data/calculators.js';
-export function getStaticPaths() { return calculators.map((calculator) => ({ params: { slug: calculator.slug }, props: { calculator } })); }
-const { calculator } = Astro.props;
-const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
-const related = calculators.filter((item) => item.slug !== calculator.slug && item.category === calculator.category).slice(0, 3);
-const schema = { '@context': 'https://schema.org', '@type': 'WebApplication', name: calculator.title, applicationCategory: 'CalculatorApplication', operatingSystem: 'Any', offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }, description: calculator.description };
+export function getStaticPaths(){return calculators.map(calculator=>({params:{slug:calculator.slug},props:{calculator}}));}
+const { calculator }=Astro.props;
+const base=import.meta.env.BASE_URL.replace(/\/?$/,'/');
+const details={
+  'mortgage-calculator':['The standard amortization formula converts the annual rate to a monthly rate and spreads principal and interest across every payment.','A $300,000 mortgage at 6.5% for 30 years shows the estimated monthly principal-and-interest payment plus total interest. Taxes, insurance, HOA fees, and mortgage insurance are excluded.'],
+  'loan-calculator':['The payment formula uses the amount borrowed, monthly interest rate, and total number of monthly payments.','Compare a $25,000 loan at 7.5% over five years with a shorter term. A longer term usually lowers the payment but raises total interest.'],
+  'compound-interest-calculator':['The starting balance compounds monthly, then each regular contribution earns returns for its remaining time.','Try $10,000 initially, $250 per month, 7% annual return, and 10 years. Returns are projections, not guarantees, and exclude fees, taxes, and inflation.'],
+  'bmi-calculator':['BMI equals weight in kilograms divided by height in meters squared: BMI = kg / m².','At 75 kg and 175 cm, BMI is about 24.5. BMI is an adult screening measure, not a diagnosis, and can misclassify muscular people.'],
+  'calorie-calculator':['The estimate uses the Mifflin–St Jeor basal metabolic rate equation and multiplies it by your activity factor.','Common factors are 1.2 for little exercise, 1.375 for light, 1.55 for moderate, 1.725 for high, and 1.9 for very high activity.'],
+  'percentage-calculator':['Divide the part by the whole and multiply by 100: percentage = (part ÷ whole) × 100.','If 25 is the part and 200 is the whole, the result is 12.5%. The whole must not be zero, and results can exceed 100%.'],
+  'tip-calculator':['Tip equals the bill multiplied by the tip rate. Bill plus tip is divided by the number of people.','An $85 bill with an 18% tip totals $100.30. Split equally between two people, each share is $50.15.'],
+  'age-calculator':['The tool compares real calendar dates and borrows days or months when needed to report completed years, months, and days.','Leave the target date blank for age today, or select another date. Leap years and different month lengths are handled as calendar dates.'],
+  'date-difference-calculator':['The elapsed time between normalized calendar dates is converted into full days.','January 1 to December 31, 2026 is 364 elapsed days. Add one if you need inclusive counting; weekends are included.'],
+  'unit-converter':['Meters are multiplied by 3.28084 for feet, 39.3701 for inches, 1.09361 for yards, or 0.001 for kilometers.','One meter is about 3.28084 feet or 39.3701 inches. Small differences between converters usually come from rounding.'],
+  'gpa-calculator':['The four entered grade points are added and divided by four, with every course weighted equally.','Grades of 4.0, 3.0, 3.7, and 3.3 produce 3.50. Your official GPA may use credits, repeats, honors weighting, or different rules.'],
+  'discount-calculator':['Savings equal original price multiplied by the discount rate; sale price equals original price minus savings.','A 20% discount on $100 saves $20 and gives an $80 sale price before tax and shipping. Two successive 20% discounts equal 36%, not 40%.']
+}[calculator.slug];
+const seoTitle=`${calculator.title}: Free Calculator & Formula`;
+const related=calculators.filter(item=>item.slug!==calculator.slug).sort((a,b)=>Number(b.category===calculator.category)-Number(a.category===calculator.category)).slice(0,3);
+const canonical=new URL(`calculators/${calculator.slug}/`,Astro.site).href;
+const faqs=[[`Is the ${calculator.title.toLowerCase()} free?`,'Yes. It is free, requires no account, and runs directly in your browser.'],['Are the results exact?','The calculation follows the stated formula, but its usefulness depends on accurate inputs and the assumptions described on this page.'],['Does ClearCalc store my entries?','No. The values are processed in your browser and are not submitted to ClearCalc.']];
+const schema={'@context':'https://schema.org','@graph':[
+  {'@type':'WebApplication',name:seoTitle,url:canonical,applicationCategory:'CalculatorApplication',operatingSystem:'Any',isAccessibleForFree:true,offers:{'@type':'Offer',price:'0',priceCurrency:'USD'},description:calculator.description},
+  {'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Calculators',item:new URL(base,Astro.site).href},{'@type':'ListItem',position:2,name:calculator.title,item:canonical}]},
+  {'@type':'FAQPage',mainEntity:faqs.map(([q,a])=>({'@type':'Question',name:q,acceptedAnswer:{'@type':'Answer',text:a}}))}
+]};
 ---
-<Layout title={`${calculator.title} – Free & Easy | ClearCalc`} description={calculator.description}>
+<Layout title={`${seoTitle} | ClearCalc`} description={calculator.description}>
   <script type="application/ld+json" set:html={JSON.stringify(schema)} />
   <section class="tool-hero"><a href={base}>← All calculators</a><span class="category">{calculator.category}</span><h1>{calculator.title}</h1><p>{calculator.description}</p></section>
   <section class="tool-layout">
     <form class="calculator" data-slug={calculator.slug}>
       <div class="form-heading"><span class="calc-icon">{calculator.icon}</span><h2>Enter your details</h2></div>
-      {calculator.fields.map(([name, label, type, value, suffix]) => <label>{label}<div class="input-wrap">{type === 'select' ? <select name={name}>{calculator.options.map(([optionValue, optionLabel]) => <option value={optionValue}>{optionLabel}</option>)}</select> : <input name={name} type={type} value={value} required />}{suffix && <span>{suffix}</span>}</div></label>)}
+      {calculator.fields.map(([name,label,type,value,suffix])=><label>{label}<div class="input-wrap">{type==='select'?<select name={name}>{calculator.options.map(([optionValue,optionLabel])=><option value={optionValue}>{optionLabel}</option>)}</select>:<input name={name} type={type} value={value} required/>}{suffix&&<span>{suffix}</span>}</div></label>)}
       <button class="button" type="submit">Calculate</button>
     </form>
     <aside class="result" aria-live="polite"><span class="eyebrow">YOUR RESULT</span><strong id="result-headline">Enter values to begin</strong><div id="result-details"><p>Your result and helpful details will appear here.</p></div></aside>
   </section>
-  <section class="article"><h2>How this {calculator.title.toLowerCase()} works</h2><p>This tool uses the values you enter to produce an immediate estimate. Review every input before relying on the result, especially when comparing loans, planning a major purchase, or making a health decision.</p><h2>How to use the result</h2><p>Use the answer as a starting point for planning and comparison. Try several realistic scenarios to understand how changing an input affects the outcome. The calculator runs locally in your browser and the values you enter are not sent to us.</p><div class="notice"><strong>Important:</strong> This calculator provides general information, not financial, medical, legal, or tax advice.</div></section>
-  {related.length > 0 && <section class="section"><h2>Related calculators</h2><div class="card-grid">{related.map((item) => <CalculatorCard item={item} />)}</div></section>}
+  <article class="article"><h2>Formula and calculation method</h2><p>{details[0]}</p><h2>Worked example and assumptions</h2><p>{details[1]}</p><h2>Frequently asked questions</h2>{faqs.map(([q,a])=><section class="faq"><h3>{q}</h3><p>{a}</p></section>)}<div class="notice"><strong>Important:</strong> This calculator provides general information, not financial, medical, legal, or tax advice.</div></article>
+  <section class="section"><h2>Related calculators</h2><div class="card-grid">{related.map(item=><CalculatorCard item={item}/>)}</div></section>
   <script>
     import { calculate } from '../../lib/calculate.js';
-    const form = document.querySelector('.calculator');
-    form?.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const values = Object.fromEntries(new FormData(form).entries());
-      try {
-        const result = calculate(form.dataset.slug, values);
-        document.querySelector('#result-headline').textContent = result.headline;
-        document.querySelector('#result-details').innerHTML = result.details.map((line) => `<p>${line}</p>`).join('');
-      } catch { document.querySelector('#result-headline').textContent = 'Please check your inputs'; }
-    });
+    const form=document.querySelector('.calculator');
+    form?.addEventListener('submit',(event)=>{event.preventDefault();const values=Object.fromEntries(new FormData(form).entries());try{const result=calculate(form.dataset.slug,values);document.querySelector('#result-headline').textContent=result.headline;document.querySelector('#result-details').innerHTML=result.details.map(line=>`<p>${line}</p>`).join('');}catch{document.querySelector('#result-headline').textContent='Please check your inputs';}});
   </script>
 </Layout>
