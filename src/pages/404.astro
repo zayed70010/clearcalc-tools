@@ -1,0 +1,25 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { calculators } from '../data/calculators.js';
+
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+---
+<Layout
+  title="Page not found | ClearCalc Tools"
+  description="That ClearCalc address does not exist. Return to the calculator library to find mortgage, BMI, date, and other tools."
+  robots="noindex, follow"
+  canonical={false}
+>
+  <section class="legal not-found">
+    <p class="eyebrow">404</p>
+    <h1>This page does not exist.</h1>
+    <p>The address may be misspelled, or the page may have moved. There is no ClearCalc calculator or article at this URL.</p>
+    <p><a class="button" href={base}>Back to all calculators</a></p>
+    <h2>Calculator library</h2>
+    <ul class="missing-list">
+      {calculators.map((item) => (
+        <li><a href={`${base}calculators/${item.slug}/`}>{item.title}</a>: {item.description}</li>
+      ))}
+    </ul>
+  </section>
+</Layout>

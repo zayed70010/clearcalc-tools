@@ -35,14 +35,20 @@ export function calculate(slug, values) {
     const birth = new Date(`${v.birthdate}T00:00:00`), target = v.targetdate ? new Date(`${v.targetdate}T00:00:00`) : new Date();
     let years = target.getFullYear() - birth.getFullYear(), months = target.getMonth() - birth.getMonth(), days = target.getDate() - birth.getDate();
     if (days < 0) { months--; days += new Date(target.getFullYear(), target.getMonth(), 0).getDate(); }
+    // February can be shorter than a day deficit from the 31st, which would otherwise leave a negative day count.
+    if (days < 0) { months--; days += new Date(target.getFullYear(), target.getMonth() - 1, 0).getDate(); }
     if (months < 0) { years--; months += 12; }
-    return { headline: `${years} years`, details: [`${months} months and ${days} days beyond the last birthday.`] };
+    const label = (value, singular) => `${value} ${singular}${value === 1 ? '' : 's'}`;
+    return { headline: label(years, 'year'), details: [`${label(months, 'month')} and ${label(days, 'day')} beyond the last birthday.`] };
   }
   if (slug === 'date-difference-calculator') {
     const days = Math.abs(new Date(v.enddate) - new Date(v.startdate)) / 86400000;
     return { headline: `${number(days, 0)} days`, details: [`Approximately ${number(days / 7)} weeks.`] };
   }
-  if (slug === 'unit-converter') return { headline: number(v.value * v.factor, 4), details: [`Converted from ${number(v.value, 4)} meter(s).`] };
+  if (slug === 'length-converter') {
+    const meters = number(v.value, 4);
+    return { headline: number(v.value * v.factor, 4), details: [`Converted from ${meters} ${v.value === 1 ? 'meter' : 'meters'}.`] };
+  }
   if (slug === 'gpa-calculator') {
     const gpa = (v.grade1 + v.grade2 + v.grade3 + v.grade4) / 4;
     return { headline: `${number(gpa, 2)} GPA`, details: ['Unweighted average on a 4.0 scale.'] };

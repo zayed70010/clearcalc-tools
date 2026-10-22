@@ -2,12 +2,34 @@
 import Layout from '../layouts/Layout.astro';
 import CalculatorCard from '../components/CalculatorCard.astro';
 import { calculators, categories } from '../data/calculators.js';
+
+const description = 'Accurate, fast online calculators for finance, health, math, dates, education, and everyday life.';
+const homeUrl = new URL(import.meta.env.BASE_URL, Astro.site).href;
+const schema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    { '@type': 'WebSite', name: 'ClearCalc Tools', url: homeUrl, description },
+    {
+      '@type': 'ItemList',
+      name: 'ClearCalc calculators',
+      itemListElement: calculators.map((item, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: item.title,
+        url: new URL(`calculators/${item.slug}/`, Astro.site).href
+      }))
+    }
+  ]
+};
+const jsonLd = JSON.stringify(schema).replaceAll('<', '\\u003c');
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 ---
-<Layout title="Free Online Calculators | ClearCalc Tools" description="Accurate, fast online calculators for finance, health, math, dates, education, and everyday life.">
+<Layout title="Free Online Calculators | ClearCalc Tools" description={description}>
+  <script type="application/ld+json" set:html={jsonLd} />
   <section class="hero"><div><span class="eyebrow">FREE • FAST • PRIVATE</span><h1>Calculate with confidence.</h1><p>Clear answers for money, health, school, and everyday decisions. No signup required.</p><a class="button" href="#calculators">Explore calculators</a></div><div class="hero-panel"><span>Quick calculation</span><strong>Simple inputs.</strong><strong>Clear results.</strong><strong>Useful explanations.</strong></div></section>
   <section class="trust"><span>✓ No account</span><span>✓ Mobile friendly</span><span>✓ Transparent formulas</span></section>
   <section id="calculators" class="section"><div class="section-heading"><div><span class="eyebrow">CALCULATOR LIBRARY</span><h2>Popular calculators</h2></div><p>Choose a tool and get an answer in seconds.</p></div>
     {categories.map((category) => <div class="category-section"><h3 class="category-title">{category}</h3><div class="card-grid">{calculators.filter((item) => item.category === category).map((item) => <CalculatorCard item={item} />)}</div></div>)}
   </section>
-  <section class="content-band"><h2>Designed to make numbers easier</h2><p>Every ClearCalc tool focuses on one job, explains the result, and works directly in your browser. Results are estimates and should be checked with a qualified professional for important financial or health decisions.</p></section>
+  <section class="content-band"><h2>Designed to make numbers easier</h2><p>Every ClearCalc tool focuses on one job, shows the formula it uses, and runs in your browser. Nothing you type is sent to a ClearCalc account. Results are estimates. For an important money or health decision, compare the result with a qualified professional and with the lender, school, or clinician who has your actual terms.</p><p>The <a href={`${base}calculators/mortgage-calculator/`}>mortgage payment calculator</a> and the <a href={`${base}calculators/loan-calculator/`}>loan payment calculator</a> both use standard monthly amortization, with taxes and fees left out so the interest math stays visible. The <a href={`${base}calculators/compound-interest-calculator/`}>compound interest calculator</a> projects a balance from a starting amount and end-of-month deposits. Health tools cover <a href={`${base}calculators/bmi-calculator/`}>adult BMI</a> from kilograms and centimeters and a <a href={`${base}calculators/calorie-calculator/`}>maintenance-calorie estimate</a> from the Mifflin–St Jeor equation. Everyday math includes a <a href={`${base}calculators/percentage-calculator/`}>percentage calculator</a>, a <a href={`${base}calculators/tip-calculator/`}>tip split</a>, a <a href={`${base}calculators/discount-calculator/`}>percent-off sale price</a>, and a <a href={`${base}calculators/length-converter/`}>length converter</a> from meters to feet, inches, yards, or kilometers. Date tools count an <a href={`${base}calculators/age-calculator/`}>exact age</a> or the <a href={`${base}calculators/date-difference-calculator/`}>days between two dates</a>. The <a href={`${base}calculators/gpa-calculator/`}>GPA calculator</a> averages four unweighted grades on a 4.0 scale.</p></section>
 </Layout>

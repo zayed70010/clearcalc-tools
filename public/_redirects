@@ -1,0 +1,6 @@
+# The length tool used to live at unit-converter while the title said Length Converter.
+/calculators/unit-converter /calculators/length-converter/ 301
+/calculators/unit-converter/ /calculators/length-converter/ 301
+
+# The handwritten sitemap was replaced by Astro's sitemap index.
+/sitemap.xml /sitemap-index.xml 301
