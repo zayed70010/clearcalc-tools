@@ -121,6 +121,19 @@ const jsonLd = JSON.stringify(schema).replaceAll('<', '\\u003c');
         <p>{faq.a}</p>
       </section>
     ))}
+    {content.relatedLinks?.length ? (
+      <>
+        <h2>Related ClearCalc pages</h2>
+        <ul class="missing-list">
+          {content.relatedLinks.map((link) => (
+            <li>
+              <a href={`${base}calculators/${link.slug}/`}>{link.label}</a>
+              {link.note ? ` ${link.note}` : ''}
+            </li>
+          ))}
+        </ul>
+      </>
+    ) : null}
     <div class="notice"><strong>Important:</strong> {content.disclaimer}</div>
   </article>
   <section class="section">

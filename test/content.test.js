@@ -32,6 +32,19 @@ test('every calculator has unique long-form page content', () => {
   }
 });
 
+test('take-home pay page is linked from the homepage and two finance pages', () => {
+  const home = readFileSync('src/pages/index.astro', 'utf8');
+  assert.match(home, /calculators\/uk-take-home-pay-calculator\//);
+  for (const slug of ['loan-calculator', 'mortgage-calculator']) {
+    const links = calculatorContent[slug].relatedLinks.map((link) => link.slug);
+    assert.equal(links.includes('uk-take-home-pay-calculator'), true, slug);
+  }
+  const takeHome = calculatorContent['uk-take-home-pay-calculator'];
+  assert.match(takeHome.description, /2026\/27/);
+  assert.match(takeHome.h1, /England, Wales and Northern Ireland/);
+  assert.equal(takeHome.faqs.length, 6);
+});
+
 test('length converter slug matches the page title', () => {
   const length = calculators.find((item) => item.slug === 'length-converter');
   assert.equal(length.title, 'Length Converter');
