@@ -61,13 +61,13 @@ const jsonLd = JSON.stringify(schema).replaceAll('<', '\\u003c');
   <section class="tool-layout">
     <form class="calculator" data-slug={calculator.slug}>
       <div class="form-heading"><span class="calc-icon">{calculator.icon}</span><h2>Enter your details</h2></div>
-      {calculator.fields.map(([name, label, type, value, suffix]) => (
+      {calculator.fields.map(([name, label, type, value, suffix, fieldOptions]) => (
         <label>
           {label}
           <div class="input-wrap">
             {type === 'select' ? (
               <select name={name}>
-                {calculator.options.map(([optionValue, optionLabel]) => <option value={optionValue}>{optionLabel}</option>)}
+                {(fieldOptions || calculator.options).map(([optionValue, optionLabel]) => <option value={optionValue} selected={String(optionValue) === String(value)}>{optionLabel}</option>)}
               </select>
             ) : (
               <input name={name} type={type} value={value} required={value !== ''} />

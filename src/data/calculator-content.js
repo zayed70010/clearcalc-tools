@@ -1,3 +1,5 @@
+import { extraCalculatorContent } from './extra-calculator-content.js';
+
 export const calculatorContent = {
   'mortgage-calculator': {
     title: 'Fixed-Rate Mortgage Payment Calculator | ClearCalc',
@@ -100,6 +102,11 @@ export const calculatorContent = {
         slug: 'loan-calculator',
         label: 'Personal and auto loan calculator',
         note: 'The same amortization formula, aimed at shorter installment loans.'
+      },
+      {
+        slug: 'rent-affordability-calculator',
+        label: 'Rent affordability calculator',
+        note: 'Compares monthly rent with 30% of gross income. It does not estimate a mortgage payment.'
       }
     ]
   },
@@ -1190,7 +1197,7 @@ export const calculatorContent = {
     },
     limitsHeading: 'What this take-home estimate leaves out',
     limits: [
-      'Scotland is not covered. Scottish income tax bands for 2026/27 are different, including a 19% starter rate and a 48% top rate, and a tax code that starts with S is a sign you need those bands. This page also ignores Marriage Allowance, Blind Person\'s Allowance, and any K code, BR code, 0T code, or week 1 or month 1 emergency code. The working assumption is a cumulative 1257L code in England or Northern Ireland, or C1257L in Wales, with no other adjustments.',
+      'Scotland is not covered on this page. Scottish income tax bands for 2026/27 are different, including a 19% starter rate and a 48% top rate, and a tax code that starts with S is a sign you need those bands. The Scotland take-home pay calculator on this site applies that rate resolution. This page also ignores Marriage Allowance, Blind Person\'s Allowance, and any K code, BR code, 0T code, or week 1 or month 1 emergency code. The working assumption is a cumulative 1257L code in England or Northern Ireland, or C1257L in Wales, with no other adjustments.',
       'Payroll does not always reproduce an annual calculation divided by 12. HMRC\'s monthly personal allowance and monthly primary threshold are each £1,048, and twelve times £1,048 is £12,576, which is £6 more than the annual £12,570. On a flat £35,000 salary that £6 is £1.20 of basic-rate tax. The same flat salary measured against the monthly National Insurance thresholds comes to £1,793.92 of employee National Insurance for the year, against £1,794.40 here. A bonus, a new starter, or a tax code that is not cumulative can move a payslip by much more than that. Directors\' National Insurance can be assessed on an annual earnings period, which is closer to this page, but the director rules are still not modelled.',
       'Workplace pension contributions are not deducted. Under salary sacrifice, enter the salary after the sacrifice, because that is the pay tax and National Insurance see. Under a net pay arrangement the contribution reduces taxable pay but not National Insurance, which this single salary field cannot split. Under relief at source, tax and National Insurance are worked out on the full gross salary and the contribution is taken from after-tax pay, with basic-rate relief added inside the pension rather than returned in your take-home. Type the full gross salary for that last case and then subtract the contribution you actually pay.',
       'Student loan and postgraduate loan deductions are not subtracted. For 2026/27 HMRC\'s employer thresholds are £26,900 for Plan 1, £29,385 for Plan 2, £33,795 for Plan 4, and £25,000 for Plan 5, each at 9% of earnings above the threshold, and £21,000 for a postgraduate loan at 6%. Benefits in kind, statutory payments, bonuses, commission, and a second job are not added. Employer National Insurance, which for category A is 15% above the £5,000 secondary threshold, is an employer cost and is not taken off this take-home figure.'
@@ -1199,7 +1206,7 @@ export const calculatorContent = {
     faqs: [
       {
         q: 'Does this 2026/27 take-home calculator work in Scotland?',
-        a: 'No. It uses the England, Wales, and Northern Ireland bands only: 20% on taxable income up to £37,700, 40% up to £125,140 of taxable income, and 45% above that, after the £12,570 personal allowance and its taper. Scottish income tax rates are different. National Insurance is not devolved, but the income tax part of this page would be wrong for a Scottish taxpayer.'
+        a: 'No. It uses the England, Wales, and Northern Ireland bands only: 20% on taxable income up to £37,700, 40% up to £125,140 of taxable income, and 45% above that, after the £12,570 personal allowance and its taper. Scottish income tax rates are different. National Insurance is not devolved, and the Scotland take-home pay calculator uses the same category A National Insurance with the 2026/27 Scottish bands.'
       },
       {
         q: 'Why does a salary of £100,001 still get the full £12,570 allowance?',
@@ -1224,6 +1231,11 @@ export const calculatorContent = {
     ],
     relatedLinks: [
       {
+        slug: 'scotland-take-home-pay-calculator',
+        label: 'Scotland take-home pay calculator for 2026/27',
+        note: 'Same National Insurance, with the Scottish income tax bands instead of these ones.'
+      },
+      {
         slug: 'loan-calculator',
         label: 'Personal and auto loan calculator',
         note: 'Compare a fixed monthly payment with take-home pay only when both numbers are in the same currency.'
@@ -1234,7 +1246,8 @@ export const calculatorContent = {
         note: 'Principal and interest only, in US dollars, with taxes and insurance left out.'
       }
     ]
-  }
+  },
+  ...extraCalculatorContent
 };
 
 export function contentWordCount(entry) {
