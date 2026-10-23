@@ -1,34 +1,32 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { destinationOrigin, legacyRedirects, notFoundScript, redirectHtml, redirectTarget } from '../scripts/build-github-redirects.mjs';
+import { mkdir, mkdtemp, readdir, readFile, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { destinationOrigin, notFoundHtml, publishNotFoundSite } from '../scripts/build-github-redirects.mjs';
 
-test('github root stub canonical is the pages.dev homepage', () => {
-  const destination = redirectTarget('index.html');
-  assert.equal(destination, `${destinationOrigin}/`);
-  const html = redirectHtml({ title: 'Free Online Calculators | ClearCalc Tools', destination });
-  assert.match(html, /<meta name="robots" content="noindex,follow">/);
-  assert.match(html, /<link rel="canonical" href="https:\/\/clearcalc-tools\.pages\.dev\/">/);
-  assert.match(html, /<meta http-equiv="refresh" content="0;url=https:\/\/clearcalc-tools\.pages\.dev\/">/);
-  assert.match(html, /location\.replace\("https:\/\/clearcalc-tools\.pages\.dev\/" \+ location\.search \+ location\.hash\)/);
+test('github pages 404 is noindex and links to the real site', () => {
+  assert.equal(destinationOrigin, 'https://clearcalc-tools.pages.dev');
+  const html = notFoundHtml();
+  assert.match(html, /<meta name="robots" content="noindex">/);
+  assert.equal(html.includes('noindex,follow'), false);
+  assert.match(html, /<a href="https:\/\/clearcalc-tools\.pages\.dev\/">https:\/\/clearcalc-tools\.pages\.dev\/<\/a>/);
+  assert.equal(html.includes('canonical'), false);
+  assert.equal(html.includes('http-equiv'), false);
+  assert.equal(html.includes('location.replace'), false);
+  assert.equal(html.includes('index.html'), false);
 });
 
-test('github calculator stubs keep the pages.dev path', () => {
-  assert.equal(
-    redirectTarget('calculators/bmi-calculator/index.html'),
-    'https://clearcalc-tools.pages.dev/calculators/bmi-calculator/'
-  );
-  assert.equal(redirectTarget('about/index.html'), 'https://clearcalc-tools.pages.dev/about/');
-});
+test('github pages publish directory contains only 404.html', async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'gh-pages-'));
+  await writeFile(path.join(directory, 'index.html'), '<p>old home</p>');
+  await writeFile(path.join(directory, 'robots.txt'), 'User-agent: *\nAllow: /\n');
+  await writeFile(path.join(directory, 'sitemap.xml'), '<urlset></urlset>');
+  await mkdir(path.join(directory, 'calculators', 'bmi-calculator'), { recursive: true });
+  await writeFile(path.join(directory, 'calculators', 'bmi-calculator', 'index.html'), '<p>old calculator</p>');
 
-test('github 404 stub sends unknown paths to the same pages.dev path', () => {
-  assert.equal(redirectTarget('404.html'), `${destinationOrigin}/`);
-  const html = redirectHtml({ title: 'Page not found', destination: redirectTarget('404.html'), bodyScript: notFoundScript() });
-  assert.match(html, /rel="canonical" href="https:\/\/clearcalc-tools\.pages\.dev\/"/);
-  assert.match(html, /var base="\/clearcalc-tools"/);
-  assert.match(html, /location\.pathname/);
-});
+  await publishNotFoundSite(directory);
 
-test('legacy length URL on GitHub Pages points at the length converter', () => {
-  assert.equal(legacyRedirects[0].relative, 'calculators/unit-converter/index.html');
-  assert.equal(legacyRedirects[0].destination, 'https://clearcalc-tools.pages.dev/calculators/length-converter/');
+  assert.deepEqual(await readdir(directory), ['404.html']);
+  assert.equal(await readFile(path.join(directory, '404.html'), 'utf8'), notFoundHtml());
 });
