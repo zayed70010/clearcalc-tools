@@ -1,5 +1,37 @@
 const money = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(value);
+const gbp = (pence) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(pence / 100);
 const number = (value, digits = 2) => new Intl.NumberFormat('en-US', { maximumFractionDigits: digits }).format(value);
+
+// 2026/27 England, Wales, and Northern Ireland. Annual thresholds from HMRC
+// "Rates and thresholds for employers 2026 to 2027". Allowance taper from
+// Income Tax Act 2007, section 35: half the excess over £100,000, remainder
+// rounded up to a whole pound, and never below zero.
+const UK_PA_PENCE = 1_257_000;
+const UK_TAPER_START_PENCE = 10_000_000;
+const UK_BASIC_BAND_PENCE = 3_770_000;
+const UK_HIGHER_TOP_PENCE = 12_514_000;
+const UK_NI_UEL_PENCE = 5_027_000;
+
+function ukPersonalAllowancePence(salaryPence) {
+  if (salaryPence <= UK_TAPER_START_PENCE) return UK_PA_PENCE;
+  const excess = salaryPence - UK_TAPER_START_PENCE;
+  const remainingHalfPence = UK_PA_PENCE * 2 - excess;
+  if (remainingHalfPence <= 0) return 0;
+  return Math.min(UK_PA_PENCE, Math.ceil(remainingHalfPence / 200) * 100);
+}
+
+function ukIncomeTaxPence(taxablePence) {
+  const basic = Math.min(taxablePence, UK_BASIC_BAND_PENCE);
+  const higher = Math.min(Math.max(taxablePence - UK_BASIC_BAND_PENCE, 0), UK_HIGHER_TOP_PENCE - UK_BASIC_BAND_PENCE);
+  const additional = Math.max(taxablePence - UK_HIGHER_TOP_PENCE, 0);
+  return Math.round((basic * 20 + higher * 40 + additional * 45) / 100);
+}
+
+function ukEmployeeNiPence(salaryPence) {
+  const main = Math.min(Math.max(salaryPence - UK_PA_PENCE, 0), UK_NI_UEL_PENCE - UK_PA_PENCE);
+  const upper = Math.max(salaryPence - UK_NI_UEL_PENCE, 0);
+  return Math.round((main * 8 + upper * 2) / 100);
+}
 
 export function calculate(slug, values) {
   const v = Object.fromEntries(Object.entries(values).map(([key, val]) => [key, key.includes('date') ? val : Number(val)]));
@@ -56,6 +88,24 @@ export function calculate(slug, values) {
   if (slug === 'discount-calculator') {
     const saved = v.price * v.discount / 100;
     return { headline: money(v.price - saved), details: [`You save ${money(saved)}.`] };
+  }
+  if (slug === 'uk-take-home-pay-calculator') {
+    if (!Number.isFinite(v.salary) || v.salary < 0) throw new Error('Enter a salary of zero or more');
+    const salaryPence = Math.round(v.salary * 100);
+    const allowance = ukPersonalAllowancePence(salaryPence);
+    const tax = ukIncomeTaxPence(Math.max(salaryPence - allowance, 0));
+    const ni = ukEmployeeNiPence(salaryPence);
+    const takeHome = salaryPence - tax - ni;
+    return {
+      headline: `${gbp(Math.round(takeHome / 12))} / month`,
+      details: [
+        `Income tax: ${gbp(tax)}`,
+        `Employee National Insurance: ${gbp(ni)}`,
+        `Annual take-home: ${gbp(takeHome)}`,
+        `Weekly take-home: ${gbp(Math.round(takeHome / 52))}`,
+        `Personal allowance applied: ${gbp(allowance)}`
+      ]
+    };
   }
   throw new Error('Unsupported calculator');
 }

@@ -64,7 +64,8 @@ export const calculatorContent = {
     limits: [
       'A real monthly housing payment often adds one-twelfth of the annual property tax and homeowners insurance, and sometimes mortgage insurance. Those amounts depend on the house, the down payment, and the insurer. Adding a round number yourself is more honest than hiding an assumed tax rate inside the formula.',
       'The form also ignores discount points, origination fees, extra principal payments, biweekly schedules, interest-only periods, balloons, and adjustable rates. Paying extra principal would shorten the loan and reduce interest, but you would need an amortization schedule to see the new payoff date. This page cannot produce that schedule.',
-      'Lenders may round the payment to the cent using their own rule, so a quote can differ by a few cents from the figure here even when the rate, amount, and term match. Use a matching quote as a check, not as proof that either number is the contract payment.'
+      'Lenders may round the payment to the cent using their own rule, so a quote can differ by a few cents from the figure here even when the rate, amount, and term match. Use a matching quote as a check, not as proof that either number is the contract payment.',
+      'A payment in dollars also says nothing about tax taken out of a salary. If the income you would use to cover housing is taxed in England, Wales, or Northern Ireland, estimate that 2026/27 take-home pay separately and keep the currencies apart. This mortgage form does not convert pounds to dollars.'
     ],
     disclaimer: 'This mortgage calculator is general information, not a loan offer, a Loan Estimate, or financial advice. Confirm the rate, term, and cash due at closing with the lender.',
     faqs: [
@@ -88,6 +89,18 @@ export const calculatorContent = {
         q: 'Will this match a lender Loan Estimate?',
         a: 'Only the principal-and-interest line can be close, and only when the amount, note rate, and term match and the loan is a standard fixed monthly payment. A Loan Estimate also includes fees, escrow, and prepaid items that this calculator never sees.'
       }
+    ],
+    relatedLinks: [
+      {
+        slug: 'uk-take-home-pay-calculator',
+        label: '2026/27 take-home pay calculator for England, Wales and Northern Ireland',
+        note: 'Use it for the income side when the salary is taxed there. Do not subtract a sterling result from this dollar payment.'
+      },
+      {
+        slug: 'loan-calculator',
+        label: 'Personal and auto loan calculator',
+        note: 'The same amortization formula, aimed at shorter installment loans.'
+      }
     ]
   },
   'loan-calculator': {
@@ -108,7 +121,8 @@ export const calculatorContent = {
     howItWorks: [
       'The annual rate is divided by 100 and then by 12 to get the monthly rate. The term in years is multiplied by 12 to get the number of payments. Those values go into the standard amortizing-payment formula. Interest each month is the monthly rate times the remaining balance, and the rest of the payment reduces principal.',
       'A longer term lowers the payment and raises the interest you pay if the rate stays the same. A shorter term does the opposite. The calculator does not know whether the rate is a dealer rate, a credit-union rate, or a rate that required you to buy add-on products. It only amortizes the numbers you type.',
-      'A zero rate is allowed. The payment becomes the principal divided by the number of months, and interest is zero. That is the right model for a true 0% promotional installment plan. It is the wrong model for a credit card, which charges interest on a revolving balance and lets the payment change.'
+      'A zero rate is allowed. The payment becomes the principal divided by the number of months, and interest is zero. That is the right model for a true 0% promotional installment plan. It is the wrong model for a credit card, which charges interest on a revolving balance and lets the payment change.',
+      'Whether the payment fits a budget is a second sum this form does not do. Divide the monthly payment by monthly take-home pay, not by gross salary. Gross pay still includes tax. On the sample loan the payment is $500.95. If monthly take-home is $3,200, the share is 500.95 / 3,200 = 0.156546875, which is 15.65% to two decimal places. Against a $4,000 gross month the same payment is only 12.52%, and that smaller share is the wrong check because the tax has not been removed. For a salary taxed in England, Wales, or Northern Ireland, the 2026/27 take-home page estimates income tax and employee National Insurance in pounds. Compare a pound payment with a pound take-home. Do not subtract this dollar result from that sterling figure.'
     ],
     formula: 'Monthly rate r = annual percent / 100 / 12\nPayments n = years × 12\nIf r = 0: payment M = principal / n\nOtherwise: M = principal × r × (1 + r)^n / ((1 + r)^n − 1)\nTotal repayment = M × n\nTotal interest = total repayment − principal',
     formulaNotes: [
@@ -177,6 +191,22 @@ export const calculatorContent = {
       {
         q: 'Are the payments assumed to be monthly?',
         a: 'Yes. The term in years is multiplied by 12, and the annual rate is divided by 12. A weekly payment plan needs a different period count and a weekly rate. Do not enter a number of weeks in the years field.'
+      },
+      {
+        q: 'How do I compare this payment with take-home pay?',
+        a: 'Divide the monthly payment by the monthly cash you receive after tax. The sample payment of $500.95 is 15.65% of a $3,200 take-home, because 500.95 / 3,200 × 100 = 15.6546875, which rounds to 15.65. It is a smaller percent of gross pay, and that comparison skips the tax. This loan form is in US dollars. A 2026/27 salary in England, Wales, or Northern Ireland can be turned into monthly take-home on the take-home pay calculator, then compared only with a payment that is also in pounds.'
+      }
+    ],
+    relatedLinks: [
+      {
+        slug: 'uk-take-home-pay-calculator',
+        label: '2026/27 take-home pay calculator for England, Wales and Northern Ireland',
+        note: 'Estimates income tax and employee Class 1 National Insurance on an annual salary for that tax year.'
+      },
+      {
+        slug: 'percentage-calculator',
+        label: 'Percentage calculator',
+        note: 'Enter the monthly payment as the part and monthly take-home as the whole if you want the same ratio as a percent.'
       }
     ]
   },
@@ -1089,6 +1119,119 @@ export const calculatorContent = {
       {
         q: 'Why might the savings and the sale price look a cent apart from the original?',
         a: 'Each amount is rounded to the cent on its own. Fifteen percent of $79.99 is 11.9985, shown as a $12.00 savings, and the sale price is shown as $67.99. Check a one-cent gap against that rounding before assuming the percent was wrong.'
+      }
+    ]
+  },
+  'uk-take-home-pay-calculator': {
+    title: 'Take-Home Pay Calculator 2026/27 for England, Wales and Northern Ireland | ClearCalc',
+    h1: 'Take-Home Pay Calculator for England, Wales and Northern Ireland (2026/27)',
+    description: 'Estimate 2026/27 take-home pay in England, Wales and Northern Ireland after income tax and employee National Insurance, with monthly and annual results.',
+    intro: [
+      'This take-home pay calculator estimates what an employee in England, Wales, or Northern Ireland keeps from an annual salary in the 2026/27 tax year, 6 April 2026 to 5 April 2027. It subtracts income tax and employee Class 1 National Insurance, then divides the annual result by 12 for a monthly figure and by 52 for a weekly figure. The sample salary is £35,000.',
+      'The salary you type is treated as your only income and as the whole of your adjusted net income. The personal allowance is the standard £12,570, reduced only by the statutory taper above £100,000. National Insurance is category A, the letter most employees have. Pension contributions, student loans, and any other tax code are left out on purpose so the tax and National Insurance lines stay traceable.'
+    ],
+    steps: [
+      'Enter annual gross salary in pounds. Use 35000 for £35,000, not 35.',
+      'Use cash salary before income tax and employee National Insurance. Read the limits section before entering a figure that has already been reduced for a pension.',
+      'Press Calculate. The headline is annual take-home divided by 12, rounded to the penny.',
+      'Read income tax, employee National Insurance, annual take-home, weekly take-home, and the personal allowance the formula applied.'
+    ],
+    howHeading: 'How 2026/27 income tax and employee National Insurance are worked out',
+    howItWorks: [
+      'HMRC\'s rates and thresholds for employers for 2026 to 2027 set the same income tax bands for England, Northern Ireland, and Wales. Welsh rates of income tax are 10p in each band for 2026/27, which keeps the totals at 20%, 40%, and 45%. The standard personal allowance is £12,570. Taxable income is salary minus that allowance. The first £37,700 of taxable income is taxed at 20%. Taxable income above £37,700 and up to £125,140 is taxed at 40%. Taxable income above £125,140 is taxed at 45%.',
+      'Above £100,000 of adjusted net income, Income Tax Act 2007 section 35 cuts the personal allowance by half of the excess. If the allowance left after that cut is not a whole number of pounds, it is rounded up to the next pound, and it cannot fall below zero. Half of £2 is £1, so £100,002 of income leaves an allowance of £12,569. Half of £1 is £0.50, so £100,001 leaves £12,569.50, which rounds back up to the full £12,570. The allowance is gone at £125,140, because half of the £25,140 excess is exactly £12,570.',
+      'Employee Class 1 National Insurance for category A is 0% up to the annual primary threshold of £12,570, 8% on earnings above £12,570 up to and including the upper earnings limit of £50,270, and 2% above £50,270. Those annual thresholds are the ones HMRC publishes beside the weekly figures of £242 and £967 and the monthly figures of £1,048 and £4,189. This page uses the annual pair, because the input is an annual salary.',
+      'Each of income tax and National Insurance is rounded to the nearest penny. Take-home is salary minus those two rounded amounts, so the three lines add back to the salary. Monthly and weekly figures are that annual take-home divided by 12 and by 52, each rounded to the nearest penny on its own. Where the division does not land on a penny, twelve times the displayed month can miss the annual total by a few pence.'
+    ],
+    formula: 'Tax year 6 April 2026 to 5 April 2027. England, Wales, and Northern Ireland.\nPersonal allowance = £12,570\nIf salary > £100,000: allowance = £12,570 − (salary − £100,000) / 2, rounded up to a whole pound, and not below £0\nTaxable income = max(0, salary − allowance)\nIncome tax = 20% × taxable income up to £37,700\n  + 40% × taxable income from £37,700 to £125,140\n  + 45% × taxable income above £125,140\nEmployee NI (category A) = 8% × earnings above £12,570 up to £50,270\n  + 2% × earnings above £50,270\nAnnual take-home = salary − income tax − employee NI\nMonthly = annual take-home / 12\nWeekly = annual take-home / 52',
+    formulaNotes: [
+      'The higher-rate slice starts after £37,700 of taxable income, which is a gross salary of £50,270 when the full £12,570 allowance is still in place. The additional rate starts after £125,140 of taxable income. Once the allowance has tapered to zero, that threshold and a gross salary of £125,140 are the same number. A simplified band chart that quotes "additional rate over £125,140" as if the £12,570 allowance still existed at that income does not match the way the allowance actually works.',
+      'National Insurance uses the annual primary threshold and upper earnings limit, not a weekly payroll run. Earnings of exactly £12,570 pay no employee National Insurance. Earnings of exactly £50,270 pay 8% on the band above £12,570 and nothing at 2%. The next pound is in the 2% band.',
+      'The salary is what both the allowance taper and National Insurance see. Adjusted net income in the statute can be lower than salary once pension contributions and Gift Aid are taken into account, and it can be higher once other taxable income is added. This form has no fields for those amounts.'
+    ],
+    examplesHeading: 'Worked 2026/27 take-home examples',
+    examples: [
+      {
+        title: '£35,000 salary',
+        paragraphs: [
+          'The allowance is the full £12,570 because £35,000 is under £100,000. Taxable income is £22,430, all inside the 20% band, so income tax is £4,486.00. Employee National Insurance is 8% of the same £22,430, which is £1,794.40. Nothing is charged at 2% because the salary is under the £50,270 upper earnings limit.',
+          'Annual take-home is £35,000 − £4,486.00 − £1,794.40 = £28,719.60. Divided by 12 that is exactly £2,393.30, which is the headline. Divided by 52 it is exactly £552.30. The two deductions together are £6,280.40, or 17.944% of the salary, so 82.056% remains. Those percentages are a description of this example, not a separate tax rate.'
+        ]
+      },
+      {
+        title: '£60,000, across the higher rate and the upper earnings limit',
+        paragraphs: [
+          'The allowance is still £12,570. Taxable income is £47,430. The first £37,700 is taxed at 20%, which is £7,540.00. The other £9,730 is taxed at 40%, which is £3,892.00. Income tax is £11,432.00.',
+          'National Insurance is 8% of the £37,700 between £12,570 and £50,270, which is £3,016.00, plus 2% of the £9,730 above £50,270, which is £194.60. Employee National Insurance is £3,210.60. Annual take-home is £45,357.40. Divided by 12 that is £3,779.7833…, shown as £3,779.78 a month. Twelve times the displayed month is £45,357.36, four pence under the annual figure, because the month was rounded on its own. Weekly take-home displays as £872.26.'
+        ]
+      },
+      {
+        title: '£110,000 inside the personal-allowance taper',
+        paragraphs: [
+          'The excess over £100,000 is £10,000, so the allowance falls by £5,000, from £12,570 to £7,570. Taxable income is £102,430. Income tax is £7,540.00 at 20% on £37,700 plus £25,892.00 at 40% on the remaining £64,730, which is £33,432.00. Compared with £100,000, where income tax is £27,432.00, the extra £10,000 of salary created £6,000 of income tax. That is a 60% income-tax marginal rate: 40% on the extra salary itself, plus 40% on the £1 of allowance lost for each £2 of extra salary.',
+          'Employee National Insurance at this level is all in the 2% band on the slice above £50,270, and the calculator shows £4,210.60. The National Insurance on the same extra £10,000 is £200, so income tax and National Insurance together take £6,200 of that £10,000, which is 62%. Annual take-home is £72,357.40, the monthly headline is £6,029.78, and the personal allowance line reads £7,570.00. A salary of £100,001 still shows the full £12,570 allowance because of the round-up rule. £100,002 shows £12,569.00.'
+        ]
+      }
+    ],
+    table: {
+      heading: '2026/27 take-home at published annual thresholds',
+      caption: 'Each row is what this calculator displays for that annual salary. Income tax and employee National Insurance use the 2026/27 annual thresholds for England, Wales, and Northern Ireland, category A. Pension, student loan, and other income are not deducted. Monthly figures are the annual take-home divided by 12 and rounded to the penny.',
+      headers: ['Salary', 'Personal allowance', 'Income tax', 'Employee NI', 'Annual take-home', 'Monthly take-home'],
+      rows: [
+        ['£20,000', '£12,570.00', '£1,486.00', '£594.40', '£17,919.60', '£1,493.30'],
+        ['£35,000', '£12,570.00', '£4,486.00', '£1,794.40', '£28,719.60', '£2,393.30'],
+        ['£50,270', '£12,570.00', '£7,540.00', '£3,016.00', '£39,714.00', '£3,309.50'],
+        ['£60,000', '£12,570.00', '£11,432.00', '£3,210.60', '£45,357.40', '£3,779.78'],
+        ['£100,000', '£12,570.00', '£27,432.00', '£4,010.60', '£68,557.40', '£5,713.12'],
+        ['£110,000', '£7,570.00', '£33,432.00', '£4,210.60', '£72,357.40', '£6,029.78'],
+        ['£125,140', '£0.00', '£42,516.00', '£4,513.40', '£78,110.60', '£6,509.22'],
+        ['£150,000', '£0.00', '£53,703.00', '£5,010.60', '£91,286.40', '£7,607.20']
+      ]
+    },
+    limitsHeading: 'What this take-home estimate leaves out',
+    limits: [
+      'Scotland is not covered. Scottish income tax bands for 2026/27 are different, including a 19% starter rate and a 48% top rate, and a tax code that starts with S is a sign you need those bands. This page also ignores Marriage Allowance, Blind Person\'s Allowance, and any K code, BR code, 0T code, or week 1 or month 1 emergency code. The working assumption is a cumulative 1257L code in England or Northern Ireland, or C1257L in Wales, with no other adjustments.',
+      'Payroll does not always reproduce an annual calculation divided by 12. HMRC\'s monthly personal allowance and monthly primary threshold are each £1,048, and twelve times £1,048 is £12,576, which is £6 more than the annual £12,570. On a flat £35,000 salary that £6 is £1.20 of basic-rate tax. The same flat salary measured against the monthly National Insurance thresholds comes to £1,793.92 of employee National Insurance for the year, against £1,794.40 here. A bonus, a new starter, or a tax code that is not cumulative can move a payslip by much more than that. Directors\' National Insurance can be assessed on an annual earnings period, which is closer to this page, but the director rules are still not modelled.',
+      'Workplace pension contributions are not deducted. Under salary sacrifice, enter the salary after the sacrifice, because that is the pay tax and National Insurance see. Under a net pay arrangement the contribution reduces taxable pay but not National Insurance, which this single salary field cannot split. Under relief at source, tax and National Insurance are worked out on the full gross salary and the contribution is taken from after-tax pay, with basic-rate relief added inside the pension rather than returned in your take-home. Type the full gross salary for that last case and then subtract the contribution you actually pay.',
+      'Student loan and postgraduate loan deductions are not subtracted. For 2026/27 HMRC\'s employer thresholds are £26,900 for Plan 1, £29,385 for Plan 2, £33,795 for Plan 4, and £25,000 for Plan 5, each at 9% of earnings above the threshold, and £21,000 for a postgraduate loan at 6%. Benefits in kind, statutory payments, bonuses, commission, and a second job are not added. Employer National Insurance, which for category A is 15% above the £5,000 secondary threshold, is an employer cost and is not taken off this take-home figure.'
+    ],
+    disclaimer: 'This is a planning estimate for the 2026/27 tax year in England, Wales, and Northern Ireland, not a payslip, a tax code, or tax advice. HMRC and your employer assess the amount you owe.',
+    faqs: [
+      {
+        q: 'Does this 2026/27 take-home calculator work in Scotland?',
+        a: 'No. It uses the England, Wales, and Northern Ireland bands only: 20% on taxable income up to £37,700, 40% up to £125,140 of taxable income, and 45% above that, after the £12,570 personal allowance and its taper. Scottish income tax rates are different. National Insurance is not devolved, but the income tax part of this page would be wrong for a Scottish taxpayer.'
+      },
+      {
+        q: 'Why does a salary of £100,001 still get the full £12,570 allowance?',
+        a: 'The allowance falls by half the income above £100,000, and if the result is not a whole number of pounds it is rounded up. Half of £1 is 50p, so £12,570 minus 50p rounds back up to £12,570. At £100,002 the reduction is a full £1 and the allowance applied is £12,569. The calculator shows those two allowance lines if you enter those salaries.'
+      },
+      {
+        q: 'Why might my monthly payslip not match the headline?',
+        a: 'The headline is the annual take-home divided by 12. Payroll usually applies monthly thresholds, a tax code, and its own rounding, and it can include a pension or student loan that this page never sees. On a flat £35,000 with no other deductions, the monthly thresholds alone are only about £1.20 of tax and £0.48 of National Insurance away from these annual figures across a full year. A bonus or a non-cumulative code can open a much wider gap.'
+      },
+      {
+        q: 'Are pension contributions or student loans included?',
+        a: 'No. The result is salary minus income tax minus category A employee National Insurance. Plan 1, Plan 2, Plan 4, Plan 5, and postgraduate loan repayments are not deducted. For salary sacrifice, enter the salary after the amount given up. For relief at source, enter the full gross salary and subtract the contribution yourself.'
+      },
+      {
+        q: 'Is employer National Insurance deducted from take-home pay?',
+        a: 'No. Employer Class 1 National Insurance is paid by the employer. For category A in 2026/27 the employer rate is 15% above the £5,000 secondary threshold. It does not reduce the employee figure on this page. The employee rates used here are 8% and 2%.'
+      },
+      {
+        q: 'What if my tax code is not 1257L or C1257L?',
+        a: 'The personal allowance in the formula will not match your code. 1257L and the Welsh C1257L both point at the standard £12,570 allowance. A code that transfers Marriage Allowance, adds Blind Person\'s Allowance, collects a previous underpayment, or uses a K prefix changes the tax, and sometimes which band you sit in. Use the allowance printed on your coding notice instead of trusting this result.'
+      }
+    ],
+    relatedLinks: [
+      {
+        slug: 'loan-calculator',
+        label: 'Personal and auto loan calculator',
+        note: 'Compare a fixed monthly payment with take-home pay only when both numbers are in the same currency.'
+      },
+      {
+        slug: 'mortgage-calculator',
+        label: 'Fixed-rate mortgage calculator',
+        note: 'Principal and interest only, in US dollars, with taxes and insurance left out.'
       }
     ]
   }
