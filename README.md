@@ -11,4 +11,4 @@ The live site is [https://clearcalc-tools.pages.dev/](https://clearcalc-tools.pa
 - `npm test`
 - `npm run build`
 
-Calculator inputs are processed locally in the visitor's browser. Cloudflare Pages serves the public site. The GitHub Pages copy only publishes noindex redirects to that site.
+Calculator inputs are processed locally in the visitor's browser. Cloudflare Pages serves the public site. The GitHub Pages copy publishes only a noindex 404 page.

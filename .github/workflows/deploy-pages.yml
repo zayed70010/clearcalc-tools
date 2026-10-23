@@ -26,11 +26,18 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
-      - name: Replace the legacy GitHub Pages site with redirects
+      - name: Build a 404-only GitHub Pages site
         run: node scripts/build-github-redirects.mjs
+      - name: Reject any Pages artifact besides 404.html
+        run: |
+          mapfile -t files < <(find github-pages -type f | sort)
+          test "${#files[@]}" -eq 1
+          test "${files[0]}" = "github-pages/404.html"
+          grep -q '<meta name="robots" content="noindex">' github-pages/404.html
+          grep -q 'https://clearcalc-tools.pages.dev/' github-pages/404.html
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: dist
+          path: github-pages
   deploy:
     environment:
       name: github-pages
