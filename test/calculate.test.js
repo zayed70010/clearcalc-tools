@@ -215,6 +215,117 @@ test('rent, hourly, overtime, and 2026 401(k) calculators', () => {
   assert.equal(catchUp.details[5], 'Annual additions, excluding catch-up: $30,500.00');
 });
 
+test('2026 Washington paycheck includes Paid Leave and WA Cares', () => {
+  assert.deepEqual(calculate('washington-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0, cover: 1 }), {
+    headline: '$2,057.92 / two weeks',
+    details: [
+      'Federal income tax: $5,620.00',
+      'Social Security: $4,030.00',
+      'Medicare: $942.50',
+      'Additional Medicare Tax: $0.00',
+      'Washington income tax: $0.00',
+      'Paid Leave employee premium: $524.65',
+      'WA Cares: $377.00',
+      '401(k) deferred: $0.00',
+      'Annual take-home: $53,505.85',
+      'Standard deduction applied: $16,100.00',
+      'Filing status: single',
+      'Employee premiums withheld: Paid Leave and WA Cares. The employer share of Paid Leave is not deducted.'
+    ]
+  });
+  const employerPaid = calculate('washington-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0, cover: 3 });
+  assert.equal(employerPaid.headline, '$2,092.60 / two weeks');
+  assert.equal(employerPaid.details[5], 'Paid Leave employee premium: $0.00');
+  assert.equal(employerPaid.details[6], 'WA Cares: $0.00');
+  const capped = calculate('washington-paycheck-calculator', { salary: 210000, status: 1, periods: 26, deferral: 0, cover: 1 });
+  assert.equal(capped.details[5], 'Paid Leave employee premium: $1,489.21');
+  assert.equal(capped.details[6], 'WA Cares: $1,218.00');
+  assert.throws(() => calculate('washington-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0, cover: 9 }), /premiums/);
+});
+
+test('2026 British Columbia take-home pay', () => {
+  assert.deepEqual(calculate('british-columbia-take-home-pay-calculator', { salary: 70000 }), {
+    headline: '$4,529.01 / month',
+    details: [
+      'Federal income tax: $7,278.19',
+      'British Columbia income tax: $3,293.84',
+      'B.C. tax reduction included: $0.00',
+      'Employee CPP, including CPP2: $3,956.75',
+      'Employee EI: $1,123.07',
+      'Annual take-home: $54,348.15',
+      'Every two weeks: $2,090.31',
+      'Federal basic personal amount applied: $16,452.00',
+      'B.C. basic personal amount applied: $13,216.00'
+    ]
+  });
+  const reduced = calculate('british-columbia-take-home-pay-calculator', { salary: 30000 });
+  assert.equal(reduced.details[1], 'British Columbia income tax: $282.49');
+  assert.equal(reduced.details[2], 'B.C. tax reduction included: $541.73');
+  const edge = calculate('british-columbia-take-home-pay-calculator', { salary: 45000 });
+  assert.equal(edge.details[2], 'B.C. tax reduction included: $13.07');
+  assert.throws(() => calculate('british-columbia-take-home-pay-calculator', { salary: -1 }), /salary/);
+});
+
+test('2026 England residential stamp duty', () => {
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 295000, buyer: 1, residence: 1 }).headline, '£4,750.00');
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 450000, buyer: 1, residence: 1 }).headline, '£12,500.00');
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 450000, buyer: 2, residence: 1 }).headline, '£7,500.00');
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 450000, buyer: 3, residence: 1 }).headline, '£35,000.00');
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 300000, buyer: 3, residence: 1 }).headline, '£20,000.00');
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 500000, buyer: 2, residence: 1 }).headline, '£10,000.00');
+  const cliff = calculate('england-stamp-duty-calculator', { price: 500001, buyer: 2, residence: 1 });
+  assert.equal(cliff.headline, '£15,000.05');
+  assert.match(cliff.details[0], /does not apply above £500,000/);
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 450000, buyer: 1, residence: 2 }).headline, '£21,500.00');
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 39999, buyer: 3, residence: 1 }).headline, '£0.00');
+  assert.throws(() => calculate('england-stamp-duty-calculator', { price: -1, buyer: 1, residence: 1 }), /price/);
+});
+
+test('final exam grade solves the weighted target', () => {
+  assert.deepEqual(calculate('final-exam-grade-calculator', { current: 86, weight: 30, target: 90 }), {
+    headline: '99.33% on the final',
+    details: [
+      'Score needed on the final: 99.33%',
+      'Course grade if the final is 0: 60.20%',
+      'Course grade if the final is 100: 90.20%',
+      'Work already completed is 70.00% of the course. The final is the other 30.00%.'
+    ]
+  });
+  assert.equal(calculate('final-exam-grade-calculator', { current: 78, weight: 40, target: 70 }).headline, '58.00% on the final');
+  assert.equal(calculate('final-exam-grade-calculator', { current: 70, weight: 50, target: 90 }).headline, 'Above a perfect final');
+  assert.equal(calculate('final-exam-grade-calculator', { current: 96, weight: 10, target: 80 }).headline, 'Target already secured');
+  assert.throws(() => calculate('final-exam-grade-calculator', { current: 80, weight: 0, target: 90 }), /weight/);
+});
+
+test('concrete slab bags round up from cubic feet', () => {
+  assert.deepEqual(calculate('concrete-slab-calculator', { length: 10, width: 10, thickness: 4, bag: 80, waste: 10 }), {
+    headline: '62 bags (80 lb)',
+    details: [
+      'Slab volume: 33.33 cubic feet (1.235 cubic yards)',
+      'Volume with 10% waste: 36.67 cubic feet (1.358 cubic yards)',
+      'Bags before rounding up: 61.11',
+      'Bags with no waste allowance, rounded up: 56',
+      'Ready-mix order, rounded up to the next 0.25 yard: 1.5 cubic yards',
+      'Each 80 lb bag is counted as 0.6 cubic feet of cured concrete.'
+    ]
+  });
+  assert.equal(calculate('concrete-slab-calculator', { length: 12, width: 24, thickness: 6, bag: 80, waste: 5 }).headline, '252 bags (80 lb)');
+  assert.equal(calculate('concrete-slab-calculator', { length: 3, width: 3, thickness: 4, bag: 80, waste: 0 }).headline, '5 bags (80 lb)');
+  assert.equal(calculate('concrete-slab-calculator', { length: 10, width: 10, thickness: 4, bag: 60, waste: 10 }).headline, '82 bags (60 lb)');
+  assert.throws(() => calculate('concrete-slab-calculator', { length: 0, width: 10, thickness: 4, bag: 80, waste: 10 }), /length/);
+});
+
+test('calorie calculator applies the selected Mifflin–St Jeor constant', () => {
+  const men = calculate('calorie-calculator', { sex: 5, age: 30, weight: 75, height: 175, activity: 1.55 });
+  assert.equal(men.headline, '2,633 calories/day');
+  assert.equal(men.details[0], 'Basal estimate before activity: 1,698.75 calories');
+  assert.match(men.details[1], /men \(\+5\)/);
+  const women = calculate('calorie-calculator', { sex: -161, age: 30, weight: 75, height: 175, activity: 1.55 });
+  assert.equal(women.headline, '2,376 calories/day');
+  assert.equal(women.details[0], 'Basal estimate before activity: 1,532.75 calories');
+  assert.throws(() => calculate('calorie-calculator', { sex: 0, age: 30, weight: 75, height: 175, activity: 1.55 }), /constant/);
+});
+
 test('age uses calendar borrowing and singular units', () => {
   assert.deepEqual(calculate('age-calculator', { birthdate: '1990-01-15', targetdate: '2026-10-22' }), {
     headline: '36 years',

@@ -182,6 +182,15 @@ function usPaycheck(values, stateName) {
   let stateTax = 0;
   let sdi = 0;
   let behavioralHealth = 0;
+  let paidLeave = 0;
+  let waCares = 0;
+  if (stateName === 'Washington') {
+    const cover = Number(values.cover);
+    if (![1, 2, 3].includes(cover)) throw new Error('Choose which employee premiums are withheld');
+    const pfmlWages = Math.min(salary, US_SS_WAGE_BASE_CENTS);
+    if (cover === 1) paidLeave = Math.round(pfmlWages * 113 * 7143 / 100000000);
+    if (cover === 1 || cover === 2) waCares = Math.round(salary * 58 / 10000);
+  }
   if (stateName === 'California') {
     const caTaxable = Math.max(0, salary - deferral - CA_STANDARD_DEDUCTION[status]);
     const beforeCredit = bracketTaxCents(caTaxable, status === 1 ? CA_SINGLE_BRACKETS : CA_JOINT_BRACKETS);
@@ -190,7 +199,7 @@ function usPaycheck(values, stateName) {
     stateTax += behavioralHealth;
     sdi = Math.round(salary * 130 / 10000);
   }
-  const takeHome = salary - federal - socialSecurity - medicare - additionalMedicare - stateTax - sdi - deferral;
+  const takeHome = salary - federal - socialSecurity - medicare - additionalMedicare - stateTax - sdi - deferral - paidLeave - waCares;
   const details = [
     `Federal income tax: ${usdCents(federal)}`,
     `Social Security: ${usdCents(socialSecurity)}`,
@@ -198,6 +207,10 @@ function usPaycheck(values, stateName) {
     `Additional Medicare Tax: ${usdCents(additionalMedicare)}`,
     `${stateName} income tax: ${usdCents(stateTax)}`
   ];
+  if (stateName === 'Washington') {
+    details.push(`Paid Leave employee premium: ${usdCents(paidLeave)}`);
+    details.push(`WA Cares: ${usdCents(waCares)}`);
+  }
   if (stateName === 'California') details.push(`California SDI: ${usdCents(sdi)}`);
   if (behavioralHealth > 0) details.push(`Behavioral Health Services Tax included in California income tax: ${usdCents(behavioralHealth)}`);
   details.push(
@@ -208,6 +221,14 @@ function usPaycheck(values, stateName) {
       ? 'Filing status: single'
       : 'Filing status: married filing jointly, with this salary as the only income on the return'
   );
+  if (stateName === 'Washington') {
+    const cover = Number(values.cover);
+    details.push(cover === 1
+      ? 'Employee premiums withheld: Paid Leave and WA Cares. The employer share of Paid Leave is not deducted.'
+      : cover === 2
+        ? 'Employee premiums withheld: WA Cares only. Paid Leave is treated as paid by the employer and is not deducted.'
+        : 'Employee premiums withheld: neither. Paid Leave and WA Cares are treated as paid by the employer and are not deducted.');
+  }
   if (requestedDeferral > deferral) {
     details.push(`401(k) entered above the 2026 elective deferral limit or above wages was reduced to ${usdCents(deferral)}`);
   }
@@ -253,6 +274,57 @@ function australiaLowIncomeOffsetCents(incomeCents) {
   return 0;
 }
 
+// 2026 British Columbia, full-year tax. Brackets and the 5.60% lowest rate are
+// the 2026 tax-year rates on the Province of British Columbia site (indexed by
+// 2.2%, with the lowest rate set at 5.60% for the year). The July–December
+// payroll withholding rate of 6.14% is a catch-up for employers who withheld
+// 5.06% in the first half; it is not the annual tax. Basic personal amount
+// $13,216. Tax reduction base $690, threshold $25,570, factor 3.56%.
+const BC_BRACKETS = [
+  [5_036_300, 560],
+  [10_072_800, 770],
+  [11_564_800, 1050],
+  [14_043_000, 1229],
+  [19_040_500, 1470],
+  [26_554_500, 1680],
+  [Number.POSITIVE_INFINITY, 2050]
+];
+const BC_BASIC_PERSONAL_CENTS = 1_321_600;
+
+function bcTaxReductionCents(netCents) {
+  const threshold = 2_557_000;
+  const base = 69_000;
+  if (netCents <= threshold) return base;
+  const phase = Math.round((netCents - threshold) * 356 / 10000);
+  return Math.max(0, base - phase);
+}
+
+// Residential SDLT for an effective date on or after 1 April 2025, still the
+// GOV.UK residential tables in 2026. Rates are percent. Non-resident purchases
+// add 2 percentage points to every band. Prices are in pence.
+const SDLT_STANDARD = [[12_500_000, 0], [25_000_000, 2], [92_500_000, 5], [150_000_000, 10], [Number.POSITIVE_INFINITY, 12]];
+const SDLT_ADDITIONAL = [[12_500_000, 5], [25_000_000, 7], [92_500_000, 10], [150_000_000, 15], [Number.POSITIVE_INFINITY, 17]];
+const SDLT_FIRST_HOME = [[30_000_000, 0], [50_000_000, 5]];
+
+function sliceDutyPence(pricePence, bands) {
+  let tax = 0;
+  let previous = 0;
+  for (const [upTo, rate] of bands) {
+    const top = Math.min(pricePence, upTo);
+    const slice = top - previous;
+    if (slice > 0) tax += slice * rate;
+    if (pricePence <= upTo) break;
+    previous = upTo;
+  }
+  return Math.round(tax / 100);
+}
+
+const CONCRETE_BAGS = {
+  80: { pounds: 80, cubicFeet: 0.6 },
+  60: { pounds: 60, cubicFeet: 0.45 },
+  40: { pounds: 40, cubicFeet: 0.3 }
+};
+
 const AU_BRACKETS = [
   [1_820_000, 0],
   [4_500_000, 1500],
@@ -283,8 +355,22 @@ export function calculate(slug, values) {
     return { headline: `BMI ${number(bmi, 1)}`, details: [`Category: ${category}`, 'BMI is a screening measure, not a medical diagnosis.'] };
   }
   if (slug === 'calorie-calculator') {
-    const bmr = 10 * v.weight + 6.25 * v.height - 5 * v.age + 5;
-    return { headline: `${number(bmr * v.activity, 0)} calories/day`, details: ['Estimate based on the Mifflin–St Jeor equation for men.', 'Individual needs can differ.'] };
+    const constant = v.sex;
+    if (constant !== 5 && constant !== -161) throw new Error('Choose the Mifflin–St Jeor constant');
+    if (!Number.isFinite(v.age) || v.age < 0) throw new Error('Enter an age of zero or more');
+    if (!Number.isFinite(v.weight) || v.weight < 0) throw new Error('Enter a weight of zero or more');
+    if (!Number.isFinite(v.height) || v.height < 0) throw new Error('Enter a height of zero or more');
+    if (!Number.isFinite(v.activity) || v.activity < 0) throw new Error('Enter an activity multiplier of zero or more');
+    const bmr = 10 * v.weight + 6.25 * v.height - 5 * v.age + constant;
+    const equation = constant === 5 ? 'men (+5)' : 'women (−161)';
+    return {
+      headline: `${number(bmr * v.activity, 0)} calories/day`,
+      details: [
+        `Basal estimate before activity: ${number(bmr, 2)} calories`,
+        `Mifflin–St Jeor equation for ${equation}.`,
+        'Individual needs can differ.'
+      ]
+    };
   }
   if (slug === 'percentage-calculator') return { headline: `${number(v.part / v.whole * 100)}%`, details: [`${number(v.part)} is ${number(v.part / v.whole * 100)}% of ${number(v.whole)}.`] };
   if (slug === 'tip-calculator') {
@@ -317,8 +403,8 @@ export function calculate(slug, values) {
     const saved = v.price * v.discount / 100;
     return { headline: money(v.price - saved), details: [`You save ${money(saved)}.`] };
   }
-  if (slug === 'texas-paycheck-calculator' || slug === 'florida-paycheck-calculator' || slug === 'california-paycheck-calculator') {
-    const stateName = slug === 'texas-paycheck-calculator' ? 'Texas' : slug === 'florida-paycheck-calculator' ? 'Florida' : 'California';
+  if (slug === 'texas-paycheck-calculator' || slug === 'florida-paycheck-calculator' || slug === 'california-paycheck-calculator' || slug === 'washington-paycheck-calculator') {
+    const stateName = slug === 'texas-paycheck-calculator' ? 'Texas' : slug === 'florida-paycheck-calculator' ? 'Florida' : slug === 'california-paycheck-calculator' ? 'California' : 'Washington';
     return usPaycheck(v, stateName);
   }
   if (slug === 'scotland-take-home-pay-calculator') {
@@ -487,6 +573,142 @@ export function calculate(slug, values) {
         additionsRoom >= 0
           ? `Room under the $72,000 annual additions limit: ${usdCents(additionsRoom)}`
           : `Over the $72,000 annual additions limit by: ${usdCents(-additionsRoom)}`
+      ]
+    };
+  }
+  if (slug === 'british-columbia-take-home-pay-calculator') {
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const pensionable = Math.min(salary, 7_460_000);
+    const contributory = Math.max(0, pensionable - 350_000);
+    const cppBase = Math.round(contributory * 495 / 10000);
+    const cppFirst = Math.round(contributory * 100 / 10000);
+    const cpp = cppBase + cppFirst;
+    const cpp2 = Math.min(41_600, Math.round(Math.max(0, Math.min(salary, 8_500_000) - 7_460_000) * 400 / 10000));
+    const ei = Math.min(112_307, Math.round(Math.min(salary, 6_890_000) * 163 / 10000));
+    const taxable = Math.max(0, salary - cppFirst - cpp2);
+    const basicPersonal = federalBasicPersonalAmountCents(taxable);
+    const employmentAmount = Math.min(150_100, salary);
+    const federalCredit = Math.round((basicPersonal + cppBase + ei + employmentAmount) * 1400 / 10000);
+    const federalTax = Math.max(0, bracketTaxCents(taxable, CA_FED_BRACKETS) - federalCredit);
+    const bcCredit = Math.round((BC_BASIC_PERSONAL_CENTS + cppBase + ei) * 560 / 10000);
+    const bcAfterCredit = Math.max(0, bracketTaxCents(taxable, BC_BRACKETS) - bcCredit);
+    const reduction = Math.min(bcAfterCredit, bcTaxReductionCents(taxable));
+    const bcTax = bcAfterCredit - reduction;
+    const takeHome = salary - cpp - cpp2 - ei - federalTax - bcTax;
+    return {
+      headline: `${cadCents(Math.round(takeHome / 12))} / month`,
+      details: [
+        `Federal income tax: ${cadCents(federalTax)}`,
+        `British Columbia income tax: ${cadCents(bcTax)}`,
+        `B.C. tax reduction included: ${cadCents(reduction)}`,
+        `Employee CPP, including CPP2: ${cadCents(cpp + cpp2)}`,
+        `Employee EI: ${cadCents(ei)}`,
+        `Annual take-home: ${cadCents(takeHome)}`,
+        `Every two weeks: ${cadCents(Math.round(takeHome / 26))}`,
+        `Federal basic personal amount applied: ${cadCents(basicPersonal)}`,
+        `B.C. basic personal amount applied: ${cadCents(BC_BASIC_PERSONAL_CENTS)}`
+      ]
+    };
+  }
+  if (slug === 'england-stamp-duty-calculator') {
+    const price = nonNegativeCents(v.price, 'price');
+    const buyer = Number(v.buyer);
+    const residence = Number(v.residence);
+    if (![1, 2, 3].includes(buyer)) throw new Error('Choose a buyer type');
+    if (residence !== 1 && residence !== 2) throw new Error('Choose a residence status');
+    const surcharge = residence === 2 ? 2 : 0;
+    let bands = SDLT_STANDARD.map(([upTo, rate]) => [upTo, rate + surcharge]);
+    let rule = surcharge === 0
+      ? 'Rates used: standard residential SDLT for a purchase that replaces your main home.'
+      : 'Rates used: standard residential SDLT plus the 2 percentage point non-UK resident surcharge.';
+    if (buyer === 3 && price >= 4_000_000) {
+      bands = SDLT_ADDITIONAL.map(([upTo, rate]) => [upTo, rate + surcharge]);
+      rule = surcharge === 0
+        ? 'Rates used: higher rates for an additional dwelling, 5 percentage points above the standard residential rates.'
+        : 'Rates used: higher rates for an additional dwelling, plus the 2 percentage point non-UK resident surcharge.';
+    } else if (buyer === 3) {
+      rule = 'The additional-dwelling higher rates are not applied under £40,000. Standard residential rates were used instead.';
+      if (surcharge !== 0) rule = 'The additional-dwelling higher rates are not applied under £40,000. Standard residential rates plus the non-UK resident surcharge were used.';
+    } else if (buyer === 2 && price <= 50_000_000) {
+      bands = SDLT_FIRST_HOME.map(([upTo, rate]) => [upTo, rate + surcharge]);
+      rule = surcharge === 0
+        ? 'Rates used: first-time buyer relief, available only when the price is £500,000 or less and every buyer qualifies.'
+        : 'Rates used: first-time buyer relief plus the 2 percentage point non-UK resident surcharge.';
+    } else if (buyer === 2) {
+      rule = surcharge === 0
+        ? 'First-time buyer relief does not apply above £500,000. Standard residential rates were used.'
+        : 'First-time buyer relief does not apply above £500,000. Standard residential rates plus the non-UK resident surcharge were used.';
+    }
+    const duty = sliceDutyPence(price, bands);
+    const effective = price === 0 ? 0 : duty / price * 100;
+    return {
+      headline: gbp(duty),
+      details: [
+        rule,
+        `Effective rate: ${percent(effective)}%`,
+        `Price: ${gbp(price)}`,
+        residence === 2 ? 'Non-UK resident surcharge: 2 percentage points on each band.' : 'Non-UK resident surcharge: not applied.',
+        'England and Northern Ireland residential freehold. Scotland uses LBTT and Wales uses LTT.'
+      ]
+    };
+  }
+  if (slug === 'final-exam-grade-calculator') {
+    const current = v.current;
+    const weight = v.weight;
+    const target = v.target;
+    if (!Number.isFinite(current) || current < 0) throw new Error('Enter a current grade of zero or more');
+    if (!Number.isFinite(weight) || weight <= 0 || weight > 100) throw new Error('Enter a final weight above 0 and up to 100');
+    if (!Number.isFinite(target) || target < 0) throw new Error('Enter a target grade of zero or more');
+    const covered = (100 - weight) / 100;
+    const atZero = current * covered;
+    const atHundred = atZero + weight;
+    const needed = (target - atZero) / (weight / 100);
+    let headline = `${percent(needed)}% on the final`;
+    if (needed < 0) headline = 'Target already secured';
+    else if (needed > 100) headline = 'Above a perfect final';
+    const gap = needed > 100
+      ? `A score of 100% finishes the course at ${percent(atHundred)}%, which is ${percent(target - atHundred)} points short of the target.`
+      : needed < 0
+        ? `A score of 0% still finishes the course at ${percent(atZero)}%, which is ${percent(atZero - target)} points over the target.`
+        : `Work already completed is ${percent(100 - weight)}% of the course. The final is the other ${percent(weight)}%.`;
+    return {
+      headline,
+      details: [
+        `Score needed on the final: ${percent(needed)}%`,
+        `Course grade if the final is 0: ${percent(atZero)}%`,
+        `Course grade if the final is 100: ${percent(atHundred)}%`,
+        gap
+      ]
+    };
+  }
+  if (slug === 'concrete-slab-calculator') {
+    const length = v.length;
+    const width = v.width;
+    const thickness = v.thickness;
+    const bag = CONCRETE_BAGS[v.bag];
+    const waste = v.waste;
+    if (!Number.isFinite(length) || length <= 0) throw new Error('Enter a length above zero');
+    if (!Number.isFinite(width) || width <= 0) throw new Error('Enter a width above zero');
+    if (!Number.isFinite(thickness) || thickness <= 0) throw new Error('Enter a thickness above zero');
+    if (!bag) throw new Error('Choose a bag size');
+    if (!Number.isFinite(waste) || waste < 0 || waste > 100) throw new Error('Enter a waste allowance from 0 to 100 percent');
+    const cubicFeet = length * width * thickness / 12;
+    const withWaste = cubicFeet * (1 + waste / 100);
+    const cubicYards = cubicFeet / 27;
+    const yardsWithWaste = withWaste / 27;
+    const rawBags = withWaste / bag.cubicFeet;
+    const bags = Math.ceil(rawBags - 1e-9);
+    const bagsWithoutWaste = Math.ceil(cubicFeet / bag.cubicFeet - 1e-9);
+    const quarterYards = Math.ceil(yardsWithWaste * 4 - 1e-9) / 4;
+    return {
+      headline: `${number(bags, 0)} bags (${bag.pounds} lb)`,
+      details: [
+        `Slab volume: ${number(cubicFeet, 2)} cubic feet (${number(cubicYards, 3)} cubic yards)`,
+        `Volume with ${number(waste, 2)}% waste: ${number(withWaste, 2)} cubic feet (${number(yardsWithWaste, 3)} cubic yards)`,
+        `Bags before rounding up: ${number(rawBags, 2)}`,
+        `Bags with no waste allowance, rounded up: ${number(bagsWithoutWaste, 0)}`,
+        `Ready-mix order, rounded up to the next 0.25 yard: ${number(quarterYards, 2)} cubic yards`,
+        `Each ${bag.pounds} lb bag is counted as ${number(bag.cubicFeet, 2)} cubic feet of cured concrete.`
       ]
     };
   }

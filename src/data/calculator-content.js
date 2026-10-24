@@ -1,4 +1,5 @@
 import { extraCalculatorContent } from './extra-calculator-content.js';
+import { clusterCalculatorContent } from './cluster-calculator-content.js';
 
 export const calculatorContent = {
   'mortgage-calculator': {
@@ -107,6 +108,16 @@ export const calculatorContent = {
         slug: 'rent-affordability-calculator',
         label: 'Rent affordability calculator',
         note: 'Compares monthly rent with 30% of gross income. It does not estimate a mortgage payment.'
+      },
+      {
+        slug: 'england-stamp-duty-calculator',
+        label: 'England stamp duty calculator',
+        note: 'Residential SDLT in pounds for a purchase in England or Northern Ireland. It is not added to this dollar loan payment.'
+      },
+      {
+        slug: 'concrete-slab-calculator',
+        label: 'Concrete slab calculator',
+        note: 'Bags and cubic yards for a rectangular pour. It does not price the house or the mortgage.'
       }
     ]
   },
@@ -399,26 +410,26 @@ export const calculatorContent = {
     ]
   },
   'calorie-calculator': {
-    title: 'Daily Calorie Calculator (Mifflin–St Jeor) | ClearCalc',
+    title: 'Daily Calorie Calculator for Men and Women (Mifflin–St Jeor) | ClearCalc',
     h1: 'Daily Maintenance Calorie Calculator',
-    description: 'Estimate daily maintenance calories with the Mifflin–St Jeor equation and an activity multiplier. Includes the male formula, activity factors, and worked examples.',
+    description: 'Estimate daily maintenance calories with the Mifflin–St Jeor equation for men (+5) or women (−161), then apply an activity multiplier. Includes both constants, worked examples, and a comparison table.',
     intro: [
-      'This calorie calculator estimates a daily maintenance level from age, weight, height, and an activity multiplier. The base equation is the Mifflin–St Jeor formula for men: 10 times weight in kilograms, plus 6.25 times height in centimeters, minus 5 times age in years, plus 5. That basal figure is then multiplied by the activity number you type.',
-      'The women\'s form of the same equation uses minus 161 instead of plus 5. This form always adds 5. If you need the women\'s constant, the worked example below shows the manual substitution, because the calculator will not do it for you. The result is an estimate of maintenance calories, not a prescribed intake, and it is not a basal metabolic measurement from a lab.'
+      'This calorie calculator estimates a daily maintenance level from a Mifflin–St Jeor constant, age, weight, height, and an activity multiplier. Choose men (+5) or women (−161). The shared part of the equation is 10 times weight in kilograms, plus 6.25 times height in centimeters, minus 5 times age in years. The constant you chose is added last. That basal figure is then multiplied by the activity number you type.',
+      'The two constants differ by 166 kcal before activity is applied. On the sample adult, age 30, 75 kg, and 175 cm, the men\'s basal estimate is 1,698.75 calories and the women\'s is 1,532.75. At a 1.55 multiplier the headlines are 2,633 calories/day and 2,376 calories/day. The result is an estimate of maintenance calories, not a prescribed intake, and it is not a basal metabolic measurement from a lab. Body mass index, on the separate BMI page, does not use this equation at all.'
     ],
     steps: [
+      'Choose Men (+5) or Women (−161). The sample starts on the men\'s constant.',
       'Enter age in years, weight in kilograms, and height in centimeters.',
       'Enter an activity multiplier as a plain number. A common moderate factor is 1.55. The field is not a menu.',
-      'Press Calculate. The headline is basal calories times that multiplier, rounded to the nearest calorie.',
-      'Read the note under the result. It states that the estimate uses the Mifflin–St Jeor equation for men.'
+      'Press Calculate. The headline is basal calories times that multiplier, rounded to the nearest calorie. The first detail line is the basal estimate before activity, and the next line names the constant you chose.'
     ],
     howHeading: 'How the Mifflin–St Jeor estimate is built',
     howItWorks: [
-      'Mifflin–St Jeor estimates resting energy expenditure. Weight is in kilograms, height is in centimeters, and age is in years. The men\'s equation, which this form uses, is 10×weight + 6.25×height − 5×age + 5. The women\'s published equation replaces the final +5 with −161. The two constants differ by 166 kcal before activity is applied.',
-      'Resting expenditure is not the maintenance target most people want. Maintenance is closer to resting expenditure times a factor that stands in for movement. This calculator multiplies by whatever number you enter. It does not look up your job, steps, or workouts. If you type 1, you get the resting estimate alone, rounded to a whole calorie.',
-      'The headline is that product rounded to the nearest calorie. The detail text does not print the unrounded basal figure. The examples on this page show the arithmetic so you can see the number before rounding.'
+      'Mifflin–St Jeor estimates resting energy expenditure. Weight is in kilograms, height is in centimeters, and age is in years. The men\'s equation is 10×weight + 6.25×height − 5×age + 5. The women\'s equation replaces the final +5 with −161. This form applies the constant you select. It does not infer the constant from a name or from a body measurement. The two constants differ by 166 kcal before activity is applied, and that gap scales with the multiplier. At 1.55 the gap is 166 × 1.55 = 257.3 calories, which is the distance between the two sample headlines after rounding.',
+      'Resting expenditure is not the maintenance target most people want. Maintenance is closer to resting expenditure times a factor that stands in for movement. This calculator multiplies by whatever number you enter. It does not look up your job, steps, or workouts. If you type 1, you get the resting estimate alone, rounded to a whole calorie. Switching the constant and leaving the multiplier at 1 is the clean way to compare the two basal figures.',
+      'The headline is that product rounded to the nearest calorie. The first detail line prints the basal estimate before rounding to a whole calorie, with up to two decimal places. For the sample man that line is 1,698.75 calories. For the sample woman it is 1,532.75 calories. The second line names the equation, either men (+5) or women (−161), so a saved result still says which constant produced it.'
     ],
-    formula: 'BMR (men, used by this form) = 10×kg + 6.25×cm − 5×age + 5\nBMR (women, not used by this form) = 10×kg + 6.25×cm − 5×age − 161\nMaintenance estimate = BMR × activity multiplier\nThe headline rounds that product to the nearest calorie.',
+    formula: 'BMR (men) = 10×kg + 6.25×cm − 5×age + 5\nBMR (women) = 10×kg + 6.25×cm − 5×age − 161\nChoose one constant. The form does not average them.\nMaintenance estimate = BMR × activity multiplier\nThe headline rounds that product to the nearest calorie.\nThe basal line shows BMR before that rounding, up to two decimal places.',
     formulaNotes: [
       'The activity multipliers people usually type are conventions attached to the equation later, not part of the original Mifflin–St Jeor paper. A common set is 1.2 for little movement, 1.375 for light activity, 1.55 for moderate activity, 1.725 for a very active week, and 1.9 for heavy training or a physical job. They are rough. Two people who both type 1.55 will not spend the same energy.',
       'Rounding uses the same rule as the on-screen number. A product of 2,038.5 displays as 2,039 calories/day. The page quotes the displayed calorie count, not a truncated one.'
@@ -428,40 +439,40 @@ export const calculatorContent = {
       {
         title: 'Age 30, 75 kg, 175 cm, multiplier 1.55',
         paragraphs: [
-          'Basal estimate = 10×75 + 6.25×175 − 5×30 + 5 = 750 + 1,093.75 − 150 + 5 = 1,698.75. Times 1.55 is 2,633.0625. The calculator shows 2,633 calories/day.',
-          'The same inputs with the women\'s constant are 1,698.75 − 166 = 1,532.75, and 1,532.75 × 1.55 = 2,375.7625, which would round to 2,376. This form still shows 2,633, because it always adds 5. Do not assume the lower figure came from the button if you did not apply the −161 constant yourself.'
+          'Choose men (+5). Basal estimate = 10×75 + 6.25×175 − 5×30 + 5 = 750 + 1,093.75 − 150 + 5 = 1,698.75. The basal line reads 1,698.75 calories. Times 1.55 is 2,633.0625. The calculator shows 2,633 calories/day, and the equation line says men (+5).',
+          'Switch the constant to women (−161) and leave age, weight, height, and 1.55 in place. The basal estimate is 1,698.75 − 166 = 1,532.75, and 1,532.75 × 1.55 = 2,375.7625, which rounds to 2,376. The calculator shows 2,376 calories/day, the basal line reads 1,532.75 calories, and the equation line says women (−161). The button applies the constant. You do not subtract 166 by hand.'
         ]
       },
       {
         title: 'The same person at the other common multipliers',
         paragraphs: [
-          'Holding age, weight, and height at 30, 75 kg, and 175 cm keeps the basal estimate at 1,698.75. Times 1.2 is 2,038.5, shown as 2,039 calories/day. Times 1.375 is 2,335.78125, shown as 2,336. Times 1.725 is 2,930.34375, shown as 2,930. Times 1.9 is 3,227.625, shown as 3,228.',
-          'The span from 2,039 to 3,228 is the activity guess, not a change in the body-size equation. If you are unsure which factor fits, the honest use is to calculate two neighbors and treat the gap as uncertainty, not to pick the number you hope is true.'
+          'Holding age, weight, and height at 30, 75 kg, and 175 cm, and keeping the men\'s constant, the basal estimate stays 1,698.75. Times 1.2 is 2,038.5, shown as 2,039 calories/day. Times 1.375 is 2,335.78125, shown as 2,336. Times 1.725 is 2,930.34375, shown as 2,930. Times 1.9 is 3,227.625, shown as 3,228.',
+          'The same body with the women\'s constant has a basal estimate of 1,532.75. The headlines are 1,839 at a 1.2 multiplier, 2,108 at 1.375, 2,376 at 1.55, 2,644 at 1.725, and 2,912 at 1.9. The span from 2,039 to 3,228 on the men\'s side, or from 1,839 to 2,912 on the women\'s side, is the activity guess. If you are unsure which factor fits, calculate two neighbors and treat the gap as uncertainty.'
         ]
       },
       {
         title: 'Two other adult examples',
         paragraphs: [
-          'Age 45, 90 kg, 182 cm, multiplier 1.375. Basal estimate = 10×90 + 6.25×182 − 5×45 + 5 = 900 + 1,137.5 − 225 + 5 = 1,817.5. Times 1.375 is 2,499.0625. The calculator shows 2,499 calories/day.',
-          'Age 25, 60 kg, 165 cm, multiplier 1.725. Basal estimate = 10×60 + 6.25×165 − 5×25 + 5 = 600 + 1,031.25 − 125 + 5 = 1,511.25. Times 1.725 is 2,606.90625. The calculator shows 2,607 calories/day. Both examples still use the men\'s constant.'
+          'Age 45, 90 kg, 182 cm, multiplier 1.375, men\'s constant. Basal estimate = 10×90 + 6.25×182 − 5×45 + 5 = 900 + 1,137.5 − 225 + 5 = 1,817.5. The basal line reads 1,817.5 calories. Times 1.375 is 2,499.0625. The calculator shows 2,499 calories/day. The same inputs with the women\'s constant use 1,651.5 as the basal estimate and show 2,271 calories/day.',
+          'Age 25, 60 kg, 165 cm, multiplier 1.725, women\'s constant. Basal estimate = 10×60 + 6.25×165 − 5×25 − 161 = 600 + 1,031.25 − 125 − 161 = 1,345.25. Times 1.725 is 2,320.55625. The calculator shows 2,321 calories/day, and the basal line reads 1,345.25 calories. Choosing the men\'s constant on this body instead would add 166 to the basal estimate before the multiplier. The equation line is what tells you which one the headline used.'
         ]
       }
     ],
     table: {
-      heading: 'Activity multipliers for one sample adult',
-      caption: 'Basal estimate is 1,698.75 kcal for a 30-year-old, 75 kg, 175 cm adult using the men\'s equation. The calorie column is what this calculator displays after multiplying and rounding.',
-      headers: ['Multiplier you type', 'Common name for that factor', 'Displayed calories/day'],
+      heading: 'Activity multipliers for one sample adult, both constants',
+      caption: 'Age 30, 75 kg, 175 cm. The men\'s basal estimate is 1,698.75 calories. The women\'s basal estimate is 1,532.75 calories. Each calorie column is the headline this calculator displays after multiplying by that factor and rounding to the nearest calorie.',
+      headers: ['Multiplier you type', 'Common name for that factor', 'Men (+5)', 'Women (−161)'],
       rows: [
-        ['1.2', 'Sedentary, little exercise', '2,039'],
-        ['1.375', 'Light activity', '2,336'],
-        ['1.55', 'Moderate activity', '2,633'],
-        ['1.725', 'Very active', '2,930'],
-        ['1.9', 'Extra active or physical work', '3,228']
+        ['1.2', 'Sedentary, little exercise', '2,039', '1,839'],
+        ['1.375', 'Light activity', '2,336', '2,108'],
+        ['1.55', 'Moderate activity', '2,633', '2,376'],
+        ['1.725', 'Very active', '2,930', '2,644'],
+        ['1.9', 'Extra active or physical work', '3,228', '2,912']
       ]
     },
     limitsHeading: 'Limits of a maintenance estimate',
     limits: [
-      'Predictive equations miss individual metabolism. Illness, medications, pregnancy, lactation, and significant muscle or fat differences move true needs away from the formula. A lab measurement of resting metabolism will not match 10×kg + 6.25×cm − 5×age + 5 exactly.',
+      'Predictive equations miss individual metabolism. Illness, medications, pregnancy, lactation, and significant muscle or fat differences move true needs away from the formula. A lab measurement of resting metabolism will not match 10×kg + 6.25×cm − 5×age + 5, or the same equation with −161, exactly. The constant is a population offset, not a measurement of the person in front of you.',
       'The activity factor is the largest judgment on the page, and it is entirely yours. Overestimating activity overestimates maintenance. The calculator cannot see step counts or training logs.',
       'Maintenance is not a weight-loss or weight-gain prescription. Eating less than maintenance tends to reduce weight and eating more tends to increase it, but the size and speed of that change are not calculated here. Medical diets, eating disorders, and clinical nutrition need a professional, not a single multiplied equation.'
     ],
@@ -469,7 +480,7 @@ export const calculatorContent = {
     faqs: [
       {
         q: 'Does this calorie calculator use the women\'s Mifflin–St Jeor equation?',
-        a: 'No. It always uses the men\'s constant, plus 5. The women\'s equation uses minus 161 instead. For the sample 30-year-old at 75 kg, 175 cm, and a 1.55 multiplier, the men\'s path displays 2,633 calories/day. Substituting the women\'s constant yourself produces about 2,376 before you rely on this form.'
+        a: 'Yes, when you choose Women (−161). The men\'s choice uses plus 5. For the sample 30-year-old at 75 kg, 175 cm, and a 1.55 multiplier, the men\'s path displays 2,633 calories/day and a basal line of 1,698.75. The women\'s path displays 2,376 calories/day and a basal line of 1,532.75. The equation line under the headline names the constant that was used.'
       },
       {
         q: 'What activity multiplier should I type?',
@@ -485,8 +496,12 @@ export const calculatorContent = {
       },
       {
         q: 'What is the difference between the basal estimate and the headline?',
-        a: 'The basal estimate is the Mifflin–St Jeor resting figure. The headline multiplies it by the activity number you typed. Type 1 if you want the resting figure alone, still rounded to the nearest calorie.'
+        a: 'The basal estimate is the Mifflin–St Jeor resting figure, printed on its own line before activity is applied. The headline multiplies it by the activity number you typed and rounds to the nearest calorie. Type 1 if you want the resting figure alone in the headline. For the sample man, the basal line stays 1,698.75 calories at every multiplier.'
       }
+    ],
+    relatedLinks: [
+      { slug: 'bmi-calculator', label: 'Adult BMI calculator', note: 'Weight in kilograms and height in centimeters, as a screening category. It does not estimate calories.' },
+      { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'Useful if you want a percent difference between two calorie figures you already have. It does not run Mifflin–St Jeor.' }
     ]
   },
   'percentage-calculator': {
@@ -1014,6 +1029,10 @@ export const calculatorContent = {
       'The box count is four. Five courses cannot be averaged here without changing their weights. One course cannot be averaged by typing it once and filling the rest with zeros. Zeros are grades.'
     ],
     disclaimer: 'This GPA figure is an equal average of four numbers you typed, not an official transcript GPA or an admissions decision.',
+    relatedLinks: [
+      { slug: 'final-exam-grade-calculator', label: 'Final exam grade calculator', note: 'Solves for the score a weighted final needs. It does not average grade points.' },
+      { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'Turns a raw score into a percent before you convert that percent to grade points.' }
+    ],
     faqs: [
       {
         q: 'Does this GPA calculator weight courses by credit hours?',
@@ -1244,10 +1263,16 @@ export const calculatorContent = {
         slug: 'mortgage-calculator',
         label: 'Fixed-rate mortgage calculator',
         note: 'Principal and interest only, in US dollars, with taxes and insurance left out.'
+      },
+      {
+        slug: 'england-stamp-duty-calculator',
+        label: 'England stamp duty calculator',
+        note: 'SDLT on a residential purchase in England or Northern Ireland. Keep that sterling tax separate from this take-home figure.'
       }
     ]
   },
-  ...extraCalculatorContent
+  ...extraCalculatorContent,
+  ...clusterCalculatorContent
 };
 
 export function contentWordCount(entry) {
