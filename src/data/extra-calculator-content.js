@@ -93,6 +93,7 @@ export const extraCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'washington-paycheck-calculator', label: 'Washington paycheck calculator for 2026', note: 'State income tax is also $0, then Paid Leave and WA Cares come off gross wages.' },
       { slug: 'florida-paycheck-calculator', label: 'Florida paycheck calculator for 2026', note: 'The same federal and FICA rules, with a Florida state income tax line of $0.' },
       { slug: 'california-paycheck-calculator', label: 'California paycheck calculator for 2026', note: 'Adds California income tax and 1.3% State Disability Insurance.' },
       { slug: '401k-contribution-calculator', label: '2026 401(k) contribution calculator', note: 'Check a deferral rate against the $24,500 limit and an employer match before you type the dollar deferral here.' }
@@ -482,6 +483,7 @@ export const extraCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'british-columbia-take-home-pay-calculator', label: 'British Columbia take-home pay calculator for 2026', note: 'The same federal brackets, CPP, and EI, with B.C. tax and the B.C. tax reduction instead of Ontario tax.' },
       { slug: 'uk-take-home-pay-calculator', label: 'UK take-home pay for England, Wales and Northern Ireland', note: 'Pounds, for 2026/27, not Canadian dollars.' },
       { slug: 'scotland-take-home-pay-calculator', label: 'Scotland take-home pay calculator for 2026/27', note: 'Scottish income tax bands and UK National Insurance.' },
       { slug: 'australia-take-home-pay-calculator', label: 'Australia take-home pay calculator for 2026–27', note: 'A different tax year and a different currency.' }

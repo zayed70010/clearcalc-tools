@@ -45,6 +45,36 @@ test('take-home pay page is linked from the homepage and two finance pages', () 
   assert.equal(takeHome.faqs.length, 6);
 });
 
+test('new long-tail calculators are linked from the homepage', () => {
+  const home = readFileSync('src/pages/index.astro', 'utf8');
+  for (const slug of [
+    'washington-paycheck-calculator',
+    'british-columbia-take-home-pay-calculator',
+    'england-stamp-duty-calculator',
+    'final-exam-grade-calculator',
+    'concrete-slab-calculator'
+  ]) {
+    assert.match(home, new RegExp(`calculators/${slug}/`));
+    assert.ok(calculatorContent[slug], slug);
+  }
+  assert.equal(
+    calculatorContent['texas-paycheck-calculator'].relatedLinks.some((link) => link.slug === 'washington-paycheck-calculator'),
+    true
+  );
+  assert.equal(
+    calculatorContent['ontario-take-home-pay-calculator'].relatedLinks.some((link) => link.slug === 'british-columbia-take-home-pay-calculator'),
+    true
+  );
+  assert.equal(
+    calculatorContent['mortgage-calculator'].relatedLinks.some((link) => link.slug === 'england-stamp-duty-calculator'),
+    true
+  );
+  assert.equal(
+    calculatorContent['gpa-calculator'].relatedLinks.some((link) => link.slug === 'final-exam-grade-calculator'),
+    true
+  );
+});
+
 test('length converter slug matches the page title', () => {
   const length = calculators.find((item) => item.slug === 'length-converter');
   assert.equal(length.title, 'Length Converter');
