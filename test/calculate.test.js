@@ -326,6 +326,112 @@ test('calorie calculator applies the selected Mifflin–St Jeor constant', () =>
   assert.throws(() => calculate('calorie-calculator', { sex: 0, age: 30, weight: 75, height: 175, activity: 1.55 }), /constant/);
 });
 
+test('2026 New York paycheck adds state tax and optional city tax', () => {
+  assert.deepEqual(calculate('new-york-paycheck-calculator', { salary: 75000, status: 1, periods: 26, deferral: 0, city: 1 }), {
+    headline: '$2,236.13 / two weeks',
+    details: [
+      'Federal income tax: $7,670.00',
+      'Social Security: $4,650.00',
+      'Medicare: $1,087.50',
+      'Additional Medicare Tax: $0.00',
+      'New York State income tax: $3,453.00',
+      'New York City resident tax: $0.00',
+      '401(k) deferred: $0.00',
+      'Annual take-home: $58,139.50',
+      'Federal standard deduction applied: $16,100.00',
+      'New York standard deduction applied: $8,000.00',
+      'Filing status: single',
+      'New York City resident tax is not included. This is the rest of New York State.'
+    ]
+  });
+  const city = calculate('new-york-paycheck-calculator', { salary: 75000, status: 1, periods: 26, deferral: 0, city: 2 });
+  assert.equal(city.headline, '$2,141.05 / two weeks');
+  assert.equal(city.details[5], 'New York City resident tax: $2,472.09');
+  assert.equal(city.details[7], 'Annual take-home: $55,667.41');
+  const deferred = calculate('new-york-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 6500, city: 1 });
+  assert.equal(deferred.details[0], 'Federal income tax: $4,840.00');
+  assert.equal(deferred.details[4], 'New York State income tax: $2,562.00');
+  const warned = calculate('new-york-paycheck-calculator', { salary: 120000, status: 1, periods: 26, deferral: 0, city: 1 });
+  assert.match(warned.details.at(-1), /supplemental tax/);
+  assert.throws(() => calculate('new-york-paycheck-calculator', { salary: -1, status: 1, periods: 26, deferral: 0, city: 1 }), /salary/);
+});
+
+test('2026 Alberta take-home matches federal payroll and the Alberta brackets', () => {
+  assert.deepEqual(calculate('alberta-take-home-pay-calculator', { salary: 70000 }), {
+    headline: '$4,508.93 / month',
+    details: [
+      'Federal income tax: $7,278.19',
+      'Alberta income tax: $3,534.79',
+      'Employee CPP, including CPP2: $3,956.75',
+      'Employee EI: $1,123.07',
+      'Annual take-home: $54,107.20',
+      'Every two weeks: $2,081.05',
+      'Federal basic personal amount applied: $16,452.00',
+      'Alberta basic personal amount applied: $22,769.00'
+    ]
+  });
+  const high = calculate('alberta-take-home-pay-calculator', { salary: 200000 });
+  assert.equal(high.details[2], 'Employee CPP, including CPP2: $4,646.45');
+  assert.equal(high.details[6], 'Federal basic personal amount applied: $16,084.75');
+  assert.throws(() => calculate('alberta-take-home-pay-calculator', { salary: -1 }), /salary/);
+});
+
+test('2026/27 NSW transfer duty matches the published check prices', () => {
+  assert.equal(calculate('nsw-stamp-duty-calculator', { price: 900000, buyer: 2, foreign: 1 }).headline, '$19,593.50');
+  assert.equal(calculate('nsw-stamp-duty-calculator', { price: 850000, buyer: 2, foreign: 1 }).headline, '$9,796.75');
+  assert.equal(calculate('nsw-stamp-duty-calculator', { price: 1350000, buyer: 1, foreign: 1 }).headline, '$55,537.00');
+  assert.equal(calculate('nsw-stamp-duty-calculator', { price: 4000000, buyer: 1, foreign: 1 }).headline, '$203,237.00');
+  assert.equal(calculate('nsw-stamp-duty-calculator', { price: 450000, buyer: 1, foreign: 1 }).headline, '$14,437.00');
+  assert.equal(calculate('nsw-stamp-duty-calculator', { price: 370000, buyer: 3, foreign: 1 }).headline, '$2,761.40');
+  assert.equal(calculate('nsw-stamp-duty-calculator', { price: 800000, buyer: 2, foreign: 1 }).headline, '$0.00');
+  const foreign = calculate('nsw-stamp-duty-calculator', { price: 1000000, buyer: 2, foreign: 2 });
+  assert.equal(foreign.headline, '$129,187.00');
+  assert.equal(foreign.details[1], 'Transfer duty: $39,187.00');
+  assert.equal(foreign.details[2], 'Surcharge purchaser duty: $90,000.00');
+  assert.throws(() => calculate('nsw-stamp-duty-calculator', { price: -1, buyer: 1, foreign: 1 }), /price/);
+});
+
+test('2026/27 UK student loan deductions round down to the pound', () => {
+  assert.deepEqual(calculate('uk-student-loan-repayment-calculator', { salary: 35000, plan: 2, postgrad: 0, periods: 12 }), {
+    headline: '£42.00 / month',
+    details: [
+      'Plan 2 deduction this pay period: £42.00',
+      'Postgraduate loan deduction this pay period: £0.00',
+      'Pay-period earnings used: £2,916.67',
+      'Annual total if every pay period matched: £504.00',
+      'Straight annual percentage, before the pound rounding: £505.35',
+      'Plan 2 annual threshold: £29,385.00. Monthly threshold: £2,448.75.',
+      'Postgraduate loan: not selected.'
+    ]
+  });
+  assert.equal(calculate('uk-student-loan-repayment-calculator', { salary: 28000, plan: 5, postgrad: 0, periods: 12 }).headline, '£22.00 / month');
+  assert.equal(calculate('uk-student-loan-repayment-calculator', { salary: 30000, plan: 0, postgrad: 1, periods: 12 }).headline, '£45.00 / month');
+  assert.equal(calculate('uk-student-loan-repayment-calculator', { salary: 35000, plan: 2, postgrad: 1, periods: 12 }).headline, '£112.00 / month');
+  assert.equal(calculate('uk-student-loan-repayment-calculator', { salary: 35000, plan: 2, postgrad: 0, periods: 52 }).headline, '£9.00 / week');
+  assert.throws(() => calculate('uk-student-loan-repayment-calculator', { salary: 35000, plan: 3, postgrad: 0, periods: 12 }), /undergraduate plan/);
+});
+
+test('room paint gallons round up from wall and ceiling area', () => {
+  assert.deepEqual(calculate('room-paint-calculator', { length: 12, width: 10, height: 8, openings: 36, coats: 2, coverage: 350, ceiling: 1 }), {
+    headline: '3 gallons to buy',
+    details: [
+      'Exact paint: 2.49 gallons',
+      'Rounded up to the next quart: 2.5 gallons (10 quarts)',
+      'Wall area: 352 sq ft',
+      'Ceiling area included: 120 sq ft',
+      'Openings subtracted from the walls: 36 sq ft',
+      'Paintable area: 436 sq ft across 2 coats',
+      'Coverage used: 350 sq ft per gallon'
+    ]
+  });
+  const walls = calculate('room-paint-calculator', { length: 12, width: 10, height: 8, openings: 36, coats: 2, coverage: 350, ceiling: 0 });
+  assert.equal(walls.headline, '2 gallons to buy');
+  assert.equal(walls.details[0], 'Exact paint: 1.81 gallons');
+  const small = calculate('room-paint-calculator', { length: 8, width: 8, height: 8, openings: 0, coats: 1, coverage: 350, ceiling: 0 });
+  assert.equal(small.details[1], 'Rounded up to the next quart: 0.75 gallons (3 quarts)');
+  assert.throws(() => calculate('room-paint-calculator', { length: 12, width: 10, height: 8, openings: 400, coats: 2, coverage: 350, ceiling: 1 }), /Openings/);
+});
+
 test('age uses calendar borrowing and singular units', () => {
   assert.deepEqual(calculate('age-calculator', { birthdate: '1990-01-15', targetdate: '2026-10-22' }), {
     headline: '36 years',

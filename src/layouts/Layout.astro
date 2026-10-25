@@ -1,9 +1,10 @@
 ---
 import '../styles/global.css';
+import { absoluteSiteUrl } from '../data/site.js';
 const { title = 'ClearCalc Tools', description = 'Fast, free, and easy-to-use online calculators.', robots, canonical: canonicalOverride } = Astro.props;
-const canonical = canonicalOverride === false ? null : new URL(Astro.url.pathname, Astro.site);
+const canonical = canonicalOverride === false ? null : absoluteSiteUrl(Astro.url.pathname);
 const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
-const socialImage = new URL(`${base}og-image.png`, Astro.site);
+const socialImage = absoluteSiteUrl('/og-image.png');
 ---
 <!doctype html>
 <html lang="en">

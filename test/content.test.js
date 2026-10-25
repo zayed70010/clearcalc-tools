@@ -75,6 +75,31 @@ test('new long-tail calculators are linked from the homepage', () => {
   );
 });
 
+test('five search calculators are linked from the homepage and a related page', () => {
+  const home = readFileSync('src/pages/index.astro', 'utf8');
+  const links = [
+    ['new-york-paycheck-calculator', 'california-paycheck-calculator'],
+    ['alberta-take-home-pay-calculator', 'ontario-take-home-pay-calculator'],
+    ['nsw-stamp-duty-calculator', 'england-stamp-duty-calculator'],
+    ['uk-student-loan-repayment-calculator', 'uk-take-home-pay-calculator'],
+    ['room-paint-calculator', 'concrete-slab-calculator']
+  ];
+  for (const [slug, related] of links) {
+    assert.match(home, new RegExp(`calculators/${slug}/`));
+    assert.ok(calculatorContent[slug], slug);
+    assert.equal(
+      calculatorContent[related].relatedLinks.some((link) => link.slug === slug),
+      true,
+      related
+    );
+  }
+  assert.match(calculatorContent['date-difference-calculator'].limits[0], /261 weekdays/);
+  assert.equal(
+    calculatorContent['date-difference-calculator'].relatedLinks.some((link) => link.slug === 'age-calculator'),
+    true
+  );
+});
+
 test('length converter slug matches the page title', () => {
   const length = calculators.find((item) => item.slug === 'length-converter');
   assert.equal(length.title, 'Length Converter');
