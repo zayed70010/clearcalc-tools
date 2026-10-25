@@ -3,6 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import CalculatorCard from '../../components/CalculatorCard.astro';
 import { calculators } from '../../data/calculators.js';
 import { calculatorContent } from '../../data/calculator-content.js';
+import { absoluteSiteUrl } from '../../data/site.js';
 
 export function getStaticPaths() {
   return calculators.map((calculator) => ({ params: { slug: calculator.slug }, props: { calculator } }));
@@ -17,7 +18,7 @@ const related = calculators
   .filter((item) => item.slug !== calculator.slug)
   .sort((a, b) => Number(b.category === calculator.category) - Number(a.category === calculator.category))
   .slice(0, 3);
-const canonical = new URL(`calculators/${calculator.slug}/`, Astro.site).href;
+const canonical = absoluteSiteUrl(`/calculators/${calculator.slug}/`);
 const schema = {
   '@context': 'https://schema.org',
   '@graph': [
@@ -34,7 +35,7 @@ const schema = {
     {
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: new URL(base, Astro.site).href },
+        { '@type': 'ListItem', position: 1, name: 'Home', item: absoluteSiteUrl(base) },
         { '@type': 'ListItem', position: 2, name: calculator.title, item: canonical }
       ]
     },

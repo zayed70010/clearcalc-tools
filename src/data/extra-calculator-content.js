@@ -290,6 +290,7 @@ export const extraCalculatorContent = {
     relatedLinks: [
       { slug: 'texas-paycheck-calculator', label: 'Texas paycheck calculator for 2026', note: 'Federal tax and FICA only. The Texas income tax line is $0.' },
       { slug: 'florida-paycheck-calculator', label: 'Florida paycheck calculator for 2026', note: 'The same federal rules as Texas, labeled for Florida wages.' },
+      { slug: 'new-york-paycheck-calculator', label: 'New York paycheck calculator for 2026', note: 'Adds New York State tax and, if you select it, New York City resident tax. It does not charge California SDI.' },
       { slug: 'overtime-pay-calculator', label: 'Weekly overtime pay calculator', note: 'California also has daily overtime rules. This weekly tool only applies a multiple after a weekly hour threshold.' }
     ]
   },
@@ -455,7 +456,7 @@ export const extraCalculatorContent = {
     },
     limitsHeading: 'What this Ontario estimate leaves out',
     limits: [
-      'Quebec is not covered. Quebec uses the Quebec Pension Plan and a lower EI rate, and it sets its own income tax. Other provinces are not covered either. Province of employment follows the CRA rule about where you report for work, which can differ from the province where you live. This page assumes Ontario is the right table.',
+      'Quebec is not covered. Quebec uses the Quebec Pension Plan and a lower EI rate, and it sets its own income tax. Alberta has its own 2026 page, with the same federal tax, CPP, and EI and a different provincial line. British Columbia has its own page as well. The other provinces and the territories are not estimated here. Province of employment follows the CRA rule about where you report for work, which can differ from the province where you live. This page assumes Ontario is the right table.',
       'RRSP, RPP, and PRPP contributions are not deducted, and neither are union dues, child-care expenses, or northern-zone deductions. The Ontario credit is the basic personal amount only. The age amount, the spouse or common-law partner amount, and dependants are not claimed. The tax reduction uses $300, not the extra amounts for dependants. A payroll table that annualizes each pay and then rounds to the CRA’s published cent can differ by a small amount from this full-year calculation.',
       'Employer CPP and employer EI are not subtracted. The employer EI rate outside Quebec is 1.4 times the employee premium, and the employer matches CPP and CPP2. Those are employer costs. Ontario Employer Health Tax is also an employer cost and is not the same thing as the Ontario Health Premium on this page. Self-employed people pay both halves of CPP and do not pay EI on self-employment earnings in the same way. Do not use this employee form for that case.'
     ],
@@ -484,6 +485,7 @@ export const extraCalculatorContent = {
     ],
     relatedLinks: [
       { slug: 'british-columbia-take-home-pay-calculator', label: 'British Columbia take-home pay calculator for 2026', note: 'The same federal brackets, CPP, and EI, with B.C. tax and the B.C. tax reduction instead of Ontario tax.' },
+      { slug: 'alberta-take-home-pay-calculator', label: 'Alberta take-home pay calculator for 2026', note: 'The same federal tax, CPP, and EI. Alberta has no health premium. At $70,000 its annual take-home is $54,107.20, against $53,786.26 here.' },
       { slug: 'uk-take-home-pay-calculator', label: 'UK take-home pay for England, Wales and Northern Ireland', note: 'Pounds, for 2026/27, not Canadian dollars.' },
       { slug: 'scotland-take-home-pay-calculator', label: 'Scotland take-home pay calculator for 2026/27', note: 'Scottish income tax bands and UK National Insurance.' },
       { slug: 'australia-take-home-pay-calculator', label: 'Australia take-home pay calculator for 2026–27', note: 'A different tax year and a different currency.' }

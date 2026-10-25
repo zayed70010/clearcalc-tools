@@ -135,7 +135,7 @@ function nonNegativeCents(value, label) {
   return Math.round(value * 100);
 }
 
-function bracketTaxCents(incomeCents, brackets) {
+function bracketTaxCents(incomeCents, brackets, scale = 10000) {
   if (incomeCents <= 0) return 0;
   let tax = 0;
   let previous = 0;
@@ -146,7 +146,7 @@ function bracketTaxCents(incomeCents, brackets) {
     if (incomeCents <= upTo) break;
     previous = upTo;
   }
-  return Math.round(tax / 10000);
+  return Math.round(tax / scale);
 }
 
 function payPeriodCount(value) {
@@ -332,6 +332,120 @@ const AU_BRACKETS = [
   [19_000_000, 3700],
   [Number.POSITIVE_INFINITY, 4500]
 ];
+
+// 2026 New York. Brackets and the standard deduction are the 2026 figures in
+// the IT-2105-I rate schedule and the 2026 IT-2104 instructions. Rates are
+// basis points. New York City resident rates are the same schedule in
+// hundred-thousandths of a dollar (3.078% = 3078), because they are not whole
+// basis points. The supplemental-tax worksheets that apply when New York AGI
+// is over $107,650 are not applied.
+const NY_SINGLE_BRACKETS = [
+  [850_000, 390],
+  [1_170_000, 440],
+  [1_390_000, 515],
+  [8_065_000, 540],
+  [21_540_000, 590],
+  [107_755_000, 685],
+  [500_000_000, 965],
+  [2_500_000_000, 1030],
+  [Number.POSITIVE_INFINITY, 1090]
+];
+const NY_JOINT_BRACKETS = [
+  [1_715_000, 390],
+  [2_360_000, 440],
+  [2_790_000, 515],
+  [16_155_000, 540],
+  [32_320_000, 590],
+  [215_535_000, 685],
+  [500_000_000, 965],
+  [2_500_000_000, 1030],
+  [Number.POSITIVE_INFINITY, 1090]
+];
+const NY_STANDARD_DEDUCTION = { 1: 800_000, 2: 1_605_000 };
+const NY_RECAPTURE_AGI_CENTS = 10_765_000;
+const NYC_SINGLE_BRACKETS = [
+  [1_200_000, 3078],
+  [2_500_000, 3762],
+  [5_000_000, 3819],
+  [Number.POSITIVE_INFINITY, 3876]
+];
+const NYC_JOINT_BRACKETS = [
+  [2_160_000, 3078],
+  [4_500_000, 3762],
+  [9_000_000, 3819],
+  [Number.POSITIVE_INFINITY, 3876]
+];
+
+// 2026 Alberta. Brackets from the Alberta tax-rate table and CRA T4032-AB.
+// The basic personal amount is the TD1AB amount, credited at 8%.
+const AB_BRACKETS = [
+  [6_120_000, 800],
+  [15_425_900, 1000],
+  [18_511_100, 1200],
+  [24_681_300, 1300],
+  [37_022_000, 1400],
+  [Number.POSITIVE_INFINITY, 1500]
+];
+const AB_BASIC_PERSONAL_CENTS = 2_276_900;
+
+// 2026/27 NSW transfer duty, Revenue NSW rate table, straight percentage of
+// the excess as in the published worked examples. Premium duty replaces the
+// general rate above $3,870,000. First-home concession is Duties Act s 78A.
+function nswPerHundredRateCents(excessCents, rateTenThousandths) {
+  return Math.round(excessCents * rateTenThousandths / 10000);
+}
+
+function nswGeneralDutyCents(valueCents) {
+  if (valueCents <= 0) return 0;
+  if (valueCents > 387_000_000) return 19_413_700 + nswPerHundredRateCents(valueCents - 387_000_000, 700);
+  if (valueCents > 129_000_000) return 5_223_700 + nswPerHundredRateCents(valueCents - 129_000_000, 550);
+  if (valueCents > 38_700_000) return 1_160_200 + nswPerHundredRateCents(valueCents - 38_700_000, 450);
+  if (valueCents > 10_300_000) return 166_200 + nswPerHundredRateCents(valueCents - 10_300_000, 350);
+  if (valueCents > 3_800_000) return 52_500 + nswPerHundredRateCents(valueCents - 3_800_000, 175);
+  if (valueCents > 1_800_000) return 22_500 + nswPerHundredRateCents(valueCents - 1_800_000, 150);
+  return Math.max(2_000, nswPerHundredRateCents(valueCents, 125));
+}
+
+function nswConcessionCents(valueCents, floorCents, ceilingCents, widthCents) {
+  if (valueCents <= floorCents) return 0;
+  if (valueCents >= ceilingCents) return nswGeneralDutyCents(valueCents);
+  const full = nswGeneralDutyCents(valueCents);
+  const dutyAtFloor = nswGeneralDutyCents(floorCents);
+  const relief = Math.round((ceilingCents - valueCents) * dutyAtFloor / widthCents);
+  return full - relief;
+}
+
+// 2026/27 student and postgraduate loan thresholds, HMRC employer guidance.
+// Pay-period thresholds are the published monthly and weekly figures, not
+// the annual threshold divided again. Deductions round down to the pound.
+const STUDENT_PLANS = {
+  1: { name: 'Plan 1', annual: 2_690_000, monthly: 224_166, weekly: 51_730, rate: 9 },
+  2: { name: 'Plan 2', annual: 2_938_500, monthly: 244_875, weekly: 56_509, rate: 9 },
+  4: { name: 'Plan 4', annual: 3_379_500, monthly: 281_625, weekly: 64_990, rate: 9 },
+  5: { name: 'Plan 5', annual: 2_500_000, monthly: 208_333, weekly: 48_076, rate: 9 }
+};
+const POSTGRAD_LOAN = { annual: 2_100_000, monthly: 175_000, weekly: 40_384, rate: 6 };
+
+function loanDeductionPence(earningsPence, thresholdPence, rate) {
+  const excess = Math.max(0, earningsPence - thresholdPence);
+  return Math.floor(excess * rate / 100 / 100) * 100;
+}
+
+function canadaEmployeePayroll(salary) {
+  const pensionable = Math.min(salary, 7_460_000);
+  const contributory = Math.max(0, pensionable - 350_000);
+  const cppBase = Math.round(contributory * 495 / 10000);
+  const cppFirst = Math.round(contributory * 100 / 10000);
+  const cpp = cppBase + cppFirst;
+  const cpp2 = Math.min(41_600, Math.round(Math.max(0, Math.min(salary, 8_500_000) - 7_460_000) * 400 / 10000));
+  const ei = Math.min(112_307, Math.round(Math.min(salary, 6_890_000) * 163 / 10000));
+  const taxable = Math.max(0, salary - cppFirst - cpp2);
+  const basicPersonal = federalBasicPersonalAmountCents(taxable);
+  const employmentAmount = Math.min(150_100, salary);
+  const federalCredit = Math.round((basicPersonal + cppBase + ei + employmentAmount) * 1400 / 10000);
+  const federalTax = Math.max(0, bracketTaxCents(taxable, CA_FED_BRACKETS) - federalCredit);
+  return { cppBase, cppFirst, cpp, cpp2, ei, taxable, basicPersonal, federalTax };
+}
 
 export function calculate(slug, values) {
   const v = Object.fromEntries(Object.entries(values).map(([key, val]) => [key, key.includes('date') ? val : Number(val)]));
@@ -709,6 +823,186 @@ export function calculate(slug, values) {
         `Bags with no waste allowance, rounded up: ${number(bagsWithoutWaste, 0)}`,
         `Ready-mix order, rounded up to the next 0.25 yard: ${number(quarterYards, 2)} cubic yards`,
         `Each ${bag.pounds} lb bag is counted as ${number(bag.cubicFeet, 2)} cubic feet of cured concrete.`
+      ]
+    };
+  }
+  if (slug === 'new-york-paycheck-calculator') {
+    const status = filingStatusCode(v.status);
+    const periods = payPeriodCount(v.periods);
+    const city = Number(v.city);
+    if (city !== 1 && city !== 2) throw new Error('Choose New York City or the rest of the state');
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const requestedDeferral = nonNegativeCents(v.deferral, '401(k) deferral');
+    const deferral = Math.min(requestedDeferral, salary, US_401K_DEFERRAL_CENTS);
+    const federalTaxable = Math.max(0, salary - deferral - US_STANDARD_DEDUCTION[status]);
+    const federal = bracketTaxCents(federalTaxable, status === 1 ? US_SINGLE_BRACKETS : US_JOINT_BRACKETS);
+    const socialSecurity = Math.round(Math.min(salary, US_SS_WAGE_BASE_CENTS) * 620 / 10000);
+    const medicare = Math.round(salary * 145 / 10000);
+    const additionalMedicare = Math.round(Math.max(0, salary - US_ADDL_MEDICARE_CENTS) * 90 / 10000);
+    const nyAgi = Math.max(0, salary - deferral);
+    const nyTaxable = Math.max(0, nyAgi - NY_STANDARD_DEDUCTION[status]);
+    const stateTax = bracketTaxCents(nyTaxable, status === 1 ? NY_SINGLE_BRACKETS : NY_JOINT_BRACKETS);
+    const cityTax = city === 2
+      ? bracketTaxCents(nyTaxable, status === 1 ? NYC_SINGLE_BRACKETS : NYC_JOINT_BRACKETS, 100000)
+      : 0;
+    const takeHome = salary - federal - socialSecurity - medicare - additionalMedicare - stateTax - cityTax - deferral;
+    const details = [
+      `Federal income tax: ${usdCents(federal)}`,
+      `Social Security: ${usdCents(socialSecurity)}`,
+      `Medicare: ${usdCents(medicare)}`,
+      `Additional Medicare Tax: ${usdCents(additionalMedicare)}`,
+      `New York State income tax: ${usdCents(stateTax)}`,
+      `New York City resident tax: ${usdCents(cityTax)}`,
+      `401(k) deferred: ${usdCents(deferral)}`,
+      `Annual take-home: ${usdCents(takeHome)}`,
+      `Federal standard deduction applied: ${usdCents(US_STANDARD_DEDUCTION[status])}`,
+      `New York standard deduction applied: ${usdCents(NY_STANDARD_DEDUCTION[status])}`,
+      status === 1
+        ? 'Filing status: single'
+        : 'Filing status: married filing jointly, with this salary as the only income on the return',
+      city === 2
+        ? 'New York City resident tax is included. Yonkers is not.'
+        : 'New York City resident tax is not included. This is the rest of New York State.'
+    ];
+    if (nyAgi > NY_RECAPTURE_AGI_CENTS) {
+      details.push('New York AGI is over $107,650. The supplemental tax that recaptures the benefit of the lower brackets is not included.');
+    }
+    if (requestedDeferral > deferral) {
+      details.push(`401(k) entered above the 2026 elective deferral limit or above wages was reduced to ${usdCents(deferral)}`);
+    }
+    return {
+      headline: `${usdCents(Math.round(takeHome / periods))} ${PAY_PERIOD_LABEL[periods]}`,
+      details
+    };
+  }
+  if (slug === 'alberta-take-home-pay-calculator') {
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const payroll = canadaEmployeePayroll(salary);
+    const albertaCredit = Math.round((AB_BASIC_PERSONAL_CENTS + payroll.cppBase + payroll.ei) * 800 / 10000);
+    const albertaTax = Math.max(0, bracketTaxCents(payroll.taxable, AB_BRACKETS) - albertaCredit);
+    const takeHome = salary - payroll.cpp - payroll.cpp2 - payroll.ei - payroll.federalTax - albertaTax;
+    return {
+      headline: `${cadCents(Math.round(takeHome / 12))} / month`,
+      details: [
+        `Federal income tax: ${cadCents(payroll.federalTax)}`,
+        `Alberta income tax: ${cadCents(albertaTax)}`,
+        `Employee CPP, including CPP2: ${cadCents(payroll.cpp + payroll.cpp2)}`,
+        `Employee EI: ${cadCents(payroll.ei)}`,
+        `Annual take-home: ${cadCents(takeHome)}`,
+        `Every two weeks: ${cadCents(Math.round(takeHome / 26))}`,
+        `Federal basic personal amount applied: ${cadCents(payroll.basicPersonal)}`,
+        `Alberta basic personal amount applied: ${cadCents(AB_BASIC_PERSONAL_CENTS)}`
+      ]
+    };
+  }
+  if (slug === 'nsw-stamp-duty-calculator') {
+    const price = nonNegativeCents(v.price, 'price');
+    const buyer = Number(v.buyer);
+    const foreign = Number(v.foreign);
+    if (![1, 2, 3].includes(buyer)) throw new Error('Choose a buyer type');
+    if (foreign !== 1 && foreign !== 2) throw new Error('Choose whether a foreign-person surcharge applies');
+    const general = nswGeneralDutyCents(price);
+    let transfer = general;
+    let rule = 'Rates used: 2026/27 general NSW transfer duty. Premium duty replaces the general rate above $3,870,000.';
+    if (foreign === 2) {
+      rule = 'A foreign person is not given the first-home concession on this page. General 2026/27 duty is charged, plus surcharge purchaser duty of 9%.';
+    } else if (buyer === 2) {
+      transfer = nswConcessionCents(price, 80_000_000, 100_000_000, 20_000_000);
+      if (price <= 80_000_000) rule = 'First Home Buyers Assistance Scheme: no transfer duty on a home of $800,000 or less.';
+      else if (price < 100_000_000) rule = 'First Home Buyers Assistance Scheme: concessional duty on a home above $800,000 and below $1,000,000.';
+      else rule = 'First-home concession is not available at $1,000,000 or more. General 2026/27 duty was used.';
+    } else if (buyer === 3) {
+      transfer = nswConcessionCents(price, 35_000_000, 45_000_000, 10_000_000);
+      if (price <= 35_000_000) rule = 'First Home Buyers Assistance Scheme: no transfer duty on vacant land of $350,000 or less.';
+      else if (price < 45_000_000) rule = 'First Home Buyers Assistance Scheme: concessional duty on vacant land above $350,000 and below $450,000.';
+      else rule = 'The vacant-land concession is not available at $450,000 or more. General 2026/27 duty was used.';
+    }
+    const surcharge = foreign === 2 ? Math.round(price * 9 / 100) : 0;
+    const total = transfer + surcharge;
+    const effective = price === 0 ? 0 : total / price * 100;
+    return {
+      headline: audCents(total),
+      details: [
+        rule,
+        `Transfer duty: ${audCents(transfer)}`,
+        `Surcharge purchaser duty: ${audCents(surcharge)}`,
+        `Effective rate: ${percent(effective)}%`,
+        `Dutiable value: ${audCents(price)}`,
+        price > 387_000_000
+          ? 'Premium property duty applies above $3,870,000 for 2026/27.'
+          : 'Premium property duty does not apply at or below $3,870,000.'
+      ]
+    };
+  }
+  if (slug === 'uk-student-loan-repayment-calculator') {
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const planCode = Number(v.plan);
+    const postgrad = Number(v.postgrad);
+    const periods = Number(v.periods);
+    if (![0, 1, 2, 4, 5].includes(planCode)) throw new Error('Choose an undergraduate plan');
+    if (postgrad !== 0 && postgrad !== 1) throw new Error('Choose whether a postgraduate loan is repaid');
+    if (periods !== 12 && periods !== 52) throw new Error('Choose a pay frequency');
+    const plan = planCode === 0 ? null : STUDENT_PLANS[planCode];
+    const periodEarnings = Math.round(salary / periods);
+    const periodThreshold = (entry) => (periods === 12 ? entry.monthly : entry.weekly);
+    const undergrad = plan ? loanDeductionPence(periodEarnings, periodThreshold(plan), plan.rate) : 0;
+    const postgraduate = postgrad === 1 ? loanDeductionPence(periodEarnings, periodThreshold(POSTGRAD_LOAN), POSTGRAD_LOAN.rate) : 0;
+    const periodDeduction = undergrad + postgraduate;
+    const annualPayroll = periodDeduction * periods;
+    const straight = (entry) => (entry ? Math.round(Math.max(0, salary - entry.annual) * entry.rate / 100) : 0);
+    const straightAnnual = straight(plan) + (postgrad === 1 ? straight(POSTGRAD_LOAN) : 0);
+    const frequency = periods === 12 ? '/ month' : '/ week';
+    const planLabel = plan ? plan.name : 'No undergraduate plan';
+    return {
+      headline: `${gbp(periodDeduction)} ${frequency}`,
+      details: [
+        `${planLabel} deduction this pay period: ${gbp(undergrad)}`,
+        `Postgraduate loan deduction this pay period: ${gbp(postgraduate)}`,
+        `Pay-period earnings used: ${gbp(periodEarnings)}`,
+        `Annual total if every pay period matched: ${gbp(annualPayroll)}`,
+        `Straight annual percentage, before the pound rounding: ${gbp(straightAnnual)}`,
+        plan
+          ? `${plan.name} annual threshold: ${gbp(plan.annual)}. ${periods === 12 ? 'Monthly' : 'Weekly'} threshold: ${gbp(periodThreshold(plan))}.`
+          : 'No undergraduate plan was selected.',
+        postgrad === 1
+          ? `Postgraduate annual threshold: ${gbp(POSTGRAD_LOAN.annual)}. ${periods === 12 ? 'Monthly' : 'Weekly'} threshold: ${gbp(periodThreshold(POSTGRAD_LOAN))}.`
+          : 'Postgraduate loan: not selected.'
+      ]
+    };
+  }
+  if (slug === 'room-paint-calculator') {
+    const length = v.length;
+    const width = v.width;
+    const height = v.height;
+    const openings = v.openings;
+    const coats = v.coats;
+    const coverage = v.coverage;
+    const ceiling = Number(v.ceiling);
+    if (!Number.isFinite(length) || length <= 0) throw new Error('Enter a length above zero');
+    if (!Number.isFinite(width) || width <= 0) throw new Error('Enter a width above zero');
+    if (!Number.isFinite(height) || height <= 0) throw new Error('Enter a height above zero');
+    if (!Number.isFinite(openings) || openings < 0) throw new Error('Enter openings of zero or more');
+    if (!Number.isFinite(coats) || coats <= 0) throw new Error('Enter a number of coats above zero');
+    if (!Number.isFinite(coverage) || coverage <= 0) throw new Error('Enter a coverage above zero');
+    if (ceiling !== 0 && ceiling !== 1) throw new Error('Choose whether the ceiling is painted');
+    const walls = 2 * (length + width) * height;
+    if (openings > walls) throw new Error('Openings cannot be larger than the wall area');
+    const ceilingArea = ceiling === 1 ? length * width : 0;
+    const paintable = walls - openings + ceilingArea;
+    const exactGallons = paintable * coats / coverage;
+    const gallons = Math.ceil(exactGallons - 1e-9);
+    const quarts = Math.ceil(exactGallons * 4 - 1e-9);
+    const quartGallons = quarts / 4;
+    return {
+      headline: `${number(gallons, 0)} ${gallons === 1 ? 'gallon' : 'gallons'} to buy`,
+      details: [
+        `Exact paint: ${number(exactGallons, 2)} gallons`,
+        `Rounded up to the next quart: ${number(quartGallons, 2)} ${quartGallons === 1 ? 'gallon' : 'gallons'} (${number(quarts, 0)} ${quarts === 1 ? 'quart' : 'quarts'})`,
+        `Wall area: ${number(walls, 1)} sq ft`,
+        ceiling === 1 ? `Ceiling area included: ${number(ceilingArea, 1)} sq ft` : 'Ceiling area included: 0 sq ft',
+        `Openings subtracted from the walls: ${number(openings, 1)} sq ft`,
+        `Paintable area: ${number(paintable, 1)} sq ft across ${number(coats, 2)} ${coats === 1 ? 'coat' : 'coats'}`,
+        `Coverage used: ${number(coverage, 1)} sq ft per gallon`
       ]
     };
   }

@@ -1,5 +1,6 @@
 import { extraCalculatorContent } from './extra-calculator-content.js';
 import { clusterCalculatorContent } from './cluster-calculator-content.js';
+import { searchCalculatorContent } from './search-calculator-content.js';
 
 export const calculatorContent = {
   'mortgage-calculator': {
@@ -777,6 +778,13 @@ export const calculatorContent = {
         q: 'Does the result count the birthday as a full day lived?',
         a: 'No. On the date of birth the calculator shows 0 years and 0 months and 0 days. The next calendar day is 1 day. It is a difference between dates, not an inclusive count of days alive.'
       }
+    ],
+    relatedLinks: [
+      {
+        slug: 'date-difference-calculator',
+        label: 'Days between two dates',
+        note: 'The elapsed day count, including weekends. It does not borrow months the way this age result does.'
+      }
     ]
   },
   'date-difference-calculator': {
@@ -785,7 +793,8 @@ export const calculatorContent = {
     description: 'Count elapsed calendar days between two dates, and see why an inclusive day count is one day higher. Includes deadline examples and a note on weekends.',
     intro: [
       'This date difference calculator counts the calendar days from a start date up to, but not including, an end date. January 1 through the following January 1 is the length of that year. January 1 to December 31 of the same non-leap year is 364 days, because December 31 has not yet reached the next January 1.',
-      'The count includes weekends and holidays. It does not care which date you enter first, because it uses the absolute difference. It also does not add a day for "inclusive" counting. If you need the number of calendar dates from the start through the end, add one to the result. The same start and end date produces 0, while an inclusive count of that single date is 1.'
+      'The count includes weekends and holidays. It does not care which date you enter first, because it uses the absolute difference. It also does not add a day for "inclusive" counting. If you need the number of calendar dates from the start through the end, add one to the result. The same start and end date produces 0, while an inclusive count of that single date is 1.',
+      'What the headline does not do is drop Saturdays and Sundays. The calendar year 2026, Thursday 1 January through Thursday 31 December, has 365 dates: 52 Saturdays, 52 Sundays, and 261 weekdays. The calculator still shows 364 elapsed days from 1 January to 31 December, because that figure is the year minus the end date, not the year minus the weekends. 261 weekdays is a different question, answered by listing the dates. This page now states those 2026 counts so the elapsed number is not mistaken for a count of working days.'
     ],
     steps: [
       'Enter the start date and the end date. Order does not change the result.',
@@ -797,7 +806,8 @@ export const calculatorContent = {
     howItWorks: [
       'Each date is treated as a calendar day, and the calculator takes the absolute number of days between them. The time of day is not an input. A span that crosses a leap day includes February 29, so 1 January 2024 to 31 December 2024 is 365 elapsed days, one more than the same span in 2026.',
       'The second line divides that day count by 7 and rounds to at most two decimal places. It is not "how many Mondays" and it is not a count of Sunday-to-Saturday weeks. 364 divided by 7 is exactly 52, so the line reads "Approximately 52 weeks." 90 divided by 7 is about 12.857, shown as "Approximately 12.86 weeks."',
-      'Swapping the two dates does not change the number. A project that runs from April back to January is the same length as January to April. If you need a signed "how many days until" versus "how many days since," you have to look at which date is later yourself.'
+      'Swapping the two dates does not change the number. A project that runs from April back to January is the same length as January to April. If you need a signed "how many days until" versus "how many days since," you have to look at which date is later yourself.',
+      'The 90 elapsed days from 15 January 2026 to 15 April 2026 are the 90 dates after 15 January up to and including 15 April. Fifteen January is a Thursday and 15 April is a Wednesday. Those 90 dates contain 13 Saturdays, 13 Sundays, and 64 weekdays. The calculator still reports 90 days and about 12.86 weeks. It does not report 64. A deadline that moves only on weekdays needs that second count, and this page prints it for the worked example so the two questions stay distinct. It still has no holiday list, so a weekday that is a public holiday remains inside the 64.'
     ],
     formula: 'Elapsed days = absolute calendar-day difference between the two dates\nInclusive day count = elapsed days + 1\nWeeks shown = elapsed days / 7, rounded to at most two decimals',
     formulaNotes: [
@@ -816,7 +826,7 @@ export const calculatorContent = {
       {
         title: 'A 90-day span and the length of February',
         paragraphs: [
-          'Start 15 January 2026, end 15 April 2026. The calculator shows 90 days and "Approximately 12.86 weeks." Ninety divided by 7 is 12.857…, and the week line stops at two decimal places. An inclusive count of 15 January through 15 April is 91 dates.',
+          'Start 15 January 2026, end 15 April 2026. The calculator shows 90 days and "Approximately 12.86 weeks." Ninety divided by 7 is 12.857…, and the week line stops at two decimal places. An inclusive count of 15 January through 15 April is 91 dates. Of the 90 dates after the start and through the end, 13 are Saturdays, 13 are Sundays, and 64 are weekdays. The week line is not that 64, and it is not 64 divided by 5.',
           'Start 1 February 2026, end 1 March 2026. The calculator shows 28 days and "Approximately 4 weeks." 2026 is not a leap year, so February has 28 days, and 28 / 7 is 4. The same inputs in 2024 would include February 29 and show 29 days. The end date of 1 March is the day the span reaches March, not an extra day added on top of February.'
         ]
       },
@@ -842,7 +852,7 @@ export const calculatorContent = {
     },
     limitsHeading: 'Weekends, holidays, and time zones',
     limits: [
-      'Weekends are included. A span of 14 elapsed days always shows 14 days even if ten of them are working days. Counting business days requires a holiday list and a rule for Saturdays and Sundays, which this form does not have.',
+      'Weekends are included. A span of 14 elapsed days always shows 14 days even if ten of them are working days. For the full calendar year 2026 the dates themselves are 261 weekdays, 52 Saturdays, and 52 Sundays, 365 in all. The elapsed headline from 1 January to 31 December is still 364, because 31 December is the end date of an exclusive count, and that end date happens to be a Thursday. Subtracting the 104 weekend dates from 365 does not produce 364. The form still has no holiday switch, so those 261 weekdays still include any public holiday that falls on Monday through Friday.',
       'The week figure is a decimal length, not a calendar-week count. "Approximately 12.86 weeks" does not mean twelve weeks and a particular weekday. Divide by 7 yourself if you want a quotient and a remainder: 90 days is 12 weeks and 6 days.',
       'Dates are whole civil dates. The calculator does not apply a time of day, and the difference does not depend on which time zone you are in. Historical calendar reforms and dates far outside the modern Gregorian range are not a goal of this tool.'
     ],
@@ -854,7 +864,7 @@ export const calculatorContent = {
       },
       {
         q: 'Does the day count include weekends?',
-        a: 'Yes. Every civil day in the span counts, including Saturdays, Sundays, and holidays. The tool does not compute business days.'
+        a: 'Yes. Every civil day in the span counts, including Saturdays, Sundays, and holidays. The tool does not remove them from the headline. In the 15 January 2026 to 15 April 2026 example the headline is 90 days, of which 13 are Saturdays, 13 are Sundays, and 64 are weekdays. The calendar year 2026 has 52 Saturdays, 52 Sundays, and 261 weekdays.'
       },
       {
         q: 'What if I swap the start and end dates?',
@@ -867,6 +877,22 @@ export const calculatorContent = {
       {
         q: 'Is the week line a count of calendar weeks?',
         a: 'No. It is the elapsed day count divided by 7, shown with at most two decimal places. 90 days displays as approximately 12.86 weeks, which is 12 weeks and 6 days if you want a remainder instead.'
+      },
+      {
+        q: 'How many weekdays are in the 2026 calendar year?',
+        a: '261. The year has 365 dates, Thursday 1 January through Thursday 31 December, with 52 Saturdays and 52 Sundays. This calculator’s elapsed count from 1 January to 31 December is 364, not 261. The 364 figure keeps the weekends and drops the end date from an inclusive year count. It is not a business-day total, and the 261 weekdays still include public holidays.'
+      }
+    ],
+    relatedLinks: [
+      {
+        slug: 'age-calculator',
+        label: 'Exact age calculator',
+        note: 'Completed years, months, and days from a birthday. It borrows month lengths instead of counting every elapsed day.'
+      },
+      {
+        slug: 'hourly-to-salary-calculator',
+        label: 'Hourly to salary calculator',
+        note: 'Turns an hourly rate and a number of weeks into annual pay. It does not count the days between two dates.'
       }
     ]
   },
@@ -1219,7 +1245,7 @@ export const calculatorContent = {
       'Scotland is not covered on this page. Scottish income tax bands for 2026/27 are different, including a 19% starter rate and a 48% top rate, and a tax code that starts with S is a sign you need those bands. The Scotland take-home pay calculator on this site applies that rate resolution. This page also ignores Marriage Allowance, Blind Person\'s Allowance, and any K code, BR code, 0T code, or week 1 or month 1 emergency code. The working assumption is a cumulative 1257L code in England or Northern Ireland, or C1257L in Wales, with no other adjustments.',
       'Payroll does not always reproduce an annual calculation divided by 12. HMRC\'s monthly personal allowance and monthly primary threshold are each £1,048, and twelve times £1,048 is £12,576, which is £6 more than the annual £12,570. On a flat £35,000 salary that £6 is £1.20 of basic-rate tax. The same flat salary measured against the monthly National Insurance thresholds comes to £1,793.92 of employee National Insurance for the year, against £1,794.40 here. A bonus, a new starter, or a tax code that is not cumulative can move a payslip by much more than that. Directors\' National Insurance can be assessed on an annual earnings period, which is closer to this page, but the director rules are still not modelled.',
       'Workplace pension contributions are not deducted. Under salary sacrifice, enter the salary after the sacrifice, because that is the pay tax and National Insurance see. Under a net pay arrangement the contribution reduces taxable pay but not National Insurance, which this single salary field cannot split. Under relief at source, tax and National Insurance are worked out on the full gross salary and the contribution is taken from after-tax pay, with basic-rate relief added inside the pension rather than returned in your take-home. Type the full gross salary for that last case and then subtract the contribution you actually pay.',
-      'Student loan and postgraduate loan deductions are not subtracted. For 2026/27 HMRC\'s employer thresholds are £26,900 for Plan 1, £29,385 for Plan 2, £33,795 for Plan 4, and £25,000 for Plan 5, each at 9% of earnings above the threshold, and £21,000 for a postgraduate loan at 6%. Benefits in kind, statutory payments, bonuses, commission, and a second job are not added. Employer National Insurance, which for category A is 15% above the £5,000 secondary threshold, is an employer cost and is not taken off this take-home figure.'
+      'Student loan and postgraduate loan deductions are not subtracted. For 2026/27 HMRC\'s employer thresholds are £26,900 for Plan 1, £29,385 for Plan 2, £33,795 for Plan 4, and £25,000 for Plan 5, each at 9% of earnings above the threshold, and £21,000 for a postgraduate loan at 6%. The student loan repayment calculator applies those thresholds and rounds the pay-period deduction down to the pound. On a flat £35,000 Plan 2 salary it shows £42.00 a month, which is not already inside the £2,393.30 take-home headline on this page. Subtract it yourself if you want both. Benefits in kind, statutory payments, bonuses, commission, and a second job are not added. Employer National Insurance, which for category A is 15% above the £5,000 secondary threshold, is an employer cost and is not taken off this take-home figure.'
     ],
     disclaimer: 'This is a planning estimate for the 2026/27 tax year in England, Wales, and Northern Ireland, not a payslip, a tax code, or tax advice. HMRC and your employer assess the amount you owe.',
     faqs: [
@@ -1255,6 +1281,11 @@ export const calculatorContent = {
         note: 'Same National Insurance, with the Scottish income tax bands instead of these ones.'
       },
       {
+        slug: 'uk-student-loan-repayment-calculator',
+        label: 'UK student loan repayment calculator for 2026/27',
+        note: 'Plan 1, Plan 2, Plan 4, Plan 5, and postgraduate deductions. Not already subtracted from this take-home figure.'
+      },
+      {
         slug: 'loan-calculator',
         label: 'Personal and auto loan calculator',
         note: 'Compare a fixed monthly payment with take-home pay only when both numbers are in the same currency.'
@@ -1272,7 +1303,8 @@ export const calculatorContent = {
     ]
   },
   ...extraCalculatorContent,
-  ...clusterCalculatorContent
+  ...clusterCalculatorContent,
+  ...searchCalculatorContent
 };
 
 export function contentWordCount(entry) {

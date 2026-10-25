@@ -306,6 +306,7 @@ export const clusterCalculatorContent = {
     ],
     relatedLinks: [
       { slug: 'mortgage-calculator', label: 'Fixed-rate mortgage payment calculator', note: 'Principal and interest in US dollars. It does not add SDLT or convert pounds.' },
+      { slug: 'nsw-stamp-duty-calculator', label: 'NSW stamp duty calculator for 2026/27', note: 'Transfer duty in Australian dollars, including the first home buyer concession. Not SDLT.' },
       { slug: 'uk-take-home-pay-calculator', label: '2026/27 take-home pay for England, Wales and Northern Ireland', note: 'Income tax and employee National Insurance on a salary, not the tax on a house.' },
       { slug: 'rent-affordability-calculator', label: 'Rent affordability calculator', note: 'Compares monthly rent with 30% of gross income. It is not a purchase tax.' }
     ]
@@ -513,7 +514,8 @@ export const clusterCalculatorContent = {
     relatedLinks: [
       { slug: 'mortgage-calculator', label: 'Fixed-rate mortgage payment calculator', note: 'The loan payment on a house, not the concrete under a patio.' },
       { slug: 'rent-affordability-calculator', label: 'Rent affordability calculator', note: 'Compares rent with 30% of gross income. It does not estimate a pour.' },
-      { slug: 'length-converter', label: 'Length converter from meters', note: 'If the slab was measured in meters, convert to feet before you type the length and width here. Thickness stays in inches on this form.' }
+      { slug: 'length-converter', label: 'Length converter from meters', note: 'If the slab was measured in meters, convert to feet before you type the length and width here. Thickness stays in inches on this form.' },
+      { slug: 'room-paint-calculator', label: 'Room paint calculator', note: 'Gallons for a rectangular room. It uses square feet per gallon, not these bag yields.' }
     ]
   }
 };
