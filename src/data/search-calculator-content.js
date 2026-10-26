@@ -203,6 +203,7 @@ export const searchCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'manitoba-take-home-pay-calculator', label: 'Manitoba take-home pay calculator for 2026', note: 'Same federal tax, CPP, and EI at $70,000. Manitoba tax is higher, and the basic personal amount can phase out.' },
       { slug: 'ontario-take-home-pay-calculator', label: 'Ontario take-home pay calculator for 2026', note: 'Same federal tax, CPP, and EI. Ontario adds its own tax and the Ontario Health Premium.' },
       { slug: 'british-columbia-take-home-pay-calculator', label: 'British Columbia take-home pay calculator for 2026', note: 'Same federal pieces, with the 2026 B.C. brackets and the B.C. tax reduction.' },
       { slug: 'australia-take-home-pay-calculator', label: 'Australia take-home pay calculator for 2026–27', note: 'A different country, tax year, and currency. Do not subtract an Australian figure from this Alberta salary.' }
@@ -310,6 +311,7 @@ export const searchCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'victoria-stamp-duty-calculator', label: 'Victoria stamp duty calculator', note: 'Victorian land transfer duty in Australian dollars, including the first home buyer concession and 8% foreign purchaser additional duty.' },
       { slug: 'england-stamp-duty-calculator', label: 'England stamp duty calculator', note: 'Residential SDLT in pounds for England and Northern Ireland. A different statute and a different currency.' },
       { slug: 'mortgage-calculator', label: 'Fixed-rate mortgage payment calculator', note: 'Principal and interest in US dollars. It does not add this Australian transfer duty or convert currencies.' },
       { slug: 'australia-take-home-pay-calculator', label: 'Australia take-home pay calculator for 2026–27', note: 'Resident income tax and the Medicare levy on a salary. It is not the tax on a house.' }

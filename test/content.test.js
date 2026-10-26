@@ -100,6 +100,28 @@ test('five search calculators are linked from the homepage and a related page', 
   );
 });
 
+test('five long-tail calculators are linked from the homepage and a related page', () => {
+  const home = readFileSync('src/pages/index.astro', 'utf8');
+  const links = [
+    ['illinois-paycheck-calculator', 'texas-paycheck-calculator'],
+    ['manitoba-take-home-pay-calculator', 'alberta-take-home-pay-calculator'],
+    ['victoria-stamp-duty-calculator', 'nsw-stamp-duty-calculator'],
+    ['us-business-days-calculator', 'date-difference-calculator'],
+    ['mulch-calculator', 'concrete-slab-calculator']
+  ];
+  for (const [slug, related] of links) {
+    assert.match(home, new RegExp(`calculators/${slug}/`));
+    assert.ok(calculatorContent[slug], slug);
+    assert.equal(
+      calculatorContent[related].relatedLinks.some((link) => link.slug === slug),
+      true,
+      related
+    );
+  }
+  assert.match(calculatorContent['concrete-slab-calculator'].formulaNotes.at(-1), /324/);
+  assert.match(calculatorContent['concrete-slab-calculator'].howItWorks.at(-1), /mulch/);
+});
+
 test('length converter slug matches the page title', () => {
   const length = calculators.find((item) => item.slug === 'length-converter');
   assert.equal(length.title, 'Length Converter');

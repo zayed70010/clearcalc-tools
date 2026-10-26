@@ -432,6 +432,119 @@ test('room paint gallons round up from wall and ceiling area', () => {
   assert.throws(() => calculate('room-paint-calculator', { length: 12, width: 10, height: 8, openings: 400, coats: 2, coverage: 350, ceiling: 1 }), /Openings/);
 });
 
+test('2026 Illinois paycheck uses the 4.95% rate and the $2,925 exemption', () => {
+  const single = calculate('illinois-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0 });
+  assert.equal(single.headline, '$1,974.42 / two weeks');
+  assert.equal(single.details[0], 'Federal income tax: $5,620.00');
+  assert.equal(single.details[4], 'Illinois income tax: $3,072.71');
+  assert.equal(single.details[5], 'Illinois exemption applied: $2,925.00');
+  assert.equal(single.details[7], 'Annual take-home: $51,334.79');
+  const joint = calculate('illinois-paycheck-calculator', { salary: 65000, status: 2, periods: 26, deferral: 0 });
+  assert.equal(joint.details[4], 'Illinois income tax: $2,927.93');
+  assert.equal(joint.details[7], 'Annual take-home: $53,659.57');
+  const deferred = calculate('illinois-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 6500 });
+  assert.equal(deferred.details[0], 'Federal income tax: $4,840.00');
+  assert.equal(deferred.details[4], 'Illinois income tax: $2,750.96');
+  const capped = calculate('illinois-paycheck-calculator', { salary: 250000, status: 1, periods: 12, deferral: 0 });
+  const over = calculate('illinois-paycheck-calculator', { salary: 250001, status: 1, periods: 12, deferral: 0 });
+  assert.equal(capped.details[5], 'Illinois exemption applied: $2,925.00');
+  assert.equal(over.details[5], 'Illinois exemption applied: $0.00');
+  assert.match(over.details.at(-1), /exemption was removed/);
+  const texas = calculate('texas-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0 });
+  assert.equal(texas.details.find((line) => line.startsWith('Annual take-home')), 'Annual take-home: $54,407.50');
+  assert.throws(() => calculate('illinois-paycheck-calculator', { salary: -1, status: 1, periods: 26, deferral: 0 }), /salary/);
+});
+
+test('2026 Manitoba take-home uses the unindexed brackets and the basic personal amount', () => {
+  assert.deepEqual(calculate('manitoba-take-home-pay-calculator', { salary: 70000 }), {
+    headline: '$4,324.94 / month',
+    details: [
+      'Federal income tax: $7,278.19',
+      'Manitoba income tax: $5,742.67',
+      'Employee CPP, including CPP2: $3,956.75',
+      'Employee EI: $1,123.07',
+      'Annual take-home: $51,899.32',
+      'Every two weeks: $1,996.13',
+      'Federal basic personal amount applied: $16,452.00',
+      'Manitoba basic personal amount applied: $15,780.00',
+      'Manitoba basic personal amount is the full $15,780. It starts to phase out above $200,000 of net income.'
+    ]
+  });
+  const phased = calculate('manitoba-take-home-pay-calculator', { salary: 250000 });
+  assert.equal(phased.details[7], 'Manitoba basic personal amount applied: $11,923.92');
+  assert.match(phased.details[8], /phase-out/);
+  const gone = calculate('manitoba-take-home-pay-calculator', { salary: 402000 });
+  assert.equal(gone.details[7], 'Manitoba basic personal amount applied: $0.00');
+  assert.match(gone.details[8], /\$0/);
+  assert.throws(() => calculate('manitoba-take-home-pay-calculator', { salary: -1 }), /salary/);
+});
+
+test('Victorian land transfer duty matches the published scales', () => {
+  assert.equal(calculate('victoria-stamp-duty-calculator', { price: 700000, buyer: 2, foreign: 1 }).headline, '$24,713.00');
+  assert.equal(calculate('victoria-stamp-duty-calculator', { price: 600000, buyer: 2, foreign: 1 }).headline, '$0.00');
+  assert.equal(calculate('victoria-stamp-duty-calculator', { price: 650000, buyer: 2, foreign: 1 }).headline, '$11,357.00');
+  assert.equal(calculate('victoria-stamp-duty-calculator', { price: 750000, buyer: 2, foreign: 1 }).headline, '$40,070.00');
+  assert.equal(calculate('victoria-stamp-duty-calculator', { price: 550000, buyer: 1, foreign: 1 }).headline, '$24,970.00');
+  assert.equal(calculate('victoria-stamp-duty-calculator', { price: 550000, buyer: 3, foreign: 1 }).headline, '$28,070.00');
+  assert.equal(calculate('victoria-stamp-duty-calculator', { price: 450000, buyer: 3, foreign: 1 }).headline, '$22,070.00');
+  assert.equal(calculate('victoria-stamp-duty-calculator', { price: 700000, buyer: 1, foreign: 1 }).headline, '$37,070.00');
+  const foreign = calculate('victoria-stamp-duty-calculator', { price: 1000000, buyer: 1, foreign: 2 });
+  assert.equal(foreign.headline, '$135,000.00');
+  assert.equal(foreign.details[1], 'Land transfer duty: $55,000.00');
+  assert.equal(foreign.details[2], 'Foreign purchaser additional duty: $80,000.00');
+  const foreignHome = calculate('victoria-stamp-duty-calculator', { price: 450000, buyer: 2, foreign: 2 });
+  assert.equal(foreignHome.headline, '$54,970.00');
+  assert.match(foreignHome.details[0], /not given the first home/);
+  assert.equal(calculate('victoria-stamp-duty-calculator', { price: 960000, buyer: 3, foreign: 1 }).headline, '$52,670.00');
+  assert.equal(calculate('victoria-stamp-duty-calculator', { price: 960001, buyer: 3, foreign: 1 }).headline, '$52,800.00');
+  assert.throws(() => calculate('victoria-stamp-duty-calculator', { price: -1, buyer: 1, foreign: 1 }), /price/);
+});
+
+test('US business days remove observed federal holidays', () => {
+  const year = calculate('us-business-days-calculator', { startdate: '2026-01-01', enddate: '2026-12-31', holidays: 1 });
+  assert.equal(year.headline, '250 business days');
+  assert.equal(year.details[0], 'Federal holidays removed: 11');
+  assert.equal(year.details[1], 'Weekdays in the span: 261');
+  assert.equal(year.details[2], 'Weekend days: 104');
+  assert.equal(year.details[3], 'Inclusive calendar days: 365');
+  assert.match(year.details.at(-1), /2026-07-03 Independence Day/);
+  assert.equal(calculate('us-business-days-calculator', { startdate: '2026-01-01', enddate: '2026-12-31', holidays: 0 }).headline, '261 business days');
+  assert.equal(calculate('us-business-days-calculator', { startdate: '2026-06-29', enddate: '2026-07-03', holidays: 1 }).headline, '4 business days');
+  assert.equal(calculate('us-business-days-calculator', { startdate: '2026-01-01', enddate: '2026-01-01', holidays: 1 }).headline, '0 business days');
+  assert.equal(calculate('us-business-days-calculator', { startdate: '2026-01-03', enddate: '2026-01-04', holidays: 1 }).headline, '0 business days');
+  assert.equal(calculate('us-business-days-calculator', { startdate: '2026-12-24', enddate: '2027-01-04', holidays: 1 }).headline, '6 business days');
+  const swapped = calculate('us-business-days-calculator', { startdate: '2026-07-03', enddate: '2026-06-29', holidays: 1 });
+  assert.equal(swapped.headline, '4 business days');
+  assert.match(swapped.details[5], /ordered/);
+  assert.throws(() => calculate('us-business-days-calculator', { startdate: '2026-02-31', enddate: '2026-03-01', holidays: 1 }), /valid date/);
+});
+
+test('mulch bags come from cubic feet and the selected bag size', () => {
+  assert.deepEqual(calculate('mulch-calculator', { length: 10, width: 20, depth: 3, bag: 2, waste: 0 }), {
+    headline: '25 bags (2 cu ft)',
+    details: [
+      'Bed volume: 50 cubic feet (1.852 cubic yards)',
+      'Volume with 0% waste: 50 cubic feet (1.852 cubic yards)',
+      'Bags before rounding up: 25',
+      'Bags with no waste allowance, rounded up: 25',
+      'Bulk order, rounded up to the next 0.5 yard: 2 cubic yards',
+      'Coverage at this depth: 8 square feet per 2 cubic foot bag',
+      'One cubic yard is 27 cubic feet. Depth in inches is divided by 12 before that conversion.'
+    ]
+  });
+  const waste = calculate('mulch-calculator', { length: 10, width: 20, depth: 3, bag: 2, waste: 10 });
+  assert.equal(waste.headline, '28 bags (2 cu ft)');
+  assert.equal(waste.details[2], 'Bags before rounding up: 27.5');
+  assert.equal(waste.details[4], 'Bulk order, rounded up to the next 0.5 yard: 2.5 cubic yards');
+  const larger = calculate('mulch-calculator', { length: 10, width: 20, depth: 3, bag: 3, waste: 0 });
+  assert.equal(larger.headline, '17 bags (3 cu ft)');
+  assert.equal(larger.details[5], 'Coverage at this depth: 12 square feet per 3 cubic foot bag');
+  const shallow = calculate('mulch-calculator', { length: 10, width: 20, depth: 1, bag: 2, waste: 0 });
+  assert.equal(shallow.headline, '9 bags (2 cu ft)');
+  assert.equal(shallow.details[4], 'Bulk order, rounded up to the next 0.5 yard: 1 cubic yard');
+  assert.throws(() => calculate('mulch-calculator', { length: 10, width: 0, depth: 3, bag: 2, waste: 0 }), /width/);
+});
+
 test('age uses calendar borrowing and singular units', () => {
   assert.deepEqual(calculate('age-calculator', { birthdate: '1990-01-15', targetdate: '2026-10-22' }), {
     headline: '36 years',
