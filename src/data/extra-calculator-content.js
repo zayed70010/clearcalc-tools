@@ -93,6 +93,7 @@ export const extraCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'illinois-paycheck-calculator', label: 'Illinois paycheck calculator for 2026', note: 'Same federal and FICA lines at a shared salary, then a 4.95% Illinois tax after the $2,925 exemption.' },
       { slug: 'washington-paycheck-calculator', label: 'Washington paycheck calculator for 2026', note: 'State income tax is also $0, then Paid Leave and WA Cares come off gross wages.' },
       { slug: 'florida-paycheck-calculator', label: 'Florida paycheck calculator for 2026', note: 'The same federal and FICA rules, with a Florida state income tax line of $0.' },
       { slug: 'california-paycheck-calculator', label: 'California paycheck calculator for 2026', note: 'Adds California income tax and 1.3% State Disability Insurance.' },

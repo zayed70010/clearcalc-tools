@@ -1,6 +1,7 @@
 import { extraCalculatorContent } from './extra-calculator-content.js';
 import { clusterCalculatorContent } from './cluster-calculator-content.js';
 import { searchCalculatorContent } from './search-calculator-content.js';
+import { longtailCalculatorContent } from './longtail-calculator-content.js';
 
 export const calculatorContent = {
   'mortgage-calculator': {
@@ -885,6 +886,11 @@ export const calculatorContent = {
     ],
     relatedLinks: [
       {
+        slug: 'us-business-days-calculator',
+        label: 'US business days calculator',
+        note: 'Inclusive weekdays, with the 2026 federal holidays removed. The 364 elapsed days on this page are not those 250 business days.'
+      },
+      {
         slug: 'age-calculator',
         label: 'Exact age calculator',
         note: 'Completed years, months, and days from a birthday. It borrows month lengths instead of counting every elapsed day.'
@@ -1304,7 +1310,8 @@ export const calculatorContent = {
   },
   ...extraCalculatorContent,
   ...clusterCalculatorContent,
-  ...searchCalculatorContent
+  ...searchCalculatorContent,
+  ...longtailCalculatorContent
 };
 
 export function contentWordCount(entry) {

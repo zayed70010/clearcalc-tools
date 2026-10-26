@@ -431,6 +431,152 @@ function loanDeductionPence(earningsPence, thresholdPence, rate) {
   return Math.floor(excess * rate / 100 / 100) * 100;
 }
 
+// Calendar year 2026, Illinois Department of Revenue. The individual rate has
+// been 4.95% since 1 July 2017. The 2026 personal exemption is $2,925, from
+// the Department's exemption answer and Information Bulletin FY 2026-15.
+// One exemption for a single filer, two for married filing jointly. The
+// exemption is disallowed when federal AGI exceeds $250,000, or $500,000
+// for married filing jointly. It is not phased out below that line.
+const IL_EXEMPTION_CENTS = { 1: 292_500, 2: 585_000 };
+const IL_EXEMPTION_AGI_CAP_CENTS = { 1: 25_000_000, 2: 50_000_000 };
+
+// 2026 Manitoba. Brackets and the $15,780 basic personal amount are the
+// figures in CRA T4032-MB (effective 1 January 2026) and Form TD1MB. Manitoba
+// paused indexation, so these are not the inflated thresholds. The basic
+// personal amount phases out on net income from $200,000 to $400,000.
+const MB_BRACKETS = [
+  [4_700_000, 1080],
+  [10_000_000, 1275],
+  [Number.POSITIVE_INFINITY, 1740]
+];
+const MB_BASIC_PERSONAL_CENTS = 1_578_000;
+
+function manitobaBasicPersonalCents(netCents) {
+  if (netCents <= 20_000_000) return MB_BASIC_PERSONAL_CENTS;
+  if (netCents >= 40_000_000) return 0;
+  return Math.round(MB_BASIC_PERSONAL_CENTS * (40_000_000 - netCents) / 20_000_000);
+}
+
+// Duties Act 2000 (Vic) s 28 general rate, in force for contracts from
+// 1 July 2021 and still the State Revenue Office table in 2026. The PPR
+// concessional scale applies only through $550,000. Amounts round to the
+// nearest dollar, and an exact 50 cents rounds down, as s 28 states.
+// perThousand is the rate times 10 (6% = 60, 5.5% = 55, 1.4% = 14).
+function roundNearestDollarHalfDownCents(numerator, denominator) {
+  const num = BigInt(numerator);
+  const den = BigInt(denominator);
+  const abs = num < 0n ? -num : num;
+  const dollarDen = den * 100n;
+  const wholeDollars = abs / dollarDen;
+  const remainder = abs % dollarDen;
+  const rounded = wholeDollars + (remainder * 2n > dollarDen ? 1n : 0n);
+  return Number(rounded) * 100;
+}
+
+function victoriaPprDutyCents(priceCents) {
+  if (priceCents > 55_000_000) return victoriaScaledDutyCents(priceCents, 'general');
+  return victoriaScaledDutyCents(priceCents, 'ppr');
+}
+
+function victoriaGeneralDutyCents(priceCents) {
+  return victoriaScaledDutyCents(priceCents, 'general');
+}
+
+function victoriaScaledDutyCents(priceCents, schedule) {
+  const bands = schedule === 'ppr'
+    ? [
+        [2_500_000, 0, 14],
+        [13_000_000, 35_000, 24],
+        [44_000_000, 287_000, 50],
+        [55_000_000, 1_837_000, 60]
+      ]
+    : [
+        [2_500_000, 0, 14],
+        [13_000_000, 35_000, 24],
+        [96_000_000, 287_000, 60],
+        [200_000_000, null, 55]
+      ];
+  if (schedule === 'general' && priceCents > 200_000_000) {
+    return roundNearestDollarHalfDownCents(11_000_000 * 1000 + (priceCents - 200_000_000) * 65, 1000);
+  }
+  for (let index = 0; index < bands.length; index += 1) {
+    const [upTo, baseCents, perThousand] = bands[index];
+    if (priceCents <= upTo || index === bands.length - 1) {
+      if (baseCents === null) return roundNearestDollarHalfDownCents(priceCents * perThousand, 1000);
+      const floor = index === 0 ? 0 : bands[index - 1][0];
+      return roundNearestDollarHalfDownCents(baseCents * 1000 + (priceCents - floor) * perThousand, 1000);
+    }
+  }
+  return 0;
+}
+
+// 5 U.S.C. § 6103, with Saturday holidays observed the preceding Friday and
+// Sunday holidays observed the following Monday for a Monday–Friday schedule
+// (5 U.S.C. § 6103(b) and Executive Order 11582).
+const FEDERAL_HOLIDAY_NAMES = [
+  "New Year's Day",
+  'Birthday of Martin Luther King, Jr.',
+  "Washington's Birthday",
+  'Memorial Day',
+  'Juneteenth National Independence Day',
+  'Independence Day',
+  'Labor Day',
+  'Columbus Day',
+  'Veterans Day',
+  'Thanksgiving Day',
+  'Christmas Day'
+];
+
+function isoDate(date) {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function parseIsoDate(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value));
+  if (!match) throw new Error('Enter a valid date');
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) throw new Error('Enter a valid date');
+  return date;
+}
+
+function nthWeekdayOfMonth(year, monthIndex, weekday, n) {
+  const first = new Date(year, monthIndex, 1);
+  const offset = (weekday - first.getDay() + 7) % 7;
+  return new Date(year, monthIndex, 1 + offset + (n - 1) * 7);
+}
+
+function observeMondayFriday(date) {
+  const weekday = date.getDay();
+  if (weekday === 6) return new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1);
+  if (weekday === 0) return new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+  return date;
+}
+
+function federalHolidaysForYear(year) {
+  const legal = [
+    new Date(year, 0, 1),
+    nthWeekdayOfMonth(year, 0, 1, 3),
+    nthWeekdayOfMonth(year, 1, 1, 3),
+    (() => {
+      const last = new Date(year, 5, 0);
+      return new Date(year, 4, last.getDate() - ((last.getDay() + 6) % 7));
+    })(),
+    new Date(year, 5, 19),
+    new Date(year, 6, 4),
+    nthWeekdayOfMonth(year, 8, 1, 1),
+    nthWeekdayOfMonth(year, 9, 1, 2),
+    new Date(year, 10, 11),
+    nthWeekdayOfMonth(year, 10, 4, 4),
+    new Date(year, 11, 25)
+  ];
+  return legal.map((date, index) => ({ name: FEDERAL_HOLIDAY_NAMES[index], observed: observeMondayFriday(date) }));
+}
+
 function canadaEmployeePayroll(salary) {
   const pensionable = Math.min(salary, 7_460_000);
   const contributory = Math.max(0, pensionable - 350_000);
@@ -1003,6 +1149,203 @@ export function calculate(slug, values) {
         `Openings subtracted from the walls: ${number(openings, 1)} sq ft`,
         `Paintable area: ${number(paintable, 1)} sq ft across ${number(coats, 2)} ${coats === 1 ? 'coat' : 'coats'}`,
         `Coverage used: ${number(coverage, 1)} sq ft per gallon`
+      ]
+    };
+  }
+  if (slug === 'illinois-paycheck-calculator') {
+    const status = filingStatusCode(v.status);
+    const periods = payPeriodCount(v.periods);
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const requestedDeferral = nonNegativeCents(v.deferral, '401(k) deferral');
+    const deferral = Math.min(requestedDeferral, salary, US_401K_DEFERRAL_CENTS);
+    const agi = Math.max(0, salary - deferral);
+    const exemption = agi > IL_EXEMPTION_AGI_CAP_CENTS[status] ? 0 : IL_EXEMPTION_CENTS[status];
+    const illinoisBase = Math.max(0, agi - exemption);
+    const stateTax = Math.round(illinoisBase * 495 / 10000);
+    const federalTaxable = Math.max(0, agi - US_STANDARD_DEDUCTION[status]);
+    const federal = bracketTaxCents(federalTaxable, status === 1 ? US_SINGLE_BRACKETS : US_JOINT_BRACKETS);
+    const socialSecurity = Math.round(Math.min(salary, US_SS_WAGE_BASE_CENTS) * 620 / 10000);
+    const medicare = Math.round(salary * 145 / 10000);
+    const additionalMedicare = Math.round(Math.max(0, salary - US_ADDL_MEDICARE_CENTS) * 90 / 10000);
+    const takeHome = salary - federal - socialSecurity - medicare - additionalMedicare - stateTax - deferral;
+    const details = [
+      `Federal income tax: ${usdCents(federal)}`,
+      `Social Security: ${usdCents(socialSecurity)}`,
+      `Medicare: ${usdCents(medicare)}`,
+      `Additional Medicare Tax: ${usdCents(additionalMedicare)}`,
+      `Illinois income tax: ${usdCents(stateTax)}`,
+      `Illinois exemption applied: ${usdCents(exemption)}`,
+      `401(k) deferred: ${usdCents(deferral)}`,
+      `Annual take-home: ${usdCents(takeHome)}`,
+      `Federal standard deduction applied: ${usdCents(US_STANDARD_DEDUCTION[status])}`,
+      status === 1
+        ? 'Filing status: single, one $2,925 exemption unless federal AGI is over $250,000'
+        : 'Filing status: married filing jointly, two exemptions ($5,850) unless federal AGI is over $500,000, with this salary as the only income',
+      'Illinois rate: 4.95% of wages after the traditional 401(k) and the exemption. There is no Illinois standard deduction.'
+    ];
+    if (exemption === 0 && agi > 0) details.push('The Illinois personal exemption was removed because federal AGI is over the 2026 cap.');
+    if (requestedDeferral > deferral) {
+      details.push(`401(k) entered above the 2026 elective deferral limit or above wages was reduced to ${usdCents(deferral)}`);
+    }
+    return {
+      headline: `${usdCents(Math.round(takeHome / periods))} ${PAY_PERIOD_LABEL[periods]}`,
+      details
+    };
+  }
+  if (slug === 'manitoba-take-home-pay-calculator') {
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const payroll = canadaEmployeePayroll(salary);
+    const basicPersonal = manitobaBasicPersonalCents(payroll.taxable);
+    const manitobaCredit = Math.round((basicPersonal + payroll.cppBase + payroll.ei) * 1080 / 10000);
+    const manitobaTax = Math.max(0, bracketTaxCents(payroll.taxable, MB_BRACKETS) - manitobaCredit);
+    const takeHome = salary - payroll.cpp - payroll.cpp2 - payroll.ei - payroll.federalTax - manitobaTax;
+    return {
+      headline: `${cadCents(Math.round(takeHome / 12))} / month`,
+      details: [
+        `Federal income tax: ${cadCents(payroll.federalTax)}`,
+        `Manitoba income tax: ${cadCents(manitobaTax)}`,
+        `Employee CPP, including CPP2: ${cadCents(payroll.cpp + payroll.cpp2)}`,
+        `Employee EI: ${cadCents(payroll.ei)}`,
+        `Annual take-home: ${cadCents(takeHome)}`,
+        `Every two weeks: ${cadCents(Math.round(takeHome / 26))}`,
+        `Federal basic personal amount applied: ${cadCents(payroll.basicPersonal)}`,
+        `Manitoba basic personal amount applied: ${cadCents(basicPersonal)}`,
+        basicPersonal === 0
+          ? 'The Manitoba basic personal amount is $0 because net income is $400,000 or more.'
+          : basicPersonal < MB_BASIC_PERSONAL_CENTS
+            ? 'The Manitoba basic personal amount is inside the $200,000 to $400,000 phase-out.'
+            : 'Manitoba basic personal amount is the full $15,780. It starts to phase out above $200,000 of net income.'
+      ]
+    };
+  }
+  if (slug === 'victoria-stamp-duty-calculator') {
+    const price = nonNegativeCents(v.price, 'price');
+    const buyer = Number(v.buyer);
+    const foreign = Number(v.foreign);
+    if (![1, 2, 3].includes(buyer)) throw new Error('Choose a buyer type');
+    if (foreign !== 1 && foreign !== 2) throw new Error('Choose whether foreign purchaser additional duty applies');
+    const general = victoriaGeneralDutyCents(price);
+    const ppr = victoriaPprDutyCents(price);
+    let transfer = buyer === 3 ? general : ppr;
+    let rule = buyer === 3
+      ? 'Rates used: general Victorian land transfer duty. The principal place of residence scale was not applied.'
+      : price <= 55_000_000
+        ? 'Rates used: principal place of residence concessional scale, which ends at $550,000.'
+        : 'The principal place of residence scale ends at $550,000. General duty was used for this home.';
+    if (foreign === 2 && buyer === 2) {
+      rule = price <= 55_000_000
+        ? 'A foreign purchaser is not given the first home buyer exemption or concession on this page. Principal place of residence duty was used, plus 8% foreign purchaser additional duty.'
+        : 'A foreign purchaser is not given the first home buyer exemption or concession on this page. General duty was used, plus 8% foreign purchaser additional duty.';
+    } else if (buyer === 2 && foreign === 1) {
+      if (price <= 60_000_000) {
+        transfer = 0;
+        rule = 'First home buyer exemption: no land transfer duty at a dutiable value of $600,000 or less. Duties Act 2000 (Vic) section 57JA.';
+      } else if (price <= 75_000_000) {
+        const otherwise = ppr;
+        transfer = roundNearestDollarHalfDownCents(otherwise * (price - 60_000_000), 15_000_000);
+        rule = 'First home buyer concession between $600,000 and $750,000: full home duty multiplied by (value − $600,000) / $150,000.';
+      } else {
+        rule = 'The first home buyer concession stops above $750,000. General duty was used because the home scale also stops at $550,000.';
+      }
+    }
+    const surcharge = foreign === 2 && transfer === 0 ? 0 : foreign === 2 ? roundNearestDollarHalfDownCents(price * 8, 100) : 0;
+    if (foreign === 2 && transfer === 0) {
+      rule = 'Land transfer duty is exempt, so foreign purchaser additional duty is not charged either.';
+    }
+    const total = transfer + surcharge;
+    const effective = price === 0 ? 0 : total / price * 100;
+    return {
+      headline: audCents(total),
+      details: [
+        rule,
+        `Land transfer duty: ${audCents(transfer)}`,
+        `Foreign purchaser additional duty: ${audCents(surcharge)}`,
+        `Effective rate: ${percent(effective)}%`,
+        `Dutiable value: ${audCents(price)}`,
+        'Victoria only. New South Wales transfer duty is a different table.'
+      ]
+    };
+  }
+  if (slug === 'us-business-days-calculator') {
+    const exclude = Number(v.holidays);
+    if (exclude !== 0 && exclude !== 1) throw new Error('Choose whether federal holidays are excluded');
+    let start = parseIsoDate(v.startdate);
+    let end = parseIsoDate(v.enddate);
+    let swapped = false;
+    if (start > end) {
+      swapped = true;
+      const hold = start;
+      start = end;
+      end = hold;
+    }
+    const spanYears = end.getFullYear() - start.getFullYear();
+    if (spanYears > 50) throw new Error('Enter dates no more than 50 years apart');
+    const holidayMap = new Map();
+    for (let year = start.getFullYear() - 1; year <= end.getFullYear() + 1; year += 1) {
+      for (const holiday of federalHolidaysForYear(year)) holidayMap.set(isoDate(holiday.observed), holiday.name);
+    }
+    let inclusive = 0;
+    let weekdays = 0;
+    let weekendDays = 0;
+    const removed = [];
+    for (let cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
+      inclusive += 1;
+      const weekday = cursor.getDay();
+      if (weekday === 0 || weekday === 6) weekendDays += 1;
+      else {
+        weekdays += 1;
+        const key = isoDate(cursor);
+        if (holidayMap.has(key)) removed.push(`${key} ${holidayMap.get(key)}`);
+      }
+    }
+    const holidaysRemoved = exclude === 1 ? removed.length : 0;
+    const business = weekdays - holidaysRemoved;
+    const headline = business === 1 ? '1 business day' : `${number(business, 0)} business days`;
+    const details = [
+      exclude === 1
+        ? `Federal holidays removed: ${number(holidaysRemoved, 0)}`
+        : 'Federal holidays removed: 0. Weekdays that are federal holidays were counted.',
+      `Weekdays in the span: ${number(weekdays, 0)}`,
+      `Weekend days: ${number(weekendDays, 0)}`,
+      `Inclusive calendar days: ${number(inclusive, 0)}`,
+      'Both the start date and the end date are included when they are business days.',
+      swapped ? 'The dates were ordered so the earlier date is the start.' : `Span: ${isoDate(start)} through ${isoDate(end)}.`
+    ];
+    if (exclude === 1 && removed.length > 0 && removed.length <= 12) details.push(`Observed dates inside the span: ${removed.join('; ')}.`);
+    if (exclude === 1 && removed.length > 12) details.push(`Observed dates inside the span: ${removed.slice(0, 12).join('; ')}; and ${removed.length - 12} more.`);
+    return { headline, details };
+  }
+  if (slug === 'mulch-calculator') {
+    const length = v.length;
+    const width = v.width;
+    const depth = v.depth;
+    const bag = Number(v.bag);
+    const waste = v.waste;
+    if (!Number.isFinite(length) || length <= 0) throw new Error('Enter a length above zero');
+    if (!Number.isFinite(width) || width <= 0) throw new Error('Enter a width above zero');
+    if (!Number.isFinite(depth) || depth <= 0) throw new Error('Enter a depth above zero');
+    if (bag !== 2 && bag !== 3) throw new Error('Choose a bag size');
+    if (!Number.isFinite(waste) || waste < 0 || waste > 100) throw new Error('Enter a waste allowance from 0 to 100 percent');
+    const cubicFeet = length * width * depth / 12;
+    const withWaste = cubicFeet * (1 + waste / 100);
+    const cubicYards = cubicFeet / 27;
+    const yardsWithWaste = withWaste / 27;
+    const rawBags = withWaste / bag;
+    const bags = Math.ceil(rawBags - 1e-9);
+    const bagsWithoutWaste = Math.ceil(cubicFeet / bag - 1e-9);
+    const halfYards = Math.ceil(yardsWithWaste * 2 - 1e-9) / 2;
+    const bulkUnit = halfYards === 1 ? 'cubic yard' : 'cubic yards';
+    const bagWord = bags === 1 ? 'bag' : 'bags';
+    return {
+      headline: `${number(bags, 0)} ${bagWord} (${bag} cu ft)`,
+      details: [
+        `Bed volume: ${number(cubicFeet, 2)} cubic feet (${number(cubicYards, 3)} cubic yards)`,
+        `Volume with ${number(waste, 2)}% waste: ${number(withWaste, 2)} cubic feet (${number(yardsWithWaste, 3)} cubic yards)`,
+        `Bags before rounding up: ${number(rawBags, 2)}`,
+        `Bags with no waste allowance, rounded up: ${number(bagsWithoutWaste, 0)}`,
+        `Bulk order, rounded up to the next 0.5 yard: ${number(halfYards, 2)} ${bulkUnit}`,
+        `Coverage at this depth: ${number(bag * 12 / depth, 2)} square feet per ${bag} cubic foot bag`,
+        'One cubic yard is 27 cubic feet. Depth in inches is divided by 12 before that conversion.'
       ]
     };
   }
