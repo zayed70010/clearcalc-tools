@@ -98,6 +98,7 @@ export const longtailCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'pennsylvania-paycheck-calculator', label: 'Pennsylvania paycheck calculator for 2026', note: 'The 3.07% state tax is charged on wages before a 401(k). At $65,000 single with no local tax, Pennsylvania tax is $1,995.50.' },
       { slug: 'texas-paycheck-calculator', label: 'Texas paycheck calculator for 2026', note: 'The same federal and FICA lines when the inputs match, with state income tax at $0.' },
       { slug: 'new-york-paycheck-calculator', label: 'New York paycheck calculator for 2026', note: 'At $65,000 single, New York State tax is $2,913.00 rather than this $3,072.71 Illinois tax.' },
       { slug: 'california-paycheck-calculator', label: 'California paycheck calculator for 2026', note: 'California brackets plus 1.3% State Disability Insurance, instead of a flat 4.95%.' },
@@ -203,6 +204,7 @@ export const longtailCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'saskatchewan-take-home-pay-calculator', label: 'Saskatchewan take-home pay calculator for 2026', note: 'Same federal tax, CPP, and EI at $70,000. Saskatchewan tax is $4,972.68 rather than this $5,742.67.' },
       { slug: 'alberta-take-home-pay-calculator', label: 'Alberta take-home pay calculator for 2026', note: 'Same federal tax, CPP, and EI at $70,000. Alberta tax is $3,534.79 rather than $5,742.67.' },
       { slug: 'ontario-take-home-pay-calculator', label: 'Ontario take-home pay calculator for 2026', note: 'Same federal pieces, plus Ontario tax and the Ontario Health Premium.' },
       { slug: 'british-columbia-take-home-pay-calculator', label: 'British Columbia take-home pay calculator for 2026', note: 'Same federal pieces, with the 2026 B.C. brackets and the B.C. tax reduction.' },
@@ -312,6 +314,7 @@ export const longtailCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'queensland-stamp-duty-calculator', label: 'Queensland stamp duty calculator for 2026', note: 'Queensland transfer duty. An established first home at $700,000 is $0 on that page, which is not Victoria’s result at the same price.' },
       { slug: 'nsw-stamp-duty-calculator', label: 'NSW stamp duty calculator for 2026/27', note: 'New South Wales transfer duty, including that state’s first home concession and the 9% surcharge.' },
       { slug: 'england-stamp-duty-calculator', label: 'England stamp duty calculator', note: 'Residential SDLT in pounds. A different statute and a different currency.' },
       { slug: 'australia-take-home-pay-calculator', label: 'Australia take-home pay calculator for 2026–27', note: 'Resident income tax and the Medicare levy on a salary. It is not the tax on a house.' },
@@ -418,6 +421,7 @@ export const longtailCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'uk-working-days-calculator', label: 'UK working days calculator', note: 'Inclusive weekdays with UK bank holidays removed. England and Wales in 2026 have 253 working days, not these 250 US business days.' },
       { slug: 'date-difference-calculator', label: 'Days between two dates', note: 'Elapsed calendar days, including weekends. 1 January to 31 December 2026 is 364 on that page and 250 business days here.' },
       { slug: 'age-calculator', label: 'Exact age calculator', note: 'Completed years, months, and days from a birthday. It does not drop weekends or holidays.' },
       { slug: 'hourly-to-salary-calculator', label: 'Hourly to salary calculator', note: 'Turns an hourly rate and a number of weeks into annual pay. It does not count the dates.' }
@@ -516,6 +520,7 @@ export const longtailCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'gravel-calculator', label: 'Gravel calculator', note: 'The same 10 by 20 foot area at 3 inches is 1.852 cubic yards, then 2.625 short tons of dry gravel. Mulch stops at the bags.' },
       { slug: 'concrete-slab-calculator', label: 'Concrete slab calculator', note: '80, 60, and 40 lb bags for a pour. A 10 by 10 slab at 4 inches is not this mulch count.' },
       { slug: 'room-paint-calculator', label: 'Room paint calculator', note: 'Gallons from wall area. It does not estimate a bed.' },
       { slug: 'length-converter', label: 'Length converter from meters', note: 'If the bed was measured in meters, convert to feet before you type the length and width. Depth stays in inches here.' }

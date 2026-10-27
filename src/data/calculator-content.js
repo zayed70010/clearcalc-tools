@@ -2,6 +2,7 @@ import { extraCalculatorContent } from './extra-calculator-content.js';
 import { clusterCalculatorContent } from './cluster-calculator-content.js';
 import { searchCalculatorContent } from './search-calculator-content.js';
 import { longtailCalculatorContent } from './longtail-calculator-content.js';
+import { growthCalculatorContent } from './growth-calculator-content.js';
 
 export const calculatorContent = {
   'mortgage-calculator': {
@@ -1311,7 +1312,8 @@ export const calculatorContent = {
   ...extraCalculatorContent,
   ...clusterCalculatorContent,
   ...searchCalculatorContent,
-  ...longtailCalculatorContent
+  ...longtailCalculatorContent,
+  ...growthCalculatorContent
 };
 
 export function contentWordCount(entry) {

@@ -577,6 +577,200 @@ function federalHolidaysForYear(year) {
   return legal.map((date, index) => ({ name: FEDERAL_HOLIDAY_NAMES[index], observed: observeMondayFriday(date) }));
 }
 
+// Calendar year 2026, Pennsylvania Department of Revenue. The personal income
+// tax rate is 3.07% of taxable compensation. There is no standard deduction
+// and no personal exemption. Employee elective deferrals stay inside
+// Pennsylvania taxable compensation. Local earned income tax uses the same
+// compensation base. The local services tax is a flat annual amount, usually
+// capped at $52 under the Local Tax Enabling Act.
+const PA_RATE_MILLI = 3070;
+
+function percentMilli(value, label) {
+  if (!Number.isFinite(value) || value < 0 || value > 10) throw new Error(`Enter a ${label} from 0 to 10 percent`);
+  return Math.round(value * 1000);
+}
+
+function taxFromMilli(baseCents, milli) {
+  if (baseCents <= 0 || milli <= 0) return 0;
+  return Math.round(baseCents * milli / 100000);
+}
+
+// 2026 Saskatchewan. Brackets and the $20,381 basic personal amount are the
+// figures on the Government of Saskatchewan 2026 personal income tax structure
+// page and in CRA T4032-SK. The credit uses the 10.5% lowest rate.
+const SK_BRACKETS = [
+  [5_453_200, 1050],
+  [15_580_500, 1250],
+  [Number.POSITIVE_INFINITY, 1450]
+];
+const SK_BASIC_PERSONAL_CENTS = 2_038_100;
+
+// Queensland transfer duty, Queensland Revenue Office rate table, current as
+// of the 31 July 2026 update of the home concession page. "Part of $100" rounds
+// the excess up to the next $100. First home concession amounts are for
+// contracts on or after 9 June 2024. Additional foreign acquirer duty is 8%
+// of dutiable value. From 1 August 2026 a foreign person is not given the
+// home concessions on this page.
+function qldHundreds(excessCents) {
+  if (excessCents <= 0) return 0;
+  return Math.ceil(excessCents / 10000);
+}
+
+function qldScheduledDutyCents(priceCents, schedule) {
+  if (priceCents <= 0) return 0;
+  if (schedule === 'general') {
+    if (priceCents <= 500_000) return 0;
+    if (priceCents <= 7_500_000) return qldHundreds(priceCents - 500_000) * 150;
+    if (priceCents <= 54_000_000) return 105_000 + qldHundreds(priceCents - 7_500_000) * 350;
+    if (priceCents <= 100_000_000) return 1_732_500 + qldHundreds(priceCents - 54_000_000) * 450;
+    return 3_802_500 + qldHundreds(priceCents - 100_000_000) * 575;
+  }
+  if (priceCents <= 35_000_000) return qldHundreds(priceCents) * 100;
+  if (priceCents <= 54_000_000) return 350_000 + qldHundreds(priceCents - 35_000_000) * 350;
+  if (priceCents <= 100_000_000) return 1_015_000 + qldHundreds(priceCents - 54_000_000) * 450;
+  return 3_085_000 + qldHundreds(priceCents - 100_000_000) * 575;
+}
+
+function qldFirstHomeConcessionCents(priceCents) {
+  if (priceCents >= 80_000_000) return 0;
+  if (priceCents < 71_000_000) return 1_735_000;
+  const band = Math.floor((priceCents - 71_000_000) / 1_000_000);
+  return Math.max(0, 1_561_500 - band * 173_500);
+}
+
+// GOV.UK bank-holidays.json, retrieved 27 October 2026. Dates are the observed
+// bank holidays, including substitute days and Scotland's 15 June 2026 World
+// Cup bank holiday. The list covers 2025 through 2028 only.
+const UK_BANK_HOLIDAYS = {
+  1: {
+    '2025-01-01': 'New Year’s Day',
+    '2025-04-18': 'Good Friday',
+    '2025-04-21': 'Easter Monday',
+    '2025-05-05': 'Early May bank holiday',
+    '2025-05-26': 'Spring bank holiday',
+    '2025-08-25': 'Summer bank holiday',
+    '2025-12-25': 'Christmas Day',
+    '2025-12-26': 'Boxing Day',
+    '2026-01-01': 'New Year’s Day',
+    '2026-04-03': 'Good Friday',
+    '2026-04-06': 'Easter Monday',
+    '2026-05-04': 'Early May bank holiday',
+    '2026-05-25': 'Spring bank holiday',
+    '2026-08-31': 'Summer bank holiday',
+    '2026-12-25': 'Christmas Day',
+    '2026-12-28': 'Boxing Day',
+    '2027-01-01': 'New Year’s Day',
+    '2027-03-26': 'Good Friday',
+    '2027-03-29': 'Easter Monday',
+    '2027-05-03': 'Early May bank holiday',
+    '2027-05-31': 'Spring bank holiday',
+    '2027-08-30': 'Summer bank holiday',
+    '2027-12-27': 'Christmas Day',
+    '2027-12-28': 'Boxing Day',
+    '2028-01-03': 'New Year’s Day',
+    '2028-04-14': 'Good Friday',
+    '2028-04-17': 'Easter Monday',
+    '2028-05-01': 'Early May bank holiday',
+    '2028-05-29': 'Spring bank holiday',
+    '2028-08-28': 'Summer bank holiday',
+    '2028-12-25': 'Christmas Day',
+    '2028-12-26': 'Boxing Day'
+  },
+  2: {
+    '2025-01-01': 'New Year’s Day',
+    '2025-01-02': '2nd January',
+    '2025-04-18': 'Good Friday',
+    '2025-05-05': 'Early May bank holiday',
+    '2025-05-26': 'Spring bank holiday',
+    '2025-08-04': 'Summer bank holiday',
+    '2025-12-01': 'St Andrew’s Day',
+    '2025-12-25': 'Christmas Day',
+    '2025-12-26': 'Boxing Day',
+    '2026-01-01': 'New Year’s Day',
+    '2026-01-02': '2nd January',
+    '2026-04-03': 'Good Friday',
+    '2026-05-04': 'Early May bank holiday',
+    '2026-05-25': 'Spring bank holiday',
+    '2026-06-15': 'World Cup bank holiday',
+    '2026-08-03': 'Summer bank holiday',
+    '2026-11-30': 'St Andrew’s Day',
+    '2026-12-25': 'Christmas Day',
+    '2026-12-28': 'Boxing Day',
+    '2027-01-01': 'New Year’s Day',
+    '2027-01-04': '2nd January',
+    '2027-03-26': 'Good Friday',
+    '2027-05-03': 'Early May bank holiday',
+    '2027-05-31': 'Spring bank holiday',
+    '2027-08-02': 'Summer bank holiday',
+    '2027-11-30': 'St Andrew’s Day',
+    '2027-12-27': 'Christmas Day',
+    '2027-12-28': 'Boxing Day',
+    '2028-01-03': 'New Year’s Day',
+    '2028-01-04': '2nd January',
+    '2028-04-14': 'Good Friday',
+    '2028-05-01': 'Early May bank holiday',
+    '2028-05-29': 'Spring bank holiday',
+    '2028-08-07': 'Summer bank holiday',
+    '2028-11-30': 'St Andrew’s Day',
+    '2028-12-25': 'Christmas Day',
+    '2028-12-26': 'Boxing Day'
+  },
+  3: {
+    '2025-01-01': 'New Year’s Day',
+    '2025-03-17': 'St Patrick’s Day',
+    '2025-04-18': 'Good Friday',
+    '2025-04-21': 'Easter Monday',
+    '2025-05-05': 'Early May bank holiday',
+    '2025-05-26': 'Spring bank holiday',
+    '2025-07-14': 'Battle of the Boyne (Orangemen’s Day)',
+    '2025-08-25': 'Summer bank holiday',
+    '2025-12-25': 'Christmas Day',
+    '2025-12-26': 'Boxing Day',
+    '2026-01-01': 'New Year’s Day',
+    '2026-03-17': 'St Patrick’s Day',
+    '2026-04-03': 'Good Friday',
+    '2026-04-06': 'Easter Monday',
+    '2026-05-04': 'Early May bank holiday',
+    '2026-05-25': 'Spring bank holiday',
+    '2026-07-13': 'Battle of the Boyne (Orangemen’s Day)',
+    '2026-08-31': 'Summer bank holiday',
+    '2026-12-25': 'Christmas Day',
+    '2026-12-28': 'Boxing Day',
+    '2027-01-01': 'New Year’s Day',
+    '2027-03-17': 'St Patrick’s Day',
+    '2027-03-26': 'Good Friday',
+    '2027-03-29': 'Easter Monday',
+    '2027-05-03': 'Early May bank holiday',
+    '2027-05-31': 'Spring bank holiday',
+    '2027-07-12': 'Battle of the Boyne (Orangemen’s Day)',
+    '2027-08-30': 'Summer bank holiday',
+    '2027-12-27': 'Christmas Day',
+    '2027-12-28': 'Boxing Day',
+    '2028-01-03': 'New Year’s Day',
+    '2028-03-17': 'St Patrick’s Day',
+    '2028-04-14': 'Good Friday',
+    '2028-04-17': 'Easter Monday',
+    '2028-05-01': 'Early May bank holiday',
+    '2028-05-29': 'Spring bank holiday',
+    '2028-07-12': 'Battle of the Boyne (Orangemen’s Day)',
+    '2028-08-28': 'Summer bank holiday',
+    '2028-12-25': 'Christmas Day',
+    '2028-12-26': 'Boxing Day'
+  }
+};
+
+const UK_NATION_NAME = {
+  1: 'England and Wales',
+  2: 'Scotland',
+  3: 'Northern Ireland'
+};
+
+const GRAVEL_DENSITY = {
+  105: 'Dry gravel, 105 lb per cubic foot',
+  125: 'Wet gravel, 125 lb per cubic foot',
+  97: 'Dry sand, 97 lb per cubic foot'
+};
+
 function canadaEmployeePayroll(salary) {
   const pensionable = Math.min(salary, 7_460_000);
   const contributory = Math.max(0, pensionable - 350_000);
@@ -1346,6 +1540,204 @@ export function calculate(slug, values) {
         `Bulk order, rounded up to the next 0.5 yard: ${number(halfYards, 2)} ${bulkUnit}`,
         `Coverage at this depth: ${number(bag * 12 / depth, 2)} square feet per ${bag} cubic foot bag`,
         'One cubic yard is 27 cubic feet. Depth in inches is divided by 12 before that conversion.'
+      ]
+    };
+  }
+  if (slug === 'pennsylvania-paycheck-calculator') {
+    const status = filingStatusCode(v.status);
+    const periods = payPeriodCount(v.periods);
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const requestedDeferral = nonNegativeCents(v.deferral, '401(k) deferral');
+    const deferral = Math.min(requestedDeferral, salary, US_401K_DEFERRAL_CENTS);
+    const localMilli = percentMilli(v.local, 'local tax rate');
+    const lst = nonNegativeCents(v.lst, 'local services tax');
+    if (lst > 15_600) throw new Error('Enter a local services tax of $156 or less');
+    const federalTaxable = Math.max(0, salary - deferral - US_STANDARD_DEDUCTION[status]);
+    const federal = bracketTaxCents(federalTaxable, status === 1 ? US_SINGLE_BRACKETS : US_JOINT_BRACKETS);
+    const socialSecurity = Math.round(Math.min(salary, US_SS_WAGE_BASE_CENTS) * 620 / 10000);
+    const medicare = Math.round(salary * 145 / 10000);
+    const additionalMedicare = Math.round(Math.max(0, salary - US_ADDL_MEDICARE_CENTS) * 90 / 10000);
+    const stateTax = taxFromMilli(salary, PA_RATE_MILLI);
+    const localTax = taxFromMilli(salary, localMilli);
+    const takeHome = salary - federal - socialSecurity - medicare - additionalMedicare - stateTax - localTax - lst - deferral;
+    const details = [
+      `Federal income tax: ${usdCents(federal)}`,
+      `Social Security: ${usdCents(socialSecurity)}`,
+      `Medicare: ${usdCents(medicare)}`,
+      `Additional Medicare Tax: ${usdCents(additionalMedicare)}`,
+      `Pennsylvania income tax: ${usdCents(stateTax)}`,
+      `Local earned income tax: ${usdCents(localTax)}`,
+      `Local services tax: ${usdCents(lst)}`,
+      `401(k) deferred: ${usdCents(deferral)}`,
+      `Annual take-home: ${usdCents(takeHome)}`,
+      `Federal standard deduction applied: ${usdCents(US_STANDARD_DEDUCTION[status])}`,
+      status === 1
+        ? 'Filing status: single. Pennsylvania tax does not change with filing status.'
+        : 'Filing status: married filing jointly, with this salary as the only income on the return. Pennsylvania tax does not change with filing status.',
+      `Local rate used: ${(localMilli / 1000).toFixed(3).replace(/\.?0+$/, '')}% of wages. Pennsylvania tax is 3.07% of the same wages. A traditional 401(k) does not reduce either one.`
+    ];
+    if (lst > 5200) details.push('The local services tax entered is above the usual $52 Act 511 cap. Philadelphia uses a wage tax instead of this flat tax.');
+    if (requestedDeferral > deferral) {
+      details.push(`401(k) entered above the 2026 elective deferral limit or above wages was reduced to ${usdCents(deferral)}`);
+    }
+    return {
+      headline: `${usdCents(Math.round(takeHome / periods))} ${PAY_PERIOD_LABEL[periods]}`,
+      details
+    };
+  }
+  if (slug === 'saskatchewan-take-home-pay-calculator') {
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const payroll = canadaEmployeePayroll(salary);
+    const saskatchewanCredit = Math.round((SK_BASIC_PERSONAL_CENTS + payroll.cppBase + payroll.ei) * 1050 / 10000);
+    const saskatchewanTax = Math.max(0, bracketTaxCents(payroll.taxable, SK_BRACKETS) - saskatchewanCredit);
+    const takeHome = salary - payroll.cpp - payroll.cpp2 - payroll.ei - payroll.federalTax - saskatchewanTax;
+    return {
+      headline: `${cadCents(Math.round(takeHome / 12))} / month`,
+      details: [
+        `Federal income tax: ${cadCents(payroll.federalTax)}`,
+        `Saskatchewan income tax: ${cadCents(saskatchewanTax)}`,
+        `Employee CPP, including CPP2: ${cadCents(payroll.cpp + payroll.cpp2)}`,
+        `Employee EI: ${cadCents(payroll.ei)}`,
+        `Annual take-home: ${cadCents(takeHome)}`,
+        `Every two weeks: ${cadCents(Math.round(takeHome / 26))}`,
+        `Federal basic personal amount applied: ${cadCents(payroll.basicPersonal)}`,
+        `Saskatchewan basic personal amount applied: ${cadCents(SK_BASIC_PERSONAL_CENTS)}`,
+        'Saskatchewan rates used: 10.5% to $54,532, 12.5% to $155,805, and 14.5% above that. The basic personal amount is $20,381, credited at 10.5%.'
+      ]
+    };
+  }
+  if (slug === 'queensland-stamp-duty-calculator') {
+    const price = nonNegativeCents(v.price, 'price');
+    const buyer = Number(v.buyer);
+    const foreign = Number(v.foreign);
+    if (![1, 2, 3, 4, 5].includes(buyer)) throw new Error('Choose a buyer type');
+    if (foreign !== 1 && foreign !== 2) throw new Error('Choose whether additional foreign acquirer duty applies');
+    const general = qldScheduledDutyCents(price, 'general');
+    const home = qldScheduledDutyCents(price, 'home');
+    let transfer = general;
+    let rule = 'Rates used: general Queensland transfer duty. No home concession was applied.';
+    if (foreign === 2) {
+      rule = 'A foreign person is not given a home concession on this page. General transfer duty was used, plus 8% additional foreign acquirer duty. That follows the concession eligibility in force from 1 August 2026.';
+    } else if (buyer === 2) {
+      transfer = home;
+      rule = 'Rates used: Queensland home concession for a later home.';
+    } else if (buyer === 3) {
+      const concession = qldFirstHomeConcessionCents(price);
+      transfer = Math.max(0, home - concession);
+      if (price >= 80_000_000) rule = 'The first home concession stops at $800,000. Home concession duty was used, with no further deduction.';
+      else if (transfer === 0) rule = 'First home concession: home concession duty does not exceed the first home concession amount, so transfer duty is $0.';
+      else rule = `First home concession: home concession duty minus ${audCents(concession)}.`;
+    } else if (buyer === 4 || buyer === 5) {
+      transfer = 0;
+      rule = buyer === 4
+        ? 'First home (new home) concession from 1 May 2025: no transfer duty on the residential value. There is no price cap on this page.'
+        : 'First home vacant land concession from 1 May 2025: no transfer duty on the residential vacant land. There is no price cap on this page.';
+    }
+    const surcharge = foreign === 2 ? Math.round(price * 8 / 100) : 0;
+    const total = transfer + surcharge;
+    const effective = price === 0 ? 0 : total / price * 100;
+    return {
+      headline: audCents(total),
+      details: [
+        rule,
+        `Transfer duty: ${audCents(transfer)}`,
+        `Additional foreign acquirer duty: ${audCents(surcharge)}`,
+        `Home concession duty before any first home deduction: ${audCents(home)}`,
+        `General duty, for comparison: ${audCents(general)}`,
+        `Effective rate: ${percent(effective)}%`,
+        `Dutiable value: ${audCents(price)}`,
+        'Queensland only. Victorian land transfer duty and NSW transfer duty use different tables.'
+      ]
+    };
+  }
+  if (slug === 'uk-working-days-calculator') {
+    const nation = Number(v.nation);
+    const exclude = Number(v.holidays);
+    if (!UK_BANK_HOLIDAYS[nation]) throw new Error('Choose a part of the UK');
+    if (exclude !== 0 && exclude !== 1) throw new Error('Choose whether bank holidays are excluded');
+    let start = parseIsoDate(v.startdate);
+    let end = parseIsoDate(v.enddate);
+    let swapped = false;
+    if (start > end) {
+      swapped = true;
+      const hold = start;
+      start = end;
+      end = hold;
+    }
+    const spanYears = end.getFullYear() - start.getFullYear();
+    if (spanYears > 50) throw new Error('Enter dates no more than 50 years apart');
+    if (exclude === 1 && (start.getFullYear() < 2025 || end.getFullYear() > 2028)) {
+      throw new Error('Bank holidays on this page cover 2025 through 2028 only');
+    }
+    const holidays = UK_BANK_HOLIDAYS[nation];
+    let inclusive = 0;
+    let weekdays = 0;
+    let weekendDays = 0;
+    const removed = [];
+    for (let cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
+      inclusive += 1;
+      const weekday = cursor.getDay();
+      if (weekday === 0 || weekday === 6) weekendDays += 1;
+      else {
+        weekdays += 1;
+        const key = isoDate(cursor);
+        if (holidays[key]) removed.push(`${key} ${holidays[key]}`);
+      }
+    }
+    const holidaysRemoved = exclude === 1 ? removed.length : 0;
+    const working = weekdays - holidaysRemoved;
+    const headline = working === 1 ? '1 working day' : `${number(working, 0)} working days`;
+    const details = [
+      exclude === 1
+        ? `Bank holidays removed: ${number(holidaysRemoved, 0)}`
+        : 'Bank holidays removed: 0. Weekdays that are bank holidays were counted.',
+      `Weekdays in the span: ${number(weekdays, 0)}`,
+      `Weekend days: ${number(weekendDays, 0)}`,
+      `Inclusive calendar days: ${number(inclusive, 0)}`,
+      `Bank holiday list: ${UK_NATION_NAME[nation]}`,
+      'Both the start date and the end date are included when they are working days.',
+      swapped ? 'The dates were ordered so the earlier date is the start.' : `Span: ${isoDate(start)} through ${isoDate(end)}.`
+    ];
+    if (exclude === 1 && removed.length > 0 && removed.length <= 12) details.push(`Bank holidays inside the span: ${removed.join('; ')}.`);
+    if (exclude === 1 && removed.length > 12) details.push(`Bank holidays inside the span: ${removed.slice(0, 12).join('; ')}; and ${removed.length - 12} more.`);
+    return { headline, details };
+  }
+  if (slug === 'gravel-calculator') {
+    const length = v.length;
+    const width = v.width;
+    const depth = v.depth;
+    const density = Number(v.density);
+    const waste = v.waste;
+    if (!Number.isFinite(length) || length <= 0) throw new Error('Enter a length above zero');
+    if (!Number.isFinite(width) || width <= 0) throw new Error('Enter a width above zero');
+    if (!Number.isFinite(depth) || depth <= 0) throw new Error('Enter a depth above zero');
+    if (!GRAVEL_DENSITY[density]) throw new Error('Choose a material');
+    if (!Number.isFinite(waste) || waste < 0 || waste > 100) throw new Error('Enter a waste allowance from 0 to 100 percent');
+    const cubicFeet = length * width * depth / 12;
+    const withWaste = cubicFeet * (1 + waste / 100);
+    const cubicYards = cubicFeet / 27;
+    const yardsWithWaste = withWaste / 27;
+    const pounds = withWaste * density;
+    const shortTons = pounds / 2000;
+    const tonnes = pounds * 0.45359237 / 1000;
+    const bags = Math.ceil(withWaste / 0.5 - 1e-9);
+    const tenthTons = Math.ceil(shortTons * 10 - 1e-9) / 10;
+    const coverage = 27 * 12 / depth;
+    const yardPhrase = (value) => {
+      const shown = number(value, 3);
+      return `${shown} ${shown === '1' ? 'cubic yard' : 'cubic yards'}`;
+    };
+    return {
+      headline: `${number(shortTons, 3)} short tons`,
+      details: [
+        GRAVEL_DENSITY[density],
+        `Volume: ${number(cubicFeet, 2)} cubic feet (${yardPhrase(cubicYards)})`,
+        `Volume with ${number(waste, 2)}% waste: ${number(withWaste, 2)} cubic feet (${yardPhrase(yardsWithWaste)})`,
+        `Weight with waste: ${number(pounds, 1)} lb (${number(tonnes, 3)} tonnes)`,
+        `Bulk order, rounded up to the next 0.1 short ton: ${number(tenthTons, 1)} short tons`,
+        `0.5 cubic foot bags, rounded up: ${number(bags, 0)}`,
+        `One cubic yard covers ${number(coverage, 2)} square feet at this depth`,
+        'Short tons use 2,000 lb. The tonne line uses 0.45359237 kg per pound. Buy tons or bags, not both.'
       ]
     };
   }

@@ -595,7 +595,7 @@ export const extraCalculatorContent = {
     description: 'See what share of gross monthly income a rent payment uses, and the rent that would sit at 30% of that income.',
     intro: [
       'This rent affordability calculator divides monthly rent by gross monthly income and compares the result with 30%. The U.S. Department of Housing and Urban Development describes households that pay more than 30% of their income for housing as cost-burdened, and households that pay more than 50% as severely cost-burdened. The 30% line is a screening rule of thumb, not a statute that caps your lease and not a lender’s underwriting decision.',
-      'The sample is $1,800 of rent and $6,000 of gross monthly income. That pair lands on 30% exactly. Gross income means income before tax. A take-home paycheck is a smaller number, so the same rent is a larger share of cash pay than of gross pay. This page does not estimate tax, utilities, parking, or renter’s insurance.'
+      'The sample is $1,800 of rent and $6,000 of gross monthly income. That pair lands on 30% exactly. Gross income means income before tax. A take-home paycheck is a smaller number, so the same rent is a larger share of cash pay than of gross pay. A 2026 Pennsylvania salary of $72,000 is $6,000 a month gross. With a 1% local earned income tax and the $52 local services tax, single, and no 401(k), the Pennsylvania paycheck calculator leaves $56,499.60 for the year, or $4,708.30 a month. The $1,800 guideline rent is 30% of the gross month and 38.23% of that take-home month. This page still does not estimate tax itself. Utilities, parking, and renter’s insurance stay outside the rent field unless you add them in.'
     ],
     steps: [
       'Enter the monthly rent you would actually send the landlord. The sample is 1800.',
@@ -607,12 +607,12 @@ export const extraCalculatorContent = {
     howItWorks: [
       'The share is monthly rent divided by gross monthly income, multiplied by 100. At $1,800 and $6,000 the ratio is 0.30, so the headline is 30.00%. The guideline rent is 30% of the income, rounded to the cent. The gap is that guideline rent minus the rent you entered. A positive gap is money under the line. A negative gap is money over the line. Annual rent and annual gross income are the monthly figures multiplied by 12, with no tax adjustment.',
       'HUD’s cost-burden description is about housing costs and household income. A full housing cost can include utilities and other housing bills, not only the lease payment. This form uses the rent you type as the whole housing cost. If utilities are extra, add them to the rent field before you calculate, or the share will look smaller than the housing cost HUD would count.',
-      'Thirty percent of gross income is not thirty percent of take-home pay. A renter who keeps about three-quarters of gross pay is spending 40% of take-home when the rent is 30% of gross. That conversion depends on the tax, which this form does not compute. Use a paycheck calculator for the tax, then decide which denominator you care about. The percent on this page is always the gross one.'
+      'Thirty percent of gross income is not thirty percent of take-home pay. The conversion depends on the tax, which this form does not compute. The Pennsylvania example makes the gap a number rather than a slogan. Annual gross is $72,000. Annual take-home on that page, for a single filer at a 1% local rate and a $52 local services tax, is $56,499.60. Divide $21,600 of annual rent by $56,499.60 and the share is 38.23%, the same share as $1,800 divided by the $4,708.30 monthly take-home. The biweekly headline on that paycheck is $2,173.06. Twice that is $4,346.12, which is not the month, because 26 paychecks are not 24. Use the annual take-home divided by 12 when you set the cash figure next to a monthly rent. The percent on this page remains the gross one.'
     ],
     formula: 'Share of gross income = monthly rent ÷ gross monthly income × 100\nGuideline rent = gross monthly income × 0.30\nGap = guideline rent − monthly rent\nAnnual rent = monthly rent × 12\nAnnual gross income = gross monthly income × 12\nAt the guideline: gap = 0\nUnder the guideline: gap > 0\nOver the guideline: gap < 0',
     formulaNotes: [
       'Income has to be greater than zero. Rent may be zero, which produces a 0.00% share and a guideline rent of 30% of income. The guideline rent is rounded to the cent from the exact 30% product. A one-cent difference versus a hand calculation is that rounding.',
-      'The 50% severe-burden line is not a second mode, but you can see it in the headline. A result above 50.00% is past both the cost-burdened line and the severely cost-burdened line in HUD’s description. The form still labels the gap against 30%, not against 50%.'
+      'The 50% severe-burden line is not a second mode, but you can see it in the headline. A result above 50.00% is past both the cost-burdened line and the severely cost-burdened line in HUD’s description. The form still labels the gap against 30%, not against 50%. The Pennsylvania 38.23% figure is a take-home share, so it does not belong in this page’s headline. Type 1800 and 6000 if you want the gross 30.00% that the paycheck example starts from.'
     ],
     examplesHeading: 'Worked rent and income examples',
     examples: [
@@ -628,6 +628,13 @@ export const extraCalculatorContent = {
         paragraphs: [
           'The share is 2,200 / 5,000 × 100 = 44.00%. The guideline rent is $1,500.00. The rent is $700.00 over the 30% guideline. Annual rent is $26,400.00 and annual gross income is $60,000.00.',
           'Forty-four percent is under the 50% severe-burden marker and over the 30% marker. The $700 is a monthly gap, so the annual gap against the guideline is $8,400. The form does not say the lease is illegal or that an application will be refused. It only places the rent against the 30% description.'
+        ]
+      },
+      {
+        title: '$1,800 rent against a 2026 Pennsylvania paycheck on $72,000',
+        paragraphs: [
+          'Gross monthly income of $6,000 is a $72,000 salary. The rent share on this page is 30.00%, and the guideline rent is $1,800.00, so the gap is zero. That is the gross test, and it is unchanged by the state the wages are taxed in. The cash test needs a paycheck. On the Pennsylvania calculator, $72,000, single, paid monthly in the annual division, with a 1% local earned income tax, a $52 local services tax, and no 401(k), produces federal income tax of $7,010.00, Pennsylvania tax of $2,210.40, local earned income tax of $720.00, Social Security of $4,464.00, and Medicare of $1,044.00. Annual take-home is $56,499.60. Monthly take-home is $4,708.30.',
+          'The $1,800 rent is $1,800 / $4,708.30 = 38.23% of that monthly take-home. Twelve times $4,708.30 is exactly $56,499.60, so the monthly figure does not hide a rounding gap. A renter who instead multiplies the $2,173.06 biweekly headline by two gets $4,346.12 and would call the rent 41.42% of a two-paycheck “month.” Twenty-six times $2,173.06 is $56,499.56, four cents under the annual take-home, because each paycheck is rounded on its own. The rent page does not perform this tax step. It only explains why the gross 30% line and the cash left in a Pennsylvania paycheck are different questions.'
         ]
       },
       {
@@ -664,7 +671,7 @@ export const extraCalculatorContent = {
       },
       {
         q: 'Should I enter gross income or take-home pay for rent?',
-        a: 'Enter gross monthly income. The 30% comparison on this page is defined on that base. At $1,800 of rent and $6,000 of gross income the result is 30.00%. The same rent against take-home pay would be a higher percent, and this form does not calculate the tax that sits between those two incomes.'
+        a: 'Enter gross monthly income. The 30% comparison on this page is defined on that base. At $1,800 of rent and $6,000 of gross income the result is 30.00%. The same rent is 38.23% of the $4,708.30 monthly take-home on a 2026 Pennsylvania salary of $72,000, single, at a 1% local earned income tax and a $52 local services tax. This form does not calculate that tax. The Pennsylvania paycheck page does.'
       },
       {
         q: 'What rent is affordable on a $6,000 gross monthly income?',
@@ -680,8 +687,9 @@ export const extraCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'pennsylvania-paycheck-calculator', label: 'Pennsylvania paycheck calculator for 2026', note: 'The $72,000 single example with 1% local tax and a $52 local services tax leaves $4,708.30 a month. The $1,800 rent is 38.23% of that take-home.' },
       { slug: 'mortgage-calculator', label: 'Fixed-rate mortgage payment calculator', note: 'Principal and interest only. A different housing question from monthly rent.' },
-      { slug: 'texas-paycheck-calculator', label: 'Texas paycheck calculator for 2026', note: 'Estimate federal tax and FICA on Texas wages before you compare rent with cash pay.' },
+      { slug: 'texas-paycheck-calculator', label: 'Texas paycheck calculator for 2026', note: 'Estimate federal tax and FICA on Texas wages before you compare rent with cash pay. Texas has no state income tax, so the cash gap is smaller than Pennsylvania’s.' },
       { slug: 'hourly-to-salary-calculator', label: 'Hourly to salary calculator', note: 'Turn an hourly wage into an annual figure, then divide by 12 for the income field.' }
     ]
   },
