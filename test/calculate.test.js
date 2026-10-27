@@ -545,6 +545,115 @@ test('mulch bags come from cubic feet and the selected bag size', () => {
   assert.throws(() => calculate('mulch-calculator', { length: 10, width: 0, depth: 3, bag: 2, waste: 0 }), /width/);
 });
 
+test('2026 Pennsylvania paycheck keeps the 3.07% tax on wages before a 401(k)', () => {
+  assert.deepEqual(calculate('pennsylvania-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0, local: 1, lst: 52 }), {
+    headline: '$1,988.85 / two weeks',
+    details: [
+      'Federal income tax: $5,620.00',
+      'Social Security: $4,030.00',
+      'Medicare: $942.50',
+      'Additional Medicare Tax: $0.00',
+      'Pennsylvania income tax: $1,995.50',
+      'Local earned income tax: $650.00',
+      'Local services tax: $52.00',
+      '401(k) deferred: $0.00',
+      'Annual take-home: $51,710.00',
+      'Federal standard deduction applied: $16,100.00',
+      'Filing status: single. Pennsylvania tax does not change with filing status.',
+      'Local rate used: 1% of wages. Pennsylvania tax is 3.07% of the same wages. A traditional 401(k) does not reduce either one.'
+    ]
+  });
+  const deferred = calculate('pennsylvania-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 6500, local: 1, lst: 52 });
+  assert.equal(deferred.headline, '$1,768.85 / two weeks');
+  assert.equal(deferred.details[0], 'Federal income tax: $4,840.00');
+  assert.equal(deferred.details[4], 'Pennsylvania income tax: $1,995.50');
+  assert.equal(deferred.details[5], 'Local earned income tax: $650.00');
+  const joint = calculate('pennsylvania-paycheck-calculator', { salary: 65000, status: 2, periods: 26, deferral: 0, local: 1, lst: 52 });
+  assert.equal(joint.details[4], 'Pennsylvania income tax: $1,995.50');
+  assert.equal(joint.details[8], 'Annual take-home: $53,890.00');
+  const philly = calculate('pennsylvania-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0, local: 3.735, lst: 0 });
+  assert.equal(philly.details[5], 'Local earned income tax: $2,427.75');
+  assert.equal(philly.details[8], 'Annual take-home: $49,984.25');
+  assert.match(philly.details[11], /3\.735%/);
+  const rentCase = calculate('pennsylvania-paycheck-calculator', { salary: 72000, status: 1, periods: 12, deferral: 0, local: 1, lst: 52 });
+  assert.equal(rentCase.headline, '$4,708.30 / month');
+  assert.equal(rentCase.details[8], 'Annual take-home: $56,499.60');
+  assert.throws(() => calculate('pennsylvania-paycheck-calculator', { salary: -1, status: 1, periods: 26, deferral: 0, local: 1, lst: 52 }), /salary/);
+});
+
+test('2026 Saskatchewan take-home pay uses the 10.5% credit', () => {
+  const sample = calculate('saskatchewan-take-home-pay-calculator', { salary: 70000 });
+  assert.equal(sample.headline, '$4,389.11 / month');
+  assert.equal(sample.details[0], 'Federal income tax: $7,278.19');
+  assert.equal(sample.details[1], 'Saskatchewan income tax: $4,972.68');
+  assert.equal(sample.details[2], 'Employee CPP, including CPP2: $3,956.75');
+  assert.equal(sample.details[3], 'Employee EI: $1,123.07');
+  assert.equal(sample.details[4], 'Annual take-home: $52,669.31');
+  assert.equal(sample.details[7], 'Saskatchewan basic personal amount applied: $20,381.00');
+  const high = calculate('saskatchewan-take-home-pay-calculator', { salary: 160000 });
+  assert.equal(high.headline, '$9,177.16 / month');
+  assert.equal(high.details[1], 'Saskatchewan income tax: $16,202.38');
+  assert.equal(high.details[4], 'Annual take-home: $110,125.96');
+  assert.equal(calculate('alberta-take-home-pay-calculator', { salary: 70000 }).details[0], sample.details[0]);
+  assert.throws(() => calculate('saskatchewan-take-home-pay-calculator', { salary: -1 }), /salary/);
+});
+
+test('Queensland transfer duty matches the published concession examples', () => {
+  const first = calculate('queensland-stamp-duty-calculator', { price: 730000, buyer: 3, foreign: 1 });
+  assert.equal(first.headline, '$6,555.00');
+  assert.equal(first.details[1], 'Transfer duty: $6,555.00');
+  assert.equal(first.details[3], 'Home concession duty before any first home deduction: $18,700.00');
+  assert.equal(first.details[4], 'General duty, for comparison: $25,875.00');
+  assert.equal(calculate('queensland-stamp-duty-calculator', { price: 650000, buyer: 3, foreign: 1 }).headline, '$0.00');
+  assert.equal(calculate('queensland-stamp-duty-calculator', { price: 700001, buyer: 3, foreign: 1 }).headline, '$4.50');
+  assert.equal(calculate('queensland-stamp-duty-calculator', { price: 795000, buyer: 3, foreign: 1 }).headline, '$19,890.00');
+  assert.equal(calculate('queensland-stamp-duty-calculator', { price: 950000, buyer: 2, foreign: 1 }).headline, '$28,600.00');
+  const foreign = calculate('queensland-stamp-duty-calculator', { price: 730000, buyer: 3, foreign: 2 });
+  assert.equal(foreign.headline, '$84,275.00');
+  assert.equal(foreign.details[1], 'Transfer duty: $25,875.00');
+  assert.equal(foreign.details[2], 'Additional foreign acquirer duty: $58,400.00');
+  assert.equal(calculate('queensland-stamp-duty-calculator', { price: 900000, buyer: 4, foreign: 1 }).headline, '$0.00');
+  assert.equal(calculate('queensland-stamp-duty-calculator', { price: 5001, buyer: 1, foreign: 1 }).headline, '$1.50');
+  assert.throws(() => calculate('queensland-stamp-duty-calculator', { price: -1, buyer: 3, foreign: 1 }), /price/);
+});
+
+test('UK working days remove the 2026 bank holidays for the nation selected', () => {
+  const england = calculate('uk-working-days-calculator', { startdate: '2026-01-01', enddate: '2026-12-31', nation: 1, holidays: 1 });
+  assert.equal(england.headline, '253 working days');
+  assert.equal(england.details[0], 'Bank holidays removed: 8');
+  assert.equal(england.details[1], 'Weekdays in the span: 261');
+  assert.equal(calculate('uk-working-days-calculator', { startdate: '2026-01-01', enddate: '2026-12-31', nation: 2, holidays: 1 }).headline, '251 working days');
+  assert.equal(calculate('uk-working-days-calculator', { startdate: '2026-01-01', enddate: '2026-12-31', nation: 3, holidays: 1 }).headline, '251 working days');
+  assert.equal(calculate('uk-working-days-calculator', { startdate: '2026-01-01', enddate: '2026-12-31', nation: 1, holidays: 0 }).headline, '261 working days');
+  assert.equal(calculate('uk-working-days-calculator', { startdate: '2026-04-03', enddate: '2026-04-06', nation: 1, holidays: 1 }).headline, '0 working days');
+  assert.equal(calculate('uk-working-days-calculator', { startdate: '2026-04-03', enddate: '2026-04-06', nation: 2, holidays: 1 }).headline, '1 working day');
+  assert.equal(calculate('uk-working-days-calculator', { startdate: '2026-06-15', enddate: '2026-06-19', nation: 2, holidays: 1 }).headline, '4 working days');
+  assert.equal(calculate('uk-working-days-calculator', { startdate: '2026-06-15', enddate: '2026-06-19', nation: 1, holidays: 1 }).headline, '5 working days');
+  assert.equal(calculate('uk-working-days-calculator', { startdate: '2028-01-01', enddate: '2028-12-31', nation: 1, holidays: 1 }).headline, '252 working days');
+  assert.throws(
+    () => calculate('uk-working-days-calculator', { startdate: '2024-01-01', enddate: '2024-12-31', nation: 1, holidays: 1 }),
+    /2025 through 2028/
+  );
+});
+
+test('gravel weight uses 105 lb per cubic foot for dry gravel', () => {
+  const sample = calculate('gravel-calculator', { length: 10, width: 20, depth: 3, density: 105, waste: 0 });
+  assert.equal(sample.headline, '2.625 short tons');
+  assert.equal(sample.details[1], 'Volume: 50 cubic feet (1.852 cubic yards)');
+  assert.equal(sample.details[3], 'Weight with waste: 5,250 lb (2.381 tonnes)');
+  assert.equal(sample.details[4], 'Bulk order, rounded up to the next 0.1 short ton: 2.7 short tons');
+  assert.equal(sample.details[5], '0.5 cubic foot bags, rounded up: 100');
+  const wet = calculate('gravel-calculator', { length: 10, width: 20, depth: 3, density: 125, waste: 0 });
+  assert.equal(wet.headline, '3.125 short tons');
+  const waste = calculate('gravel-calculator', { length: 10, width: 20, depth: 3, density: 105, waste: 10 });
+  assert.equal(waste.headline, '2.888 short tons');
+  assert.equal(waste.details[2], 'Volume with 10% waste: 55 cubic feet (2.037 cubic yards)');
+  const yard = calculate('gravel-calculator', { length: 9, width: 3, depth: 12, density: 105, waste: 0 });
+  assert.equal(yard.headline, '1.418 short tons');
+  assert.equal(yard.details[1], 'Volume: 27 cubic feet (1 cubic yard)');
+  assert.throws(() => calculate('gravel-calculator', { length: 0, width: 20, depth: 3, density: 105, waste: 0 }), /length/);
+});
+
 test('age uses calendar borrowing and singular units', () => {
   assert.deepEqual(calculate('age-calculator', { birthdate: '1990-01-15', targetdate: '2026-10-22' }), {
     headline: '36 years',

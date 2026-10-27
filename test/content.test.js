@@ -122,6 +122,36 @@ test('five long-tail calculators are linked from the homepage and a related page
   assert.match(calculatorContent['concrete-slab-calculator'].howItWorks.at(-1), /mulch/);
 });
 
+test('five growth calculators are linked from the homepage and a related page', () => {
+  const home = readFileSync('src/pages/index.astro', 'utf8');
+  const links = [
+    ['pennsylvania-paycheck-calculator', 'illinois-paycheck-calculator'],
+    ['saskatchewan-take-home-pay-calculator', 'manitoba-take-home-pay-calculator'],
+    ['queensland-stamp-duty-calculator', 'victoria-stamp-duty-calculator'],
+    ['uk-working-days-calculator', 'us-business-days-calculator'],
+    ['gravel-calculator', 'mulch-calculator']
+  ];
+  for (const [slug, related] of links) {
+    assert.match(home, new RegExp(`calculators/${slug}/`));
+    assert.ok(calculatorContent[slug], slug);
+    assert.equal(
+      calculatorContent[related].relatedLinks.some((link) => link.slug === slug),
+      true,
+      related
+    );
+  }
+  const rent = calculatorContent['rent-affordability-calculator'];
+  assert.match(rent.intro[1], /38\.23%/);
+  assert.match(rent.howItWorks[2], /\$4,708\.30/);
+  assert.equal(
+    rent.relatedLinks.some((link) => link.slug === 'pennsylvania-paycheck-calculator'),
+    true
+  );
+  assert.match(calculatorContent['pennsylvania-paycheck-calculator'].description, /3\.07%/);
+  assert.match(calculatorContent['saskatchewan-take-home-pay-calculator'].description, /2026/);
+  assert.match(calculatorContent['uk-working-days-calculator'].table.rows[1][2], /253/);
+});
+
 test('length converter slug matches the page title', () => {
   const length = calculators.find((item) => item.slug === 'length-converter');
   assert.equal(length.title, 'Length Converter');
