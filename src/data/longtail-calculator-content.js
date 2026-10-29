@@ -421,6 +421,7 @@ export const longtailCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'canada-business-days-calculator', label: 'Canada business days calculator', note: 'Ontario 2026 is 253 business days, British Columbia is 250, and Alberta is 252. Canada does not move a Saturday holiday to Friday the way this federal list does.' },
       { slug: 'uk-working-days-calculator', label: 'UK working days calculator', note: 'Inclusive weekdays with UK bank holidays removed. England and Wales in 2026 have 253 working days, not these 250 US business days.' },
       { slug: 'date-difference-calculator', label: 'Days between two dates', note: 'Elapsed calendar days, including weekends. 1 January to 31 December 2026 is 364 on that page and 250 business days here.' },
       { slug: 'age-calculator', label: 'Exact age calculator', note: 'Completed years, months, and days from a birthday. It does not drop weekends or holidays.' },

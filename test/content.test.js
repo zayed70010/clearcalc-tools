@@ -152,6 +152,34 @@ test('five growth calculators are linked from the homepage and a related page', 
   assert.match(calculatorContent['uk-working-days-calculator'].table.rows[1][2], /253/);
 });
 
+test('five daily calculators are linked from the homepage and a related page', () => {
+  const home = readFileSync('src/pages/index.astro', 'utf8');
+  const links = [
+    ['ohio-paycheck-calculator', 'pennsylvania-paycheck-calculator'],
+    ['nova-scotia-take-home-pay-calculator', 'saskatchewan-take-home-pay-calculator'],
+    ['scotland-lbtt-calculator', 'england-stamp-duty-calculator'],
+    ['canada-business-days-calculator', 'us-business-days-calculator'],
+    ['5k-pace-calculator', 'calorie-calculator']
+  ];
+  for (const [slug, related] of links) {
+    assert.match(home, new RegExp(`calculators/${slug}/`));
+    assert.ok(calculatorContent[slug], slug);
+    assert.equal(
+      calculatorContent[related].relatedLinks.some((link) => link.slug === slug),
+      true,
+      related
+    );
+  }
+  const calorie = calculatorContent['calorie-calculator'];
+  assert.match(calorie.intro[2], /8:02\.8 per mile/);
+  assert.match(calorie.limits.at(-1), /1:45:29\.3/);
+  assert.equal(calorie.faqs.length, 6);
+  assert.match(calculatorContent['england-stamp-duty-calculator'].faqs[3].a, /£18,350\.00/);
+  assert.match(calculatorContent['ohio-paycheck-calculator'].description, /2\.75%/);
+  assert.match(calculatorContent['canada-business-days-calculator'].table.rows[0][2], /253/);
+  assert.match(calculatorContent['5k-pace-calculator'].table.rows[0][2], /8:02\.8/);
+});
+
 test('length converter slug matches the page title', () => {
   const length = calculators.find((item) => item.slug === 'length-converter');
   assert.equal(length.title, 'Length Converter');

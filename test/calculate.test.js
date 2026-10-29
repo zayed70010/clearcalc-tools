@@ -668,3 +668,123 @@ test('age uses calendar borrowing and singular units', () => {
   assert.equal(leapEdge.details[0], '5 months and 30 days beyond the last birthday.');
   assert.equal(leapEdge.details[0].includes('-'), false);
 });
+
+test('2026 Ohio paycheck uses the flat nonbusiness formula and local bases', () => {
+  const sample = calculate('ohio-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 0, exemptions: 1, school: 1, schoolrate: 0, city: 0
+  });
+  assert.equal(sample.headline, '$2,040.90 / two weeks');
+  assert.equal(sample.details[4], 'Ohio income tax: $1,344.00');
+  assert.equal(sample.details[8], 'Annual take-home: $53,063.50');
+  assert.equal(sample.details[10], 'Ohio exemption: $2,150.00 × 1 = $2,150.00');
+  const deferred = calculate('ohio-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 6500, exemptions: 1, school: 1, schoolrate: 0, city: 0
+  });
+  assert.equal(deferred.details[4], 'Ohio income tax: $1,165.25');
+  assert.equal(deferred.details[7], '401(k) deferred: $6,500.00');
+  const school = calculate('ohio-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 0, exemptions: 1, school: 1, schoolrate: 1, city: 0
+  });
+  assert.equal(school.details[5], 'School district income tax: $628.50');
+  const earned = calculate('ohio-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 0, exemptions: 1, school: 2, schoolrate: 1, city: 0
+  });
+  assert.equal(earned.details[5], 'School district income tax: $650.00');
+  const city = calculate('ohio-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 6500, exemptions: 1, school: 0, schoolrate: 0, city: 2.5
+  });
+  assert.equal(city.details[6], 'Municipal income tax: $1,625.00');
+  assert.equal(city.details[4], 'Ohio income tax: $1,165.25');
+  const cliff = calculate('ohio-paycheck-calculator', {
+    salary: 28451, status: 1, periods: 26, deferral: 0, exemptions: 1, school: 0, schoolrate: 0, city: 0
+  });
+  assert.equal(cliff.details[4], 'Ohio income tax: $332.03');
+  assert.equal(calculate('ohio-paycheck-calculator', {
+    salary: 28200, status: 1, periods: 12, deferral: 0, exemptions: 1, school: 0, schoolrate: 0, city: 0
+  }).details[4], 'Ohio income tax: $0.00');
+  assert.throws(() => calculate('ohio-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 0, exemptions: 1.5, school: 1, schoolrate: 0, city: 0
+  }), /exemptions/);
+});
+
+test('2026 Nova Scotia take-home pay uses the five provincial brackets', () => {
+  const sample = calculate('nova-scotia-take-home-pay-calculator', { salary: 70000 });
+  assert.equal(sample.headline, '$4,208.02 / month');
+  assert.equal(sample.details[0], 'Federal income tax: $7,278.19');
+  assert.equal(sample.details[1], 'Nova Scotia income tax: $7,145.72');
+  assert.equal(sample.details[2], 'Employee CPP, including CPP2: $3,956.75');
+  assert.equal(sample.details[4], 'Annual take-home: $50,496.27');
+  assert.equal(sample.details[7], 'Nova Scotia basic personal amount applied: $11,932.00');
+  assert.equal(
+    calculate('saskatchewan-take-home-pay-calculator', { salary: 70000 }).details[0],
+    sample.details[0]
+  );
+  const high = calculate('nova-scotia-take-home-pay-calculator', { salary: 160000 });
+  assert.equal(high.details[1], 'Nova Scotia income tax: $22,622.99');
+  assert.equal(high.headline, '$8,642.11 / month');
+  assert.throws(() => calculate('nova-scotia-take-home-pay-calculator', { salary: -1 }), /salary/);
+});
+
+test('2026 Scotland LBTT includes first-time buyer relief and ADS', () => {
+  assert.equal(calculate('scotland-lbtt-calculator', { price: 250000, buyer: 1 }).headline, '£2,100.00');
+  assert.equal(calculate('scotland-lbtt-calculator', { price: 250000, buyer: 2 }).headline, '£1,500.00');
+  assert.equal(calculate('scotland-lbtt-calculator', { price: 200000, buyer: 2 }).headline, '£500.00');
+  assert.equal(calculate('scotland-lbtt-calculator', { price: 175000, buyer: 2 }).headline, '£0.00');
+  assert.equal(calculate('scotland-lbtt-calculator', { price: 300000, buyer: 3 }).headline, '£28,600.00');
+  assert.equal(calculate('scotland-lbtt-calculator', { price: 450000, buyer: 1 }).headline, '£18,350.00');
+  const pence = calculate('scotland-lbtt-calculator', { price: 145001, buyer: 1 });
+  assert.equal(pence.headline, '£0.00');
+  assert.equal(pence.details[1], 'LBTT before the supplement: £0.02');
+  assert.equal(calculate('scotland-lbtt-calculator', { price: 39999, buyer: 3 }).headline, '£0.00');
+  assert.equal(calculate('scotland-lbtt-calculator', { price: 40000, buyer: 3 }).headline, '£3,200.00');
+  assert.throws(() => calculate('scotland-lbtt-calculator', { price: -1, buyer: 1 }), /price/);
+});
+
+test('Canada business days follow provincial statutory lists', () => {
+  const ontario = calculate('canada-business-days-calculator', {
+    startdate: '2026-01-01', enddate: '2026-12-31', province: 1, holidays: 1
+  });
+  assert.equal(ontario.headline, '253 business days');
+  assert.equal(ontario.details[0], 'Statutory holidays removed: 8');
+  assert.match(ontario.details.at(-1), /2026-12-26 Boxing Day/);
+  assert.equal(calculate('canada-business-days-calculator', {
+    startdate: '2026-01-01', enddate: '2026-12-31', province: 2, holidays: 1
+  }).headline, '250 business days');
+  assert.equal(calculate('canada-business-days-calculator', {
+    startdate: '2026-01-01', enddate: '2026-12-31', province: 3, holidays: 1
+  }).headline, '252 business days');
+  const alberta = calculate('canada-business-days-calculator', {
+    startdate: '2029-01-01', enddate: '2029-12-31', province: 3, holidays: 1
+  });
+  assert.equal(alberta.headline, '253 business days');
+  assert.match(alberta.details.join(' '), /2029-07-02 Canada Day, observed 2 July/);
+  const ontario2029 = calculate('canada-business-days-calculator', {
+    startdate: '2029-01-01', enddate: '2029-12-31', province: 1, holidays: 1
+  });
+  assert.equal(ontario2029.headline, '253 business days');
+  assert.match(ontario2029.details.join(' '), /2029-07-01 Canada Day/);
+  assert.equal(calculate('canada-business-days-calculator', {
+    startdate: '2026-01-02', enddate: '2026-01-02', province: 1, holidays: 1
+  }).headline, '1 business day');
+  assert.throws(() => calculate('canada-business-days-calculator', {
+    startdate: '2026-01-01', enddate: '2026-12-31', province: 4, holidays: 1
+  }), /province/);
+});
+
+test('5K pace uses the international mile and standard race distances', () => {
+  const sample = calculate('5k-pace-calculator', { distance: 5, unit: 1, hours: 0, minutes: 25, seconds: 0 });
+  assert.equal(sample.headline, '5:00 per km');
+  assert.equal(sample.details[1], 'Pace per mile: 8:02.8');
+  assert.equal(sample.details[2], 'Speed: 12 km/h (7.46 mph)');
+  assert.equal(sample.details[5], '10K at this pace: 50:00');
+  assert.equal(sample.details[6], 'Half marathon at this pace: 1:45:29.3');
+  assert.equal(sample.details[7], 'Marathon at this pace: 3:30:58.5');
+  const mile = calculate('5k-pace-calculator', { distance: 1, unit: 2, hours: 0, minutes: 8, seconds: 0 });
+  assert.equal(mile.headline, '8:00 per mile');
+  assert.equal(mile.details[0], 'Pace per kilometre: 4:58.3');
+  assert.equal(mile.details[4], '5K at this pace: 24:51.3');
+  const approx = calculate('5k-pace-calculator', { distance: 13.1, unit: 2, hours: 1, minutes: 45, seconds: 0 });
+  assert.equal(approx.headline, '8:00.9 per mile');
+  assert.equal(approx.details[6], 'Half marathon at this pace: 1:45:04.5');
+  assert.throws(() => calculate('5k-pace-calculator', { distance: 5, unit: 1, hours: 0, minutes: 0, seconds: 0 }), /time/);
+});

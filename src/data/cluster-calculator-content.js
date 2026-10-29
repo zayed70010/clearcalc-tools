@@ -274,7 +274,7 @@ export const clusterCalculatorContent = {
     limits: [
       'The form covers one residential freehold price. It does not calculate rent on a new lease, the net present value of rent, non-residential or mixed-use rates, multiple dwellings relief, or the 17% flat rate that can apply when a company buys a dwelling over £500,000. Linked transactions, exchanges, and contingent consideration need the chargeable consideration rules, not a single typed price. Fixtures that are chattels can fall outside the price. This page taxes whatever number you type.',
       'First-time buyer relief has conditions beyond the £500,000 cap. Every buyer must be a first-time buyer, and the property must be intended as their only or main residence. Married couples and civil partners can fail the test because of the other person’s ownership history. The higher rates also have reliefs, including the replacement of a main residence and a refund if the old home is sold within 36 months. If you still own the old home on completion day, the higher rates are due first and the refund is a later claim. This calculator will not claim it for you.',
-      'Scotland and Wales are outside the result even when the town sounds English. A purchase in Edinburgh is LBTT. A purchase in Cardiff is LTT. Their thresholds and first-time buyer rules are different statutes. The mortgage payment on the amount you borrow is also a different sum, in a different calculator, and it is not increased by this tax automatically. SDLT is usually paid within 14 days of completion. It is not a monthly line inside the loan payment unless a lender has rolled a fee into the balance, which this page does not assume.',
+      'Scotland and Wales are outside the result even when the town sounds English. A purchase in Edinburgh is Land and Buildings Transaction Tax, calculated on the Scotland LBTT page, not by retyping the price here. At £250,000 a main home is £2,500 of SDLT on this page and £2,100 of LBTT on that one. At £450,000 the same comparison reverses: this page shows £12,500 and the Scotland page shows £18,350, because Scotland’s 10% band starts at £325,000 rather than £925,000. A purchase in Cardiff is Land Transaction Tax, which neither page calculates. The mortgage payment on the amount you borrow is also a different sum, and it is not increased by this tax automatically. SDLT is usually paid within 14 days of completion. It is not a monthly line inside the loan payment unless a lender has rolled a fee into the balance, which this page does not assume.',
       'Shared ownership, staircasing, and the reliefs for certain social-housing and right-to-buy transactions are not modeled. Non-resident status has its own day-count and its own refund. Adding 2 points because a buyer lives abroad for work can be wrong if the statutory presence test is met. When the price, the buyer type, or residence is uncertain, the figure is a planning range, not the SDLT return.'
     ],
     disclaimer: 'This SDLT figure is general information for a straightforward residential freehold in England or Northern Ireland, not an SDLT return and not legal or tax advice. HMRC and your conveyancer assess the tax due.',
@@ -293,7 +293,7 @@ export const clusterCalculatorContent = {
       },
       {
         q: 'Does this stamp duty calculator work in Scotland or Wales?',
-        a: 'No. It calculates Stamp Duty Land Tax for England and Northern Ireland only. Scotland uses Land and Buildings Transaction Tax. Wales uses Land Transaction Tax. A price typed into this form is not converted into either of those taxes, even if the bands look superficially similar.'
+        a: 'No. It calculates Stamp Duty Land Tax for England and Northern Ireland only. Scotland uses Land and Buildings Transaction Tax, which has its own calculator on this site. A £250,000 main home is £2,500.00 here and £2,100.00 there. A £450,000 main home is £12,500.00 here and £18,350.00 there. Wales uses Land Transaction Tax, which is not calculated on either page.'
       },
       {
         q: 'How does the non-UK resident surcharge change a £450,000 purchase?',
@@ -305,6 +305,7 @@ export const clusterCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'scotland-lbtt-calculator', label: 'Scotland LBTT calculator for 2026', note: 'Residential Land and Buildings Transaction Tax, including up to £600 of first-time buyer relief and the 8% additional dwelling supplement. A £250,000 main home is £2,100 there and £2,500 here.' },
       { slug: 'mortgage-calculator', label: 'Fixed-rate mortgage payment calculator', note: 'Principal and interest in US dollars. It does not add SDLT or convert pounds.' },
       { slug: 'nsw-stamp-duty-calculator', label: 'NSW stamp duty calculator for 2026/27', note: 'Transfer duty in Australian dollars, including the first home buyer concession. Not SDLT.' },
       { slug: 'uk-take-home-pay-calculator', label: '2026/27 take-home pay for England, Wales and Northern Ireland', note: 'Income tax and employee National Insurance on a salary, not the tax on a house.' },

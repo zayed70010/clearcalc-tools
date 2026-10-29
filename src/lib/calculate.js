@@ -771,6 +771,154 @@ const GRAVEL_DENSITY = {
   97: 'Dry sand, 97 lb per cubic foot'
 };
 
+// Tax year 2026, Ohio Revised Code 5747.02(A)(3)(c), effective 30 September
+// 2025. Nonbusiness income of $26,050 or less is taxed at zero. Above that,
+// the tax is $332 plus 2.75% of the excess. There is no separate top bracket.
+// Personal exemption amounts are the indexed 2025 IT 1040 figures. Indexing
+// was suspended for 2026, and the exemption is refused once modified adjusted
+// gross income reaches $500,000 (R.C. 5747.025).
+const OHIO_ZERO_BAND_CENTS = 2_605_000;
+const OHIO_LUMP_CENTS = 33_200;
+const OHIO_EXEMPTION_CENTS = { low: 240_000, middle: 215_000, high: 190_000 };
+const OHIO_EXEMPTION_CUTOFF_CENTS = 50_000_000;
+
+function ohioExemptionEachCents(magiCents) {
+  if (magiCents >= OHIO_EXEMPTION_CUTOFF_CENTS) return 0;
+  if (magiCents <= 4_000_000) return OHIO_EXEMPTION_CENTS.low;
+  if (magiCents <= 8_000_000) return OHIO_EXEMPTION_CENTS.middle;
+  return OHIO_EXEMPTION_CENTS.high;
+}
+
+function ohioNonbusinessTaxCents(taxableCents) {
+  if (taxableCents <= OHIO_ZERO_BAND_CENTS) return 0;
+  return OHIO_LUMP_CENTS + Math.round((taxableCents - OHIO_ZERO_BAND_CENTS) * 275 / 10000);
+}
+
+function wholeExemptions(value) {
+  if (!Number.isInteger(value) || value < 0 || value > 15) throw new Error('Enter a whole number of Ohio exemptions from 0 to 15');
+  return value;
+}
+
+// 2026 Nova Scotia. Brackets and the $11,932 basic personal amount are the
+// figures on the Province of Nova Scotia personal income tax page and in CRA
+// T4032-NS. The credit uses the 8.79% lowest rate. The low-income tax
+// reduction in section 35 of the Nova Scotia Income Tax Act is not applied.
+const NS_BRACKETS = [
+  [3_099_500, 879],
+  [6_199_100, 1495],
+  [9_741_700, 1667],
+  [15_712_400, 1750],
+  [Number.POSITIVE_INFINITY, 2100]
+];
+const NS_BASIC_PERSONAL_CENTS = 1_193_200;
+
+// Residential LBTT for 2026/27. Bands are unchanged from the Scottish Budget
+// 2026 to 2027 ready reckoner. First-time buyer relief raises the nil-rate
+// band from £145,000 to £175,000, a maximum of £600. ADS is 8% of the price
+// for an effective date on or after 5 December 2024, and it is not charged
+// under £40,000. The LBTT return rounds the total down to the nearest pound.
+const LBTT_BANDS_PENCE = [
+  [14_500_000, 0],
+  [25_000_000, 2],
+  [32_500_000, 5],
+  [75_000_000, 10],
+  [Number.POSITIVE_INFINITY, 12]
+];
+
+function lbttRateProduct(pricePence) {
+  let tax = 0;
+  let previous = 0;
+  for (const [upTo, rate] of LBTT_BANDS_PENCE) {
+    const top = Math.min(pricePence, upTo);
+    const slice = top - previous;
+    if (slice > 0) tax += slice * rate;
+    if (pricePence <= upTo) break;
+    previous = upTo;
+  }
+  return tax;
+}
+
+function productToNearestPence(product) {
+  return Math.round(product / 100);
+}
+
+function floorToPoundPence(product) {
+  return Math.floor(product / 10000) * 100;
+}
+
+const CANADA_PROVINCE_NAME = {
+  1: 'Ontario',
+  2: 'British Columbia',
+  3: 'Alberta'
+};
+
+function easterSunday(year) {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+}
+
+function victoriaDay(year) {
+  const may25 = new Date(year, 4, 25);
+  const daysBack = may25.getDay() === 1 ? 7 : (may25.getDay() + 6) % 7;
+  return new Date(year, 4, 25 - daysBack);
+}
+
+function statutoryHolidaysForYear(year, province) {
+  const easter = easterSunday(year);
+  const goodFriday = new Date(easter.getFullYear(), easter.getMonth(), easter.getDate() - 2);
+  const july1 = new Date(year, 6, 1);
+  const canadaDay = province === 3 && july1.getDay() === 0 ? new Date(year, 6, 2) : july1;
+  const holidays = [
+    [new Date(year, 0, 1), 'New Year’s Day'],
+    [nthWeekdayOfMonth(year, 1, 1, 3), province === 3 ? 'Alberta Family Day' : 'Family Day'],
+    [goodFriday, 'Good Friday'],
+    [victoriaDay(year), 'Victoria Day'],
+    [canadaDay, province === 3 && july1.getDay() === 0 ? 'Canada Day, observed 2 July' : 'Canada Day'],
+    [nthWeekdayOfMonth(year, 8, 1, 1), 'Labour Day'],
+    [nthWeekdayOfMonth(year, 9, 1, 2), 'Thanksgiving'],
+    [new Date(year, 11, 25), 'Christmas Day']
+  ];
+  if (province === 1) holidays.push([new Date(year, 11, 26), 'Boxing Day']);
+  if (province === 2) {
+    holidays.push([nthWeekdayOfMonth(year, 7, 1, 1), 'B.C. Day']);
+    holidays.push([new Date(year, 8, 30), 'National Day for Truth and Reconciliation']);
+    holidays.push([new Date(year, 10, 11), 'Remembrance Day']);
+  }
+  if (province === 3) holidays.push([new Date(year, 10, 11), 'Remembrance Day']);
+  return holidays;
+}
+
+const MILE_IN_KM = 1.609344;
+
+function formatRunClock(totalSeconds) {
+  const rounded = Math.round(totalSeconds * 10) / 10;
+  let whole = Math.floor(rounded);
+  let tenths = Math.round((rounded - whole) * 10);
+  if (tenths === 10) {
+    whole += 1;
+    tenths = 0;
+  }
+  const hours = Math.floor(whole / 3600);
+  const minutes = Math.floor((whole % 3600) / 60);
+  const seconds = whole % 60;
+  const sec = tenths === 0 ? String(seconds).padStart(2, '0') : `${String(seconds).padStart(2, '0')}.${tenths}`;
+  if (hours > 0) return `${hours}:${String(minutes).padStart(2, '0')}:${sec}`;
+  return `${minutes}:${sec}`;
+}
+
 function canadaEmployeePayroll(salary) {
   const pensionable = Math.min(salary, 7_460_000);
   const contributory = Math.max(0, pensionable - 350_000);
@@ -1738,6 +1886,220 @@ export function calculate(slug, values) {
         `0.5 cubic foot bags, rounded up: ${number(bags, 0)}`,
         `One cubic yard covers ${number(coverage, 2)} square feet at this depth`,
         'Short tons use 2,000 lb. The tonne line uses 0.45359237 kg per pound. Buy tons or bags, not both.'
+      ]
+    };
+  }
+  if (slug === 'ohio-paycheck-calculator') {
+    const status = filingStatusCode(v.status);
+    const periods = payPeriodCount(v.periods);
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const requestedDeferral = nonNegativeCents(v.deferral, '401(k) deferral');
+    const deferral = Math.min(requestedDeferral, salary, US_401K_DEFERRAL_CENTS);
+    const exemptions = wholeExemptions(v.exemptions);
+    const schoolBase = Number(v.school);
+    if (![0, 1, 2].includes(schoolBase)) throw new Error('Choose a school district tax base');
+    const schoolMilli = percentMilli(v.schoolrate, 'school district rate');
+    const cityMilli = percentMilli(v.city, 'municipal tax rate');
+    const federalTaxable = Math.max(0, salary - deferral - US_STANDARD_DEDUCTION[status]);
+    const federal = bracketTaxCents(federalTaxable, status === 1 ? US_SINGLE_BRACKETS : US_JOINT_BRACKETS);
+    const socialSecurity = Math.round(Math.min(salary, US_SS_WAGE_BASE_CENTS) * 620 / 10000);
+    const medicare = Math.round(salary * 145 / 10000);
+    const additionalMedicare = Math.round(Math.max(0, salary - US_ADDL_MEDICARE_CENTS) * 90 / 10000);
+    const magi = Math.max(0, salary - deferral);
+    const eachExemption = ohioExemptionEachCents(magi);
+    const exemptionTotal = eachExemption * exemptions;
+    const ohioTaxable = Math.max(0, magi - exemptionTotal);
+    const stateTax = ohioNonbusinessTaxCents(ohioTaxable);
+    const schoolBaseCents = schoolBase === 0 ? 0 : schoolBase === 1 ? ohioTaxable : magi;
+    const schoolTax = schoolBase === 0 ? 0 : taxFromMilli(schoolBaseCents, schoolMilli);
+    const cityTax = taxFromMilli(salary, cityMilli);
+    const takeHome = salary - federal - socialSecurity - medicare - additionalMedicare - stateTax - schoolTax - cityTax - deferral;
+    const schoolSentence = schoolBase === 0
+      ? 'School district tax: not applied. The base was set to none.'
+      : schoolBase === 1
+        ? `School district tax base: traditional, ${usdCents(schoolBaseCents)} after the 401(k) and exemptions, at ${(schoolMilli / 1000).toFixed(3).replace(/\.?0+$/, '')}%.`
+        : `School district tax base: earned income, ${usdCents(schoolBaseCents)} after the 401(k), at ${(schoolMilli / 1000).toFixed(3).replace(/\.?0+$/, '')}%. Exemptions were not subtracted.`;
+    const details = [
+      `Federal income tax: ${usdCents(federal)}`,
+      `Social Security: ${usdCents(socialSecurity)}`,
+      `Medicare: ${usdCents(medicare)}`,
+      `Additional Medicare Tax: ${usdCents(additionalMedicare)}`,
+      `Ohio income tax: ${usdCents(stateTax)}`,
+      `School district income tax: ${usdCents(schoolTax)}`,
+      `Municipal income tax: ${usdCents(cityTax)}`,
+      `401(k) deferred: ${usdCents(deferral)}`,
+      `Annual take-home: ${usdCents(takeHome)}`,
+      `Ohio modified adjusted gross income used for the exemption tier: ${usdCents(magi)}`,
+      `Ohio exemption: ${usdCents(eachExemption)} × ${exemptions} = ${usdCents(exemptionTotal)}`,
+      `Ohio taxable nonbusiness income: ${usdCents(ohioTaxable)}`,
+      schoolSentence,
+      `Municipal rate used: ${(cityMilli / 1000).toFixed(3).replace(/\.?0+$/, '')}% of gross wages. A traditional 401(k) does not reduce the municipal line.`,
+      status === 1
+        ? 'Filing status: single. Ohio does not use a separate joint rate table. Add an exemption if the return claims a spouse.'
+        : 'Filing status: married filing jointly, with this salary as the only income on the return. Ohio does not use a separate joint rate table. The exemption count is what you typed, not an automatic second exemption.'
+    ];
+    if (ohioTaxable > OHIO_ZERO_BAND_CENTS && ohioTaxable <= OHIO_ZERO_BAND_CENTS + 10_000) {
+      details.push('Ohio taxable income is just above $26,050, so the $332 starting amount in the 2026 formula is included. At $26,050 or below, Ohio nonbusiness tax is $0.');
+    }
+    if (requestedDeferral > deferral) {
+      details.push(`401(k) entered above the 2026 elective deferral limit or above wages was reduced to ${usdCents(deferral)}`);
+    }
+    return {
+      headline: `${usdCents(Math.round(takeHome / periods))} ${PAY_PERIOD_LABEL[periods]}`,
+      details
+    };
+  }
+  if (slug === 'nova-scotia-take-home-pay-calculator') {
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const payroll = canadaEmployeePayroll(salary);
+    const novaCredit = Math.round((NS_BASIC_PERSONAL_CENTS + payroll.cppBase + payroll.ei) * 879 / 10000);
+    const novaTax = Math.max(0, bracketTaxCents(payroll.taxable, NS_BRACKETS) - novaCredit);
+    const takeHome = salary - payroll.cpp - payroll.cpp2 - payroll.ei - payroll.federalTax - novaTax;
+    return {
+      headline: `${cadCents(Math.round(takeHome / 12))} / month`,
+      details: [
+        `Federal income tax: ${cadCents(payroll.federalTax)}`,
+        `Nova Scotia income tax: ${cadCents(novaTax)}`,
+        `Employee CPP, including CPP2: ${cadCents(payroll.cpp + payroll.cpp2)}`,
+        `Employee EI: ${cadCents(payroll.ei)}`,
+        `Annual take-home: ${cadCents(takeHome)}`,
+        `Every two weeks: ${cadCents(Math.round(takeHome / 26))}`,
+        `Federal basic personal amount applied: ${cadCents(payroll.basicPersonal)}`,
+        `Nova Scotia basic personal amount applied: ${cadCents(NS_BASIC_PERSONAL_CENTS)}`,
+        `Nova Scotia credit at 8.79% for the basic amount, CPP base, and EI: ${cadCents(novaCredit)}`,
+        'Nova Scotia rates used: 8.79% to $30,995, 14.95% to $61,991, 16.67% to $97,417, 17.5% to $157,124, and 21% above that. The low-income tax reduction is not applied.'
+      ]
+    };
+  }
+  if (slug === 'scotland-lbtt-calculator') {
+    const price = nonNegativeCents(v.price, 'price');
+    const buyer = Number(v.buyer);
+    if (![1, 2, 3].includes(buyer)) throw new Error('Choose a buyer type');
+    const standardProduct = lbttRateProduct(price);
+    const reliefOverlap = Math.max(0, Math.min(price, 17_500_000) - 14_500_000);
+    const reliefProduct = buyer === 2 ? reliefOverlap * 2 : 0;
+    const lbttProduct = Math.max(0, standardProduct - reliefProduct);
+    const adsProduct = buyer === 3 && price >= 4_000_000 ? price * 8 : 0;
+    const lbtt = productToNearestPence(lbttProduct);
+    const ads = productToNearestPence(adsProduct);
+    const total = floorToPoundPence(lbttProduct + adsProduct);
+    const effective = price === 0 ? 0 : total / price * 100;
+    let rule = 'Rates used: standard residential LBTT for a purchase that replaces a main home. No additional dwelling supplement.';
+    if (buyer === 2) {
+      rule = reliefProduct === 0
+        ? 'First-time buyer relief: the price is within the ordinary £145,000 nil-rate band, so the relief does not change the tax.'
+        : `First-time buyer relief: the nil-rate band is £175,000. Relief on this price is ${gbp(productToNearestPence(reliefProduct))}, which is 2% of the slice from £145,000 to £175,000, and never more than £600.`;
+    } else if (buyer === 3 && price < 4_000_000) {
+      rule = 'Additional dwelling supplement was not charged. The price is under £40,000.';
+    } else if (buyer === 3) {
+      rule = 'Additional dwelling supplement: 8% of the purchase price, added to standard residential LBTT. First-time buyer relief does not apply to this choice.';
+    }
+    return {
+      headline: gbp(total),
+      details: [
+        rule,
+        `LBTT before the supplement: ${gbp(lbtt)}`,
+        `Additional dwelling supplement: ${gbp(ads)}`,
+        `Standard LBTT with no first-time buyer relief, for comparison: ${gbp(productToNearestPence(standardProduct))}`,
+        `Effective rate: ${percent(effective)}%`,
+        `Purchase price: ${gbp(price)}`,
+        'Scotland only. Stamp Duty Land Tax in England and Northern Ireland uses different bands. The headline rounds the total down to the nearest pound. The lines above keep the pence.'
+      ]
+    };
+  }
+  if (slug === 'canada-business-days-calculator') {
+    const province = Number(v.province);
+    const exclude = Number(v.holidays);
+    if (!CANADA_PROVINCE_NAME[province]) throw new Error('Choose a province');
+    if (exclude !== 0 && exclude !== 1) throw new Error('Choose whether statutory holidays are excluded');
+    let start = parseIsoDate(v.startdate);
+    let end = parseIsoDate(v.enddate);
+    let swapped = false;
+    if (start > end) {
+      swapped = true;
+      const hold = start;
+      start = end;
+      end = hold;
+    }
+    const spanYears = end.getFullYear() - start.getFullYear();
+    if (spanYears > 50) throw new Error('Enter dates no more than 50 years apart');
+    const holidayMap = new Map();
+    for (let year = start.getFullYear(); year <= end.getFullYear(); year += 1) {
+      for (const [date, name] of statutoryHolidaysForYear(year, province)) holidayMap.set(isoDate(date), name);
+    }
+    let inclusive = 0;
+    let weekdays = 0;
+    let weekendDays = 0;
+    const removed = [];
+    const weekendHolidays = [];
+    for (let cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
+      inclusive += 1;
+      const key = isoDate(cursor);
+      const weekday = cursor.getDay();
+      if (weekday === 0 || weekday === 6) {
+        weekendDays += 1;
+        if (holidayMap.has(key)) weekendHolidays.push(`${key} ${holidayMap.get(key)}`);
+      } else {
+        weekdays += 1;
+        if (holidayMap.has(key)) removed.push(`${key} ${holidayMap.get(key)}`);
+      }
+    }
+    const holidaysRemoved = exclude === 1 ? removed.length : 0;
+    const business = weekdays - holidaysRemoved;
+    const headline = business === 1 ? '1 business day' : `${number(business, 0)} business days`;
+    const details = [
+      exclude === 1
+        ? `Statutory holidays removed: ${number(holidaysRemoved, 0)}`
+        : 'Statutory holidays removed: 0. Weekdays that are statutory holidays were counted.',
+      `Weekdays in the span: ${number(weekdays, 0)}`,
+      `Weekend days: ${number(weekendDays, 0)}`,
+      `Inclusive calendar days: ${number(inclusive, 0)}`,
+      `Holiday list: ${CANADA_PROVINCE_NAME[province]}`,
+      'Both the start date and the end date are included when they are business days.',
+      swapped ? 'The dates were ordered so the earlier date is the start.' : `Span: ${isoDate(start)} through ${isoDate(end)}.`
+    ];
+    if (exclude === 1 && removed.length > 0 && removed.length <= 16) details.push(`Weekday holidays inside the span: ${removed.join('; ')}.`);
+    if (exclude === 1 && removed.length > 16) details.push(`Weekday holidays inside the span: ${removed.slice(0, 16).join('; ')}; and ${removed.length - 16} more.`);
+    if (exclude === 1 && weekendHolidays.length > 0) details.push(`Statutory holidays that fell on a weekend and were not removed: ${weekendHolidays.join('; ')}.`);
+    return { headline, details };
+  }
+  if (slug === '5k-pace-calculator') {
+    const distance = v.distance;
+    const unit = Number(v.unit);
+    const hours = v.hours;
+    const minutes = v.minutes;
+    const seconds = v.seconds;
+    if (!Number.isFinite(distance) || distance <= 0) throw new Error('Enter a distance above zero');
+    if (unit !== 1 && unit !== 2) throw new Error('Choose kilometres or miles');
+    if (!Number.isFinite(hours) || hours < 0) throw new Error('Enter hours of zero or more');
+    if (!Number.isFinite(minutes) || minutes < 0) throw new Error('Enter minutes of zero or more');
+    if (!Number.isFinite(seconds) || seconds < 0) throw new Error('Enter seconds of zero or more');
+    const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+    if (totalSeconds <= 0) throw new Error('Enter a finish time above zero');
+    const distanceKm = unit === 1 ? distance : distance * MILE_IN_KM;
+    const distanceMiles = distanceKm / MILE_IN_KM;
+    const secondsPerKm = totalSeconds / distanceKm;
+    const secondsPerMile = totalSeconds / distanceMiles;
+    const kmh = distanceKm * 3600 / totalSeconds;
+    const mph = distanceMiles * 3600 / totalSeconds;
+    const races = [
+      ['5K', 5],
+      ['10K', 10],
+      ['Half marathon', 21.0975],
+      ['Marathon', 42.195]
+    ];
+    const entered = unit === 1
+      ? `${number(distance, 3)} ${distance === 1 ? 'kilometre' : 'kilometres'}`
+      : `${number(distance, 3)} ${distance === 1 ? 'mile' : 'miles'}`;
+    return {
+      headline: unit === 1 ? `${formatRunClock(secondsPerKm)} per km` : `${formatRunClock(secondsPerMile)} per mile`,
+      details: [
+        `Pace per kilometre: ${formatRunClock(secondsPerKm)}`,
+        `Pace per mile: ${formatRunClock(secondsPerMile)}`,
+        `Speed: ${number(kmh, 2)} km/h (${number(mph, 2)} mph)`,
+        `Time entered: ${formatRunClock(totalSeconds)} for ${entered}`,
+        ...races.map(([label, km]) => `${label} at this pace: ${formatRunClock(secondsPerKm * km)}`),
+        'The mile is the international mile, 1.609344 kilometres. Race distances use 21.0975 km and 42.195 km. A pace is not a calorie estimate.'
       ]
     };
   }
