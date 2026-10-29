@@ -97,6 +97,7 @@ export const growthCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'ohio-paycheck-calculator', label: 'Ohio paycheck calculator for 2026', note: 'At $65,000 single with one exemption, Ohio tax is $1,344.00 rather than this $1,995.50. A 401(k) reduces Ohio tax. It does not reduce Pennsylvania tax.' },
       { slug: 'illinois-paycheck-calculator', label: 'Illinois paycheck calculator for 2026', note: 'A 4.95% state tax after a $2,925 exemption. At $65,000 single the Illinois tax is $3,072.71, and a 401(k) does reduce it.' },
       { slug: 'texas-paycheck-calculator', label: 'Texas paycheck calculator for 2026', note: 'The same federal and FICA lines at $65,000, with state income tax at $0 and annual take-home of $54,407.50.' },
       { slug: 'rent-affordability-calculator', label: 'Rent affordability calculator', note: 'Compares rent with 30% of gross income. The rent page uses a $72,000 Pennsylvania example to show the take-home share.' },
@@ -196,6 +197,7 @@ export const growthCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'nova-scotia-take-home-pay-calculator', label: 'Nova Scotia take-home pay calculator for 2026', note: 'Same federal tax, CPP, and EI at $70,000. Nova Scotia tax is $7,145.72 rather than this $4,972.68, and the monthly headline is $4,208.02.' },
       { slug: 'manitoba-take-home-pay-calculator', label: 'Manitoba take-home pay calculator for 2026', note: 'Same federal tax, CPP, and EI at $70,000. Manitoba tax is $5,742.67 rather than $4,972.68.' },
       { slug: 'alberta-take-home-pay-calculator', label: 'Alberta take-home pay calculator for 2026', note: 'Same federal pieces. Alberta tax is $3,534.79 and annual take-home is $54,107.20.' },
       { slug: 'ontario-take-home-pay-calculator', label: 'Ontario take-home pay calculator for 2026', note: 'Same federal payroll system, plus Ontario tax and the Ontario Health Premium.' },
@@ -395,6 +397,7 @@ export const growthCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'canada-business-days-calculator', label: 'Canada business days calculator', note: 'Ontario has 253 business days in 2026, the same count as England and Wales, but the holidays are Family Day, Victoria Day, and Canada Day rather than these bank holidays. British Columbia has 250.' },
       { slug: 'us-business-days-calculator', label: 'US business days calculator', note: 'Inclusive weekdays with US federal holidays removed. Calendar year 2026 is 250 business days, not 253.' },
       { slug: 'date-difference-calculator', label: 'Days between two dates', note: 'Elapsed calendar days, including weekends. 1 January to 31 December 2026 is 364 on that page.' },
       { slug: 'scotland-take-home-pay-calculator', label: 'Scotland take-home pay calculator for 2026/27', note: 'Scottish income tax and National Insurance. It does not count working days or pro-rate a salary by this 251.' },

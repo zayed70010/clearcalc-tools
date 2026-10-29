@@ -3,6 +3,7 @@ import { clusterCalculatorContent } from './cluster-calculator-content.js';
 import { searchCalculatorContent } from './search-calculator-content.js';
 import { longtailCalculatorContent } from './longtail-calculator-content.js';
 import { growthCalculatorContent } from './growth-calculator-content.js';
+import { dailyCalculatorContent } from './daily-calculator-content.js';
 
 export const calculatorContent = {
   'mortgage-calculator': {
@@ -418,7 +419,8 @@ export const calculatorContent = {
     description: 'Estimate daily maintenance calories with the Mifflin–St Jeor equation for men (+5) or women (−161), then apply an activity multiplier. Includes both constants, worked examples, and a comparison table.',
     intro: [
       'This calorie calculator estimates a daily maintenance level from a Mifflin–St Jeor constant, age, weight, height, and an activity multiplier. Choose men (+5) or women (−161). The shared part of the equation is 10 times weight in kilograms, plus 6.25 times height in centimeters, minus 5 times age in years. The constant you chose is added last. That basal figure is then multiplied by the activity number you type.',
-      'The two constants differ by 166 kcal before activity is applied. On the sample adult, age 30, 75 kg, and 175 cm, the men\'s basal estimate is 1,698.75 calories and the women\'s is 1,532.75. At a 1.55 multiplier the headlines are 2,633 calories/day and 2,376 calories/day. The result is an estimate of maintenance calories, not a prescribed intake, and it is not a basal metabolic measurement from a lab. Body mass index, on the separate BMI page, does not use this equation at all.'
+      'The two constants differ by 166 kcal before activity is applied. On the sample adult, age 30, 75 kg, and 175 cm, the men\'s basal estimate is 1,698.75 calories and the women\'s is 1,532.75. At a 1.55 multiplier the headlines are 2,633 calories/day and 2,376 calories/day. The result is an estimate of maintenance calories, not a prescribed intake, and it is not a basal metabolic measurement from a lab. Body mass index, on the separate BMI page, does not use this equation at all.',
+      'A measured run is a different number from this multiplier. A 5 kilometre finish of 25:00 is 5:00 per kilometre, 8:02.8 per mile, and 12 km/h on the 5K pace calculator. That pace describes one session. It does not replace the 1.55 you type here, and this page will not turn the pace into a calorie burn. Use the two results side by side: maintenance is the daily estimate, and the pace page is the speed of a distance you already timed.'
     ],
     steps: [
       'Choose Men (+5) or Women (−161). The sample starts on the men\'s constant.',
@@ -477,7 +479,8 @@ export const calculatorContent = {
     limits: [
       'Predictive equations miss individual metabolism. Illness, medications, pregnancy, lactation, and significant muscle or fat differences move true needs away from the formula. A lab measurement of resting metabolism will not match 10×kg + 6.25×cm − 5×age + 5, or the same equation with −161, exactly. The constant is a population offset, not a measurement of the person in front of you.',
       'The activity factor is the largest judgment on the page, and it is entirely yours. Overestimating activity overestimates maintenance. The calculator cannot see step counts or training logs.',
-      'Maintenance is not a weight-loss or weight-gain prescription. Eating less than maintenance tends to reduce weight and eating more tends to increase it, but the size and speed of that change are not calculated here. Medical diets, eating disorders, and clinical nutrition need a professional, not a single multiplied equation.'
+      'Maintenance is not a weight-loss or weight-gain prescription. Eating less than maintenance tends to reduce weight and eating more tends to increase it, but the size and speed of that change are not calculated here. Medical diets, eating disorders, and clinical nutrition need a professional, not a single multiplied equation.',
+      'Do not feed a race time into the activity field. The 5K pace calculator keeps the arithmetic in minutes and kilometres: 25:00 for 5 kilometres is exactly 5:00 per kilometre, and the same pace projects a half marathon of 1:45:29.3 and a marathon of 3:30:58.5 using 21.0975 km and 42.195 km. None of those clocks is a calorie total. Holding the sample man at 1.55 still displays 2,633 calories/day whether or not you also run that 5K. The pace page will not accept a weight, and this page will not accept a finish time.'
     ],
     disclaimer: 'This calorie figure is a general estimate, not a diet, a measurement of your metabolism, or medical advice.',
     faqs: [
@@ -500,10 +503,15 @@ export const calculatorContent = {
       {
         q: 'What is the difference between the basal estimate and the headline?',
         a: 'The basal estimate is the Mifflin–St Jeor resting figure, printed on its own line before activity is applied. The headline multiplies it by the activity number you typed and rounds to the nearest calorie. Type 1 if you want the resting figure alone in the headline. For the sample man, the basal line stays 1,698.75 calories at every multiplier.'
+      },
+      {
+        q: 'Can a 25:00 5K replace the activity multiplier?',
+        a: 'No. The multiplier is a judgment about the whole day. The 5K pace calculator converts 25:00 for 5 kilometres into 5:00 per kilometre, 8:02.8 per mile, and 12 km/h, then projects that pace onto a 10K, a half marathon, and a marathon. Those clocks are not calories. The sample man at 1.55 remains 2,633 calories/day on this page.'
       }
     ],
     relatedLinks: [
       { slug: 'bmi-calculator', label: 'Adult BMI calculator', note: 'Weight in kilograms and height in centimeters, as a screening category. It does not estimate calories.' },
+      { slug: '5k-pace-calculator', label: '5K pace calculator', note: 'Minutes per kilometre and per mile from a finish time. A 25:00 5K is 5:00 per kilometre. It does not estimate calories.' },
       { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'Useful if you want a percent difference between two calorie figures you already have. It does not run Mifflin–St Jeor.' }
     ]
   },
@@ -1313,7 +1321,8 @@ export const calculatorContent = {
   ...clusterCalculatorContent,
   ...searchCalculatorContent,
   ...longtailCalculatorContent,
-  ...growthCalculatorContent
+  ...growthCalculatorContent,
+  ...dailyCalculatorContent
 };
 
 export function contentWordCount(entry) {
