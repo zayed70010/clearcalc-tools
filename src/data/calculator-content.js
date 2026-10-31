@@ -4,6 +4,7 @@ import { searchCalculatorContent } from './search-calculator-content.js';
 import { longtailCalculatorContent } from './longtail-calculator-content.js';
 import { growthCalculatorContent } from './growth-calculator-content.js';
 import { dailyCalculatorContent } from './daily-calculator-content.js';
+import { waveCalculatorContent } from './wave-calculator-content.js';
 
 export const calculatorContent = {
   'mortgage-calculator': {
@@ -997,8 +998,12 @@ export const calculatorContent = {
       },
       {
         q: 'Can this convert weight, temperature, or area?',
-        a: 'No. The menu is only feet, inches, yards, and kilometers, and the input is meters of length. Square and cubic conversions need the length factor raised to the second or third power, which this form does not do.'
+        a: 'No. The menu is only feet, inches, yards, and kilometers, and the input is meters of length. Square and cubic conversions need the length factor raised to the second or third power, which this form does not do. Fuel economy, in US mpg, UK mpg, or litres per 100 km, is a different rate and has its own page.'
       }
+    ],
+    relatedLinks: [
+      { slug: 'fuel-economy-converter', label: 'Fuel economy converter', note: '30 US mpg is 7.84 L/100 km and 36.03 UK mpg. This length page does not divide by a gallon. The mile on that page is 1.609344 kilometres, which is not the rounded foot factor used here.' },
+      { slug: 'concrete-slab-calculator', label: 'Concrete slab calculator', note: 'If the slab was measured in meters, convert to feet here first. Thickness on that page stays in inches.' }
     ]
   },
   'gpa-calculator': {
@@ -1322,7 +1327,8 @@ export const calculatorContent = {
   ...searchCalculatorContent,
   ...longtailCalculatorContent,
   ...growthCalculatorContent,
-  ...dailyCalculatorContent
+  ...dailyCalculatorContent,
+  ...waveCalculatorContent
 };
 
 export function contentWordCount(entry) {

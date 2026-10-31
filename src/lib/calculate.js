@@ -799,6 +799,11 @@ function wholeExemptions(value) {
   return value;
 }
 
+function wholeMichiganExemptions(value) {
+  if (!Number.isInteger(value) || value < 0 || value > 15) throw new Error('Enter a whole number of Michigan exemptions from 0 to 15');
+  return value;
+}
+
 // 2026 Nova Scotia. Brackets and the $11,932 basic personal amount are the
 // figures on the Province of Nova Scotia personal income tax page and in CRA
 // T4032-NS. The credit uses the 8.79% lowest rate. The low-income tax
@@ -811,6 +816,51 @@ const NS_BRACKETS = [
   [Number.POSITIVE_INFINITY, 2100]
 ];
 const NS_BASIC_PERSONAL_CENTS = 1_193_200;
+
+// 2026 New Brunswick. Brackets and the $13,664 basic personal amount are the
+// figures in CRA T4032-NB for January 2026. The indexing factor is 2.0%. The
+// credit uses the 9.40% lowest rate. The low-income tax reduction is not applied.
+const NB_BRACKETS = [
+  [5_233_300, 940],
+  [10_466_600, 1400],
+  [19_386_100, 1600],
+  [Number.POSITIVE_INFINITY, 1950]
+];
+const NB_BASIC_PERSONAL_CENTS = 1_366_400;
+
+// Tax year 2026 Michigan. Treasury’s withholding page and the 15 April 2026
+// rate letter under MCL 206.51 keep the rate at 4.25%. The personal exemption
+// for withholding is $5,900. Detroit’s 2026 withholding guide uses 2.4% for
+// residents, 1.2% for nonresidents, and a $600 exemption.
+const MI_RATE_BASIS_POINTS = 425;
+const MI_EXEMPTION_CENTS = 590_000;
+const DETROIT_EXEMPTION_CENTS = 60_000;
+
+// Residential Land Transaction Tax. Main rates from 10 October 2022 and higher
+// residential rates from 11 December 2024, both still the GOV.WALES tables in
+// 2026. Rates are percent. Higher rates are not used under £40,000. Wales has
+// no separate first-time buyer band.
+const LTT_MAIN = [
+  [22_500_000, 0],
+  [40_000_000, 6],
+  [75_000_000, 7.5],
+  [150_000_000, 10],
+  [Number.POSITIVE_INFINITY, 12]
+];
+const LTT_HIGHER = [
+  [18_000_000, 5],
+  [25_000_000, 8.5],
+  [40_000_000, 10],
+  [75_000_000, 12.5],
+  [150_000_000, 15],
+  [Number.POSITIVE_INFINITY, 17]
+];
+
+// US liquid gallon is 231 cubic inches. With the inch at exactly 0.0254 m,
+// that gallon is 3.785411784 litres. The imperial gallon is exactly 4.54609
+// litres. The mile is the international mile already used on the pace page.
+const US_GALLON_LITRES = 3.785411784;
+const IMPERIAL_GALLON_LITRES = 4.54609;
 
 // Residential LBTT for 2026/27. Bands are unchanged from the Scottish Budget
 // 2026 to 2027 ready reckoner. First-time buyer relief raises the nil-rate
@@ -2100,6 +2150,208 @@ export function calculate(slug, values) {
         `Time entered: ${formatRunClock(totalSeconds)} for ${entered}`,
         ...races.map(([label, km]) => `${label} at this pace: ${formatRunClock(secondsPerKm * km)}`),
         'The mile is the international mile, 1.609344 kilometres. Race distances use 21.0975 km and 42.195 km. A pace is not a calorie estimate.'
+      ]
+    };
+  }
+  if (slug === 'michigan-paycheck-calculator') {
+    const status = filingStatusCode(v.status);
+    const periods = payPeriodCount(v.periods);
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const requestedDeferral = nonNegativeCents(v.deferral, '401(k) deferral');
+    const deferral = Math.min(requestedDeferral, salary, US_401K_DEFERRAL_CENTS);
+    const exemptions = wholeMichiganExemptions(v.exemptions);
+    const city = Number(v.city);
+    if (![1, 2, 3, 4].includes(city)) throw new Error('Choose a city income tax');
+    const agi = Math.max(0, salary - deferral);
+    const exemptionAllowance = exemptions * MI_EXEMPTION_CENTS;
+    const michiganBase = Math.max(0, agi - exemptionAllowance);
+    const stateTax = Math.round(michiganBase * MI_RATE_BASIS_POINTS / 10000);
+    let cityTax = 0;
+    let cityBase = 0;
+    let cityEach = 0;
+    let cityMilli = 0;
+    let cityLabel = 'City income tax: not applied.';
+    if (city === 2 || city === 3) {
+      cityEach = DETROIT_EXEMPTION_CENTS;
+      cityBase = Math.max(0, agi - exemptions * cityEach);
+      cityMilli = city === 2 ? 2400 : 1200;
+      cityTax = taxFromMilli(cityBase, cityMilli);
+      cityLabel = city === 2
+        ? 'Detroit resident rate: 2.4% after a $600 exemption for each Michigan exemption entered. The extra age and blindness exemptions in the Detroit guide are not added.'
+        : 'Detroit nonresident rate: 1.2% after a $600 exemption for each Michigan exemption entered. The wage is treated as earned in Detroit.';
+    } else if (city === 4) {
+      cityMilli = percentMilli(v.cityrate, 'city tax rate');
+      cityEach = nonNegativeCents(v.cityexemption, 'city exemption');
+      if (cityEach > 500_000) throw new Error('Enter a city exemption of $5,000 or less');
+      cityBase = Math.max(0, agi - exemptions * cityEach);
+      cityTax = taxFromMilli(cityBase, cityMilli);
+      cityLabel = `Other city rate: ${(cityMilli / 1000).toFixed(3).replace(/\.?0+$/, '')}% after ${usdCents(cityEach)} for each exemption. Use the exemption on that city’s return. It is not always Detroit’s $600.`;
+    }
+    const federalTaxable = Math.max(0, agi - US_STANDARD_DEDUCTION[status]);
+    const federal = bracketTaxCents(federalTaxable, status === 1 ? US_SINGLE_BRACKETS : US_JOINT_BRACKETS);
+    const socialSecurity = Math.round(Math.min(salary, US_SS_WAGE_BASE_CENTS) * 620 / 10000);
+    const medicare = Math.round(salary * 145 / 10000);
+    const additionalMedicare = Math.round(Math.max(0, salary - US_ADDL_MEDICARE_CENTS) * 90 / 10000);
+    const takeHome = salary - federal - socialSecurity - medicare - additionalMedicare - stateTax - cityTax - deferral;
+    const details = [
+      `Federal income tax: ${usdCents(federal)}`,
+      `Social Security: ${usdCents(socialSecurity)}`,
+      `Medicare: ${usdCents(medicare)}`,
+      `Additional Medicare Tax: ${usdCents(additionalMedicare)}`,
+      `Michigan income tax: ${usdCents(stateTax)}`,
+      `Michigan exemption allowance: ${usdCents(Math.min(exemptionAllowance, agi))}`,
+      `City income tax: ${usdCents(cityTax)}`,
+      `401(k) deferred: ${usdCents(deferral)}`,
+      `Annual take-home: ${usdCents(takeHome)}`,
+      `Federal standard deduction applied: ${usdCents(US_STANDARD_DEDUCTION[status])}`,
+      status === 1
+        ? 'Filing status: single. Michigan’s 4.25% rate does not change with filing status.'
+        : 'Filing status: married filing jointly, with this salary as the only income on the return. Michigan’s 4.25% rate does not change with filing status.',
+      `Michigan taxable income after the 401(k) and exemptions: ${usdCents(michiganBase)}.`,
+      cityLabel
+    ];
+    if (city !== 1) details.push(`City tax base after the 401(k) and city exemptions: ${usdCents(cityBase)}.`);
+    if (requestedDeferral > deferral) {
+      details.push(`401(k) entered above the 2026 elective deferral limit or above wages was reduced to ${usdCents(deferral)}`);
+    }
+    return {
+      headline: `${usdCents(Math.round(takeHome / periods))} ${PAY_PERIOD_LABEL[periods]}`,
+      details
+    };
+  }
+  if (slug === 'new-brunswick-take-home-pay-calculator') {
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const payroll = canadaEmployeePayroll(salary);
+    const nbCredit = Math.round((NB_BASIC_PERSONAL_CENTS + payroll.cppBase + payroll.ei) * 940 / 10000);
+    const nbTax = Math.max(0, bracketTaxCents(payroll.taxable, NB_BRACKETS) - nbCredit);
+    const takeHome = salary - payroll.cpp - payroll.cpp2 - payroll.ei - payroll.federalTax - nbTax;
+    return {
+      headline: `${cadCents(Math.round(takeHome / 12))} / month`,
+      details: [
+        `Federal income tax: ${cadCents(payroll.federalTax)}`,
+        `New Brunswick income tax: ${cadCents(nbTax)}`,
+        `Employee CPP, including CPP2: ${cadCents(payroll.cpp + payroll.cpp2)}`,
+        `Employee EI: ${cadCents(payroll.ei)}`,
+        `Annual take-home: ${cadCents(takeHome)}`,
+        `Every two weeks: ${cadCents(Math.round(takeHome / 26))}`,
+        `Federal basic personal amount applied: ${cadCents(payroll.basicPersonal)}`,
+        `New Brunswick basic personal amount applied: ${cadCents(NB_BASIC_PERSONAL_CENTS)}`,
+        `New Brunswick credit at 9.40% for the basic amount, CPP base, and EI: ${cadCents(nbCredit)}`,
+        'New Brunswick rates used: 9.40% to $52,333, 14% to $104,666, 16% to $193,861, and 19.5% above that. The low-income tax reduction is not applied.'
+      ]
+    };
+  }
+  if (slug === 'wales-land-transaction-tax-calculator') {
+    const price = nonNegativeCents(v.price, 'price');
+    const buyer = Number(v.buyer);
+    if (buyer !== 1 && buyer !== 2) throw new Error('Choose a buyer type');
+    const main = sliceDutyPence(price, LTT_MAIN);
+    const higherApplies = buyer === 2 && price >= 4_000_000;
+    const duty = higherApplies ? sliceDutyPence(price, LTT_HIGHER) : main;
+    const effective = price === 0 ? 0 : duty / price * 100;
+    let rule = 'Rates used: main residential Land Transaction Tax. Wales has no separate first-time buyer band. The nil-rate slice runs to £225,000.';
+    if (buyer === 2 && price < 4_000_000) {
+      rule = 'The higher residential rates are not applied under £40,000. Main residential rates were used instead, and that slice is still inside the £225,000 nil-rate band.';
+    } else if (higherApplies) {
+      rule = 'Rates used: higher residential Land Transaction Tax for an additional dwelling, from the bands in force since 11 December 2024. A company buying a dwelling is also in this table. Main-rate LTT is shown underneath for comparison.';
+    }
+    return {
+      headline: gbp(duty),
+      details: [
+        rule,
+        `Main residential LTT: ${gbp(main)}`,
+        higherApplies ? `Higher residential LTT: ${gbp(duty)}` : 'Higher residential LTT: not applied.',
+        `Effective rate: ${percent(effective)}%`,
+        `Price: ${gbp(price)}`,
+        'Wales only. England and Northern Ireland use SDLT. Scotland uses LBTT. This total is rounded to the nearest penny after the slices are added.'
+      ]
+    };
+  }
+  if (slug === 'floor-tile-calculator') {
+    const length = v.length;
+    const width = v.width;
+    const tileLength = v.tilelength;
+    const tileWidth = v.tilewidth;
+    const grout = v.grout;
+    const waste = v.waste;
+    const perBox = v.perbox;
+    if (!Number.isFinite(length) || length <= 0) throw new Error('Enter a length above zero');
+    if (!Number.isFinite(width) || width <= 0) throw new Error('Enter a width above zero');
+    if (!Number.isFinite(tileLength) || tileLength <= 0) throw new Error('Enter a tile length above zero');
+    if (!Number.isFinite(tileWidth) || tileWidth <= 0) throw new Error('Enter a tile width above zero');
+    if (!Number.isFinite(grout) || grout < 0 || grout > 2) throw new Error('Enter a grout joint from 0 to 2 inches');
+    if (!Number.isFinite(waste) || waste < 0 || waste > 100) throw new Error('Enter a waste allowance from 0 to 100 percent');
+    if (!Number.isInteger(perBox) || perBox < 1 || perBox > 100) throw new Error('Enter a whole number of tiles per box from 1 to 100');
+    const area = length * width;
+    const coverage = (tileLength + grout) * (tileWidth + grout) / 144;
+    const withWaste = area * (1 + waste / 100);
+    const rawTiles = withWaste / coverage;
+    const tiles = Math.ceil(rawTiles - 1e-9);
+    const tilesWithoutWaste = Math.ceil(area / coverage - 1e-9);
+    const boxes = Math.ceil(tiles / perBox - 1e-9);
+    const boxesWithoutWaste = Math.ceil(tilesWithoutWaste / perBox - 1e-9);
+    const spare = boxes * perBox - tiles;
+    const tileWord = tiles === 1 ? 'tile' : 'tiles';
+    const boxWord = boxes === 1 ? 'box' : 'boxes';
+    return {
+      headline: `${number(tiles, 0)} ${tileWord}`,
+      details: [
+        `Floor area: ${number(area, 2)} sq ft`,
+        `Coverage of one tile, including the grout joint: ${number(coverage, 4)} sq ft`,
+        `Area with ${number(waste, 2)}% waste: ${number(withWaste, 2)} sq ft`,
+        `Tiles before rounding up: ${number(rawTiles, 2)}`,
+        `Tiles with no waste allowance, rounded up: ${number(tilesWithoutWaste, 0)}`,
+        `Boxes to buy: ${number(boxes, 0)} ${boxWord} of ${number(perBox, 0)}`,
+        `Boxes if you skip the waste allowance: ${number(boxesWithoutWaste, 0)}`,
+        spare === 0
+          ? 'The last box is full. No spare tile is left after the waste-adjusted count.'
+          : `Spare tiles in the last box: ${number(spare, 0)}.`,
+        'Each tile is charged with grout on two edges, so the joint is added once to the length and once to the width. A diagonal layout needs a higher waste allowance than this grid assumes.'
+      ]
+    };
+  }
+  if (slug === 'fuel-economy-converter') {
+    const amount = v.amount;
+    const from = Number(v.from);
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error('Enter a fuel-economy figure above zero');
+    if (![1, 2, 3].includes(from)) throw new Error('Choose the unit you are converting from');
+    const usFromL = (litres) => US_GALLON_LITRES * 100 / (litres * MILE_IN_KM);
+    const ukFromL = (litres) => IMPERIAL_GALLON_LITRES * 100 / (litres * MILE_IN_KM);
+    const lFromUs = (mpg) => US_GALLON_LITRES * 100 / (mpg * MILE_IN_KM);
+    const lFromUk = (mpg) => IMPERIAL_GALLON_LITRES * 100 / (mpg * MILE_IN_KM);
+    let usMpg;
+    let ukMpg;
+    let litres;
+    if (from === 1) {
+      usMpg = amount;
+      litres = lFromUs(amount);
+      ukMpg = ukFromL(litres);
+    } else if (from === 2) {
+      ukMpg = amount;
+      litres = lFromUk(amount);
+      usMpg = usFromL(litres);
+    } else {
+      litres = amount;
+      usMpg = usFromL(amount);
+      ukMpg = ukFromL(amount);
+    }
+    const economy = (value) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+    const headline = from === 3 ? `${economy(usMpg)} US mpg` : `${economy(litres)} L/100 km`;
+    const entered = from === 1 ? `${economy(amount)} US mpg` : from === 2 ? `${economy(amount)} UK mpg` : `${economy(amount)} L/100 km`;
+    const sameDigits = from === 2
+      ? `${economy(amount)} UK mpg is ${economy(litres)} L/100 km. The same digits read as US mpg would be ${economy(lFromUs(amount))} L/100 km.`
+      : from === 1
+        ? `${economy(amount)} US mpg is ${economy(litres)} L/100 km. The same digits read as UK mpg would be ${economy(lFromUk(amount))} L/100 km.`
+        : `${economy(litres)} L/100 km is ${economy(usMpg)} on a US gallon and ${economy(ukMpg)} on an imperial gallon. Those mpg figures are not interchangeable.`;
+    return {
+      headline,
+      details: [
+        `US miles per gallon: ${economy(usMpg)}`,
+        `UK miles per gallon: ${economy(ukMpg)}`,
+        `Litres per 100 km: ${economy(litres)}`,
+        `Started from: ${entered}`,
+        sameDigits,
+        'A US gallon is 3.785411784 litres. An imperial gallon is 4.54609 litres. A mile is 1.609344 kilometres. Canada and Australia use litres per 100 km. The United Kingdom uses the imperial gallon. The United States uses the smaller gallon.'
       ]
     };
   }
