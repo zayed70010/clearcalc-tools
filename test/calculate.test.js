@@ -771,6 +771,101 @@ test('Canada business days follow provincial statutory lists', () => {
   }), /province/);
 });
 
+test('2026 Michigan paycheck uses 4.25% after a $5,900 exemption', () => {
+  const sample = calculate('michigan-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 0, exemptions: 1, city: 1, cityrate: 1, cityexemption: 600
+  });
+  assert.equal(sample.headline, '$1,995.99 / two weeks');
+  assert.equal(sample.details[4], 'Michigan income tax: $2,511.75');
+  assert.equal(sample.details[6], 'City income tax: $0.00');
+  assert.equal(sample.details[8], 'Annual take-home: $51,895.75');
+  const detroit = calculate('michigan-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 0, exemptions: 1, city: 2, cityrate: 1, cityexemption: 600
+  });
+  assert.equal(detroit.details[6], 'City income tax: $1,545.60');
+  assert.equal(detroit.headline, '$1,936.54 / two weeks');
+  const deferred = calculate('michigan-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 6500, exemptions: 1, city: 1, cityrate: 1, cityexemption: 600
+  });
+  assert.equal(deferred.details[4], 'Michigan income tax: $2,235.50');
+  assert.equal(deferred.details[7], '401(k) deferred: $6,500.00');
+  const capped = calculate('michigan-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 30000, exemptions: 1, city: 1, cityrate: 1, cityexemption: 600
+  });
+  assert.match(capped.details.at(-1), /\$24,500\.00/);
+  assert.throws(() => calculate('michigan-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 0, exemptions: 1.5, city: 1, cityrate: 1, cityexemption: 600
+  }), /exemptions/);
+});
+
+test('2026 New Brunswick take-home pay uses the four provincial brackets', () => {
+  const sample = calculate('new-brunswick-take-home-pay-calculator', { salary: 70000 });
+  assert.equal(sample.headline, '$4,336.82 / month');
+  assert.equal(sample.details[0], 'Federal income tax: $7,278.19');
+  assert.equal(sample.details[1], 'New Brunswick income tax: $5,600.17');
+  assert.equal(sample.details[4], 'Annual take-home: $52,041.82');
+  assert.equal(sample.details[7], 'New Brunswick basic personal amount applied: $13,664.00');
+  assert.equal(
+    calculate('nova-scotia-take-home-pay-calculator', { salary: 70000 }).details[0],
+    sample.details[0]
+  );
+  const high = calculate('new-brunswick-take-home-pay-calculator', { salary: 200000 });
+  assert.equal(high.details[1], 'New Brunswick income tax: $25,773.65');
+  assert.equal(high.details[6], 'Federal basic personal amount applied: $16,084.75');
+  assert.equal(high.headline, '$10,798.36 / month');
+  assert.throws(() => calculate('new-brunswick-take-home-pay-calculator', { salary: -1 }), /salary/);
+});
+
+test('2026 Wales LTT uses the main rates and the December 2024 higher rates', () => {
+  assert.equal(calculate('wales-land-transaction-tax-calculator', { price: 280000, buyer: 1 }).headline, '£3,300.00');
+  assert.equal(calculate('wales-land-transaction-tax-calculator', { price: 250000, buyer: 1 }).headline, '£1,500.00');
+  assert.equal(calculate('wales-land-transaction-tax-calculator', { price: 450000, buyer: 1 }).headline, '£14,250.00');
+  assert.equal(calculate('wales-land-transaction-tax-calculator', { price: 250000, buyer: 2 }).headline, '£14,950.00');
+  assert.equal(calculate('wales-land-transaction-tax-calculator', { price: 450000, buyer: 2 }).headline, '£36,200.00');
+  const penny = calculate('wales-land-transaction-tax-calculator', { price: 400001, buyer: 1 });
+  assert.equal(penny.headline, '£10,500.08');
+  assert.equal(calculate('wales-land-transaction-tax-calculator', { price: 39999, buyer: 2 }).headline, '£0.00');
+  assert.equal(calculate('wales-land-transaction-tax-calculator', { price: 40000, buyer: 2 }).headline, '£2,000.00');
+  assert.throws(() => calculate('wales-land-transaction-tax-calculator', { price: -1, buyer: 1 }), /price/);
+});
+
+test('floor tile count includes the grout joint and rounds up', () => {
+  const sample = calculate('floor-tile-calculator', {
+    length: 10, width: 12, tilelength: 12, tilewidth: 12, grout: 0.125, waste: 10, perbox: 10
+  });
+  assert.equal(sample.headline, '130 tiles');
+  assert.equal(sample.details[1], 'Coverage of one tile, including the grout joint: 1.0209 sq ft');
+  assert.equal(sample.details[3], 'Tiles before rounding up: 129.29');
+  assert.equal(sample.details[5], 'Boxes to buy: 13 boxes of 10');
+  const plain = calculate('floor-tile-calculator', {
+    length: 10, width: 12, tilelength: 12, tilewidth: 12, grout: 0, waste: 10, perbox: 10
+  });
+  assert.equal(plain.headline, '132 tiles');
+  const rectangle = calculate('floor-tile-calculator', {
+    length: 10, width: 12, tilelength: 12, tilewidth: 24, grout: 0.125, waste: 10, perbox: 8
+  });
+  assert.equal(rectangle.headline, '65 tiles');
+  assert.equal(rectangle.details[5], 'Boxes to buy: 9 boxes of 8');
+  assert.throws(() => calculate('floor-tile-calculator', {
+    length: 10, width: 12, tilelength: 12, tilewidth: 12, grout: 0.125, waste: 10, perbox: 10.5
+  }), /box/);
+});
+
+test('fuel economy converter separates the US gallon from the imperial gallon', () => {
+  const us = calculate('fuel-economy-converter', { amount: 30, from: 1 });
+  assert.equal(us.headline, '7.84 L/100 km');
+  assert.equal(us.details[1], 'UK miles per gallon: 36.03');
+  assert.match(us.details[4], /9\.42 L\/100 km/);
+  const uk = calculate('fuel-economy-converter', { amount: 30, from: 2 });
+  assert.equal(uk.headline, '9.42 L/100 km');
+  assert.equal(uk.details[0], 'US miles per gallon: 24.98');
+  const litres = calculate('fuel-economy-converter', { amount: 6.5, from: 3 });
+  assert.equal(litres.headline, '36.19 US mpg');
+  assert.equal(litres.details[1], 'UK miles per gallon: 43.46');
+  assert.equal(calculate('fuel-economy-converter', { amount: 40, from: 1 }).details[2], 'Litres per 100 km: 5.88');
+  assert.throws(() => calculate('fuel-economy-converter', { amount: 0, from: 1 }), /fuel-economy/);
+});
+
 test('5K pace uses the international mile and standard race distances', () => {
   const sample = calculate('5k-pace-calculator', { distance: 5, unit: 1, hours: 0, minutes: 25, seconds: 0 });
   assert.equal(sample.headline, '5:00 per km');

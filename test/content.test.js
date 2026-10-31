@@ -180,6 +180,36 @@ test('five daily calculators are linked from the homepage and a related page', (
   assert.match(calculatorContent['5k-pace-calculator'].table.rows[0][2], /8:02\.8/);
 });
 
+test('five wave calculators are linked from the homepage and a related page', () => {
+  const home = readFileSync('src/pages/index.astro', 'utf8');
+  const links = [
+    ['michigan-paycheck-calculator', 'ohio-paycheck-calculator'],
+    ['new-brunswick-take-home-pay-calculator', 'nova-scotia-take-home-pay-calculator'],
+    ['wales-land-transaction-tax-calculator', 'england-stamp-duty-calculator'],
+    ['floor-tile-calculator', 'room-paint-calculator'],
+    ['fuel-economy-converter', 'length-converter']
+  ];
+  for (const [slug, related] of links) {
+    assert.match(home, new RegExp(`calculators/${slug}/`));
+    assert.ok(calculatorContent[slug], slug);
+    assert.equal(
+      calculatorContent[related].relatedLinks.some((link) => link.slug === slug),
+      true,
+      related
+    );
+  }
+  const england = calculatorContent['england-stamp-duty-calculator'];
+  assert.match(england.faqs[3].a, /£18,350\.00/);
+  assert.match(england.faqs[3].a, /£1,500\.00/);
+  assert.match(england.faqs[3].a, /£14,250\.00/);
+  assert.match(england.howItWorks.at(-1), /£36,200\.00/);
+  assert.match(calculatorContent['michigan-paycheck-calculator'].description, /4\.25%/);
+  assert.match(calculatorContent['new-brunswick-take-home-pay-calculator'].description, /\$13,664/);
+  assert.match(calculatorContent['wales-land-transaction-tax-calculator'].table.rows[3][1], /£3,300\.00/);
+  assert.match(calculatorContent['floor-tile-calculator'].table.rows[0][4], /130/);
+  assert.match(calculatorContent['fuel-economy-converter'].table.rows[0][3], /7\.84/);
+});
+
 test('length converter slug matches the page title', () => {
   const length = calculators.find((item) => item.slug === 'length-converter');
   assert.equal(length.title, 'Length Converter');
