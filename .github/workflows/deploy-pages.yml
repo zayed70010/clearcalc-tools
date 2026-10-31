@@ -3,6 +3,7 @@ name: Deploy website
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -11,7 +12,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -26,19 +27,57 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
-      - name: Build a 404-only GitHub Pages site
+      - name: Build GitHub Pages redirects to pages.dev
         run: node scripts/build-github-redirects.mjs
-      - name: Reject any Pages artifact besides 404.html
+      - name: Reject redirect pages that leave pages.dev or include site content
         run: |
+          set -euo pipefail
+          node scripts/build-github-redirects.mjs --check
           mapfile -t files < <(find github-pages -type f | sort)
-          test "${#files[@]}" -eq 1
-          test "${files[0]}" = "github-pages/404.html"
-          grep -q '<meta name="robots" content="noindex">' github-pages/404.html
-          grep -q 'https://clearcalc-tools.pages.dev/' github-pages/404.html
+          test "${#files[@]}" -gt 1
+          for f in "${files[@]}"; do
+            case "$f" in
+              github-pages/robots.txt)
+                grep -q '^User-agent: \*$' "$f"
+                grep -q '^Allow: /$' "$f"
+                if grep -q '^Disallow:' "$f"; then
+                  echo "robots.txt must allow crawling" >&2
+                  exit 1
+                fi
+                ;;
+              *.html|*.xml)
+                grep -q '<meta http-equiv="refresh" content="0; url=https://clearcalc-tools.pages.dev/' "$f"
+                grep -q '<link rel="canonical" href="https://clearcalc-tools.pages.dev/' "$f"
+                grep -q 'location.replace("https://clearcalc-tools.pages.dev/' "$f"
+                grep -q '<a href="https://clearcalc-tools.pages.dev/' "$f"
+                if grep -q 'noindex' "$f"; then
+                  echo "noindex in $f" >&2
+                  exit 1
+                fi
+                if grep -E -q 'ld\+json|data-slug|class="calculator"|class="article"|ClearCalc Tools' "$f"; then
+                  echo "site content in $f" >&2
+                  exit 1
+                fi
+                size=$(wc -c < "$f")
+                test "$size" -lt 2048
+                ;;
+              *)
+                echo "unexpected GitHub Pages artifact: $f" >&2
+                exit 1
+                ;;
+            esac
+          done
+          test -f github-pages/index.html
+          test -f github-pages/404.html
+          test "$(find github-pages/calculators -type f -name index.html | wc -l)" -ge 1
+          mapfile -t sitemaps < <(find github-pages -type f -name 'sitemap-*.xml' | sort)
+          test "${#sitemaps[@]}" -ge 1
       - uses: actions/upload-pages-artifact@v4
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         with:
           path: github-pages
   deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
