@@ -866,6 +866,131 @@ test('fuel economy converter separates the US gallon from the imperial gallon', 
   assert.throws(() => calculate('fuel-economy-converter', { amount: 0, from: 1 }), /fuel-economy/);
 });
 
+test('2026 Georgia paycheck uses 4.99% after the standard deduction', () => {
+  const sample = calculate('georgia-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 0, dependents: 0
+  });
+  assert.equal(sample.headline, '$1,996.63 / two weeks');
+  assert.equal(sample.details[4], 'Georgia income tax: $2,495.00');
+  assert.equal(sample.details[8], 'Annual take-home: $51,912.50');
+  const dependents = calculate('georgia-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 0, dependents: 2
+  });
+  assert.equal(dependents.details[4], 'Georgia income tax: $1,996.00');
+  assert.equal(dependents.headline, '$2,015.83 / two weeks');
+  const joint = calculate('georgia-paycheck-calculator', {
+    salary: 65000, status: 2, periods: 26, deferral: 0, dependents: 0
+  });
+  assert.equal(joint.details[4], 'Georgia income tax: $1,746.50');
+  assert.equal(joint.details[8], 'Annual take-home: $54,841.00');
+  const deferred = calculate('georgia-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 6500, dependents: 0
+  });
+  assert.equal(deferred.details[4], 'Georgia income tax: $2,170.65');
+  const capped = calculate('georgia-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 30000, dependents: 0
+  });
+  assert.match(capped.details.at(-1), /\$24,500\.00/);
+  assert.equal(calculate('georgia-paycheck-calculator', {
+    salary: 15000, status: 1, periods: 12, deferral: 0, dependents: 0
+  }).headline, '$1,154.38 / month');
+  assert.throws(() => calculate('georgia-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 0, dependents: 1.5
+  }), /dependent/);
+});
+
+test('2026 North Carolina paycheck uses 3.99% and the child deduction bands', () => {
+  const sample = calculate('north-carolina-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 0, children: 0
+  });
+  assert.equal(sample.headline, '$2,012.41 / two weeks');
+  assert.equal(sample.details[4], 'North Carolina income tax: $2,084.78');
+  assert.equal(sample.details[8], 'Annual take-home: $52,322.72');
+  const child = calculate('north-carolina-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 0, children: 1
+  });
+  assert.equal(child.details[4], 'North Carolina income tax: $2,064.83');
+  assert.equal(child.details[6], 'North Carolina child deduction: $500.00');
+  const jointChildren = calculate('north-carolina-paycheck-calculator', {
+    salary: 65000, status: 2, periods: 26, deferral: 0, children: 2
+  });
+  assert.equal(jointChildren.details[6], 'North Carolina child deduction: $4,000.00');
+  assert.equal(jointChildren.details[4], 'North Carolina income tax: $1,416.45');
+  const overBand = calculate('north-carolina-paycheck-calculator', {
+    salary: 80000, status: 1, periods: 26, deferral: 0, children: 1
+  });
+  assert.equal(overBand.details[6], 'North Carolina child deduction: $0.00');
+  const deferred = calculate('north-carolina-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 6500, children: 0
+  });
+  assert.equal(deferred.details[4], 'North Carolina income tax: $1,825.43');
+  assert.throws(() => calculate('north-carolina-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 0, children: 0.5
+  }), /children/);
+});
+
+test('2026 Quebec take-home pay uses QPP, QPIP, and the abatement', () => {
+  const sample = calculate('quebec-take-home-pay-calculator', { salary: 70000 });
+  assert.equal(sample.headline, '$4,253.73 / month');
+  assert.equal(sample.details[0], 'Federal income tax after the 16.5% abatement: $6,041.47');
+  assert.equal(sample.details[1], 'Quebec income tax: $7,527.62');
+  assert.equal(sample.details[2], 'Employee QPP, including QPP2: $4,189.50');
+  assert.equal(sample.details[3], 'Employee QPIP: $301.00');
+  assert.equal(sample.details[4], 'Employee EI: $895.70');
+  assert.equal(sample.details[5], 'Annual take-home: $51,044.71');
+  assert.equal(sample.details[10], 'Quebec abatement, 16.5% of basic federal tax: $1,193.82');
+  const high = calculate('quebec-take-home-pay-calculator', { salary: 85000 });
+  assert.equal(high.details[0], 'Federal income tax after the 16.5% abatement: $8,493.97');
+  assert.equal(high.details[2], 'Employee QPP, including QPP2: $4,895.30');
+  assert.equal(high.headline, '$5,004.97 / month');
+  const top = calculate('quebec-take-home-pay-calculator', { salary: 200000 });
+  assert.equal(top.details[7], 'Federal basic personal amount applied: $16,084.75');
+  assert.notEqual(sample.details[0], calculate('new-brunswick-take-home-pay-calculator', { salary: 70000 }).details[0]);
+  assert.throws(() => calculate('quebec-take-home-pay-calculator', { salary: -1 }), /salary/);
+});
+
+test('Western Australia transfer duty uses the 7 May 2026 first home thresholds', () => {
+  assert.equal(calculate('western-australia-stamp-duty-calculator', { price: 650000, buyer: 2, foreign: 1 }).headline, '$8,075.00');
+  assert.equal(calculate('western-australia-stamp-duty-calculator', { price: 600000, buyer: 2, foreign: 1 }).headline, '$0.00');
+  assert.equal(calculate('western-australia-stamp-duty-calculator', { price: 800000, buyer: 2, foreign: 1 }).headline, '$32,300.00');
+  assert.equal(calculate('western-australia-stamp-duty-calculator', { price: 800001, buyer: 2, foreign: 1 }).headline, '$32,320.65');
+  assert.equal(calculate('western-australia-stamp-duty-calculator', { price: 500000, buyer: 4, foreign: 1 }).headline, '$17,765.00');
+  assert.equal(calculate('western-australia-stamp-duty-calculator', { price: 500000, buyer: 3, foreign: 1 }).headline, '$10,070.00');
+  assert.equal(calculate('western-australia-stamp-duty-calculator', { price: 120000, buyer: 1, foreign: 1 }).headline, '$1,800.00');
+  assert.equal(calculate('western-australia-stamp-duty-calculator', { price: 200001, buyer: 1, foreign: 1 }).headline, '$5,038.80');
+  const foreign = calculate('western-australia-stamp-duty-calculator', { price: 650000, buyer: 2, foreign: 2 });
+  assert.equal(foreign.headline, '$70,390.00');
+  assert.match(foreign.details[0], /not given the first home owner rate/);
+  assert.equal(calculate('western-australia-stamp-duty-calculator', { price: 650050, buyer: 2, foreign: 1 }).headline, '$8,091.15');
+  assert.throws(() => calculate('western-australia-stamp-duty-calculator', { price: -1, buyer: 2, foreign: 1 }), /price/);
+});
+
+test('square footage adds inches and a second rectangle', () => {
+  const sample = calculate('square-footage-calculator', {
+    length: 12, lengthinches: 6, width: 10, widthinches: 0, winglength: 0, wingwidth: 0, waste: 0
+  });
+  assert.equal(sample.headline, '125.00 sq ft');
+  assert.equal(sample.details[2], 'Square yards: 13.89');
+  assert.equal(sample.details[3], 'Square metres: 11.61');
+  const floor = calculate('square-footage-calculator', {
+    length: 10, lengthinches: 0, width: 12, widthinches: 0, winglength: 0, wingwidth: 0, waste: 10
+  });
+  assert.equal(floor.headline, '120.00 sq ft');
+  assert.equal(floor.details[4], 'Area with 10.00% extra to order: 132.00 sq ft (14.67 sq yd, 12.26 sq m)');
+  const ell = calculate('square-footage-calculator', {
+    length: 20, lengthinches: 0, width: 15, widthinches: 0, winglength: 8, wingwidth: 6, waste: 0
+  });
+  assert.equal(ell.headline, '348.00 sq ft');
+  assert.equal(ell.details[1], 'Second rectangle: 48.00 sq ft');
+  const odd = calculate('square-footage-calculator', {
+    length: 8, lengthinches: 3, width: 10, widthinches: 4, winglength: 0, wingwidth: 0, waste: 0
+  });
+  assert.equal(odd.headline, '85.25 sq ft');
+  assert.throws(() => calculate('square-footage-calculator', {
+    length: 10, lengthinches: 0, width: 10, widthinches: 0, winglength: 8, wingwidth: 0, waste: 0
+  }), /second rectangle/);
+});
+
 test('5K pace uses the international mile and standard race distances', () => {
   const sample = calculate('5k-pace-calculator', { distance: 5, unit: 1, hours: 0, minutes: 25, seconds: 0 });
   assert.equal(sample.headline, '5:00 per km');

@@ -5,6 +5,7 @@ import { longtailCalculatorContent } from './longtail-calculator-content.js';
 import { growthCalculatorContent } from './growth-calculator-content.js';
 import { dailyCalculatorContent } from './daily-calculator-content.js';
 import { waveCalculatorContent } from './wave-calculator-content.js';
+import { batchCalculatorContent } from './batch-calculator-content.js';
 
 export const calculatorContent = {
   'mortgage-calculator': {
@@ -1328,7 +1329,8 @@ export const calculatorContent = {
   ...longtailCalculatorContent,
   ...growthCalculatorContent,
   ...dailyCalculatorContent,
-  ...waveCalculatorContent
+  ...waveCalculatorContent,
+  ...batchCalculatorContent
 };
 
 export function contentWordCount(entry) {

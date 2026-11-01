@@ -210,6 +210,36 @@ test('five wave calculators are linked from the homepage and a related page', ()
   assert.match(calculatorContent['fuel-economy-converter'].table.rows[0][3], /7\.84/);
 });
 
+test('five batch calculators are linked from the homepage and a related page', () => {
+  const home = readFileSync('src/pages/index.astro', 'utf8');
+  const links = [
+    ['georgia-paycheck-calculator', 'michigan-paycheck-calculator'],
+    ['north-carolina-paycheck-calculator', 'georgia-paycheck-calculator'],
+    ['quebec-take-home-pay-calculator', 'new-brunswick-take-home-pay-calculator'],
+    ['western-australia-stamp-duty-calculator', 'queensland-stamp-duty-calculator'],
+    ['square-footage-calculator', 'floor-tile-calculator']
+  ];
+  for (const [slug, related] of links) {
+    assert.match(home, new RegExp(`calculators/${slug}/`));
+    assert.ok(calculatorContent[slug], slug);
+    assert.equal(
+      calculatorContent[related].relatedLinks.some((link) => link.slug === slug),
+      true,
+      related
+    );
+  }
+  const michigan = calculatorContent['michigan-paycheck-calculator'];
+  assert.match(michigan.howItWorks.at(-1), /\$2,495\.00/);
+  assert.match(michigan.howItWorks.at(-1), /\$2,012\.41/);
+  assert.match(michigan.faqs.at(-1).a, /\$52,322\.72/);
+  assert.equal(michigan.faqs.length, 6);
+  assert.match(calculatorContent['georgia-paycheck-calculator'].description, /4\.99%/);
+  assert.match(calculatorContent['north-carolina-paycheck-calculator'].description, /3\.99%/);
+  assert.match(calculatorContent['quebec-take-home-pay-calculator'].description, /16\.5%/);
+  assert.match(calculatorContent['western-australia-stamp-duty-calculator'].table.rows[4][2], /\$8,075\.00/);
+  assert.match(calculatorContent['square-footage-calculator'].table.rows[0][1], /125\.00/);
+});
+
 test('length converter slug matches the page title', () => {
   const length = calculators.find((item) => item.slug === 'length-converter');
   assert.equal(length.title, 'Length Converter');
