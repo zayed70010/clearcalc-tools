@@ -22,13 +22,14 @@ function signals(html, destination) {
   assert.match(html, new RegExp(`location\\.replace\\(${JSON.stringify(destination).replaceAll('/', '\\/')}\\)`));
   assert.match(html, new RegExp(`<a href="${destination.replaceAll('/', '\\/')}">${destination.replaceAll('/', '\\/')}</a>`));
   assert.equal(html.includes('noindex'), false);
+  assert.equal(html.includes('pages.dev'), false);
   assert.equal(html.includes('github.io'), false);
   assert.equal(html.includes('ClearCalc Tools'), false);
   assert.equal(html.includes('ld+json'), false);
 }
 
-test('redirect pages point at the matching pages.dev URL', () => {
-  assert.equal(destinationOrigin, 'https://clearcalc-tools.pages.dev');
+test('redirect pages point at the matching canonical URL', () => {
+  assert.equal(destinationOrigin, 'https://clearcalctools.com');
   assert.equal(destinationFor('index.html'), home);
   assert.equal(destinationFor('about/index.html'), `${destinationOrigin}/about/`);
   assert.equal(destinationFor('calculators/bmi-calculator/index.html'), calculator);
@@ -41,7 +42,7 @@ test('redirect pages point at the matching pages.dev URL', () => {
   assert.match(redirectHtml(home), /<title>Redirecting<\/title>/);
 });
 
-test('github pages 404 sends unknown paths to the pages.dev homepage', () => {
+test('github pages 404 sends unknown paths to the canonical homepage', () => {
   const html = notFoundHtml();
   signals(html, home);
   assert.match(html, /<title>Page not found<\/title>/);
@@ -55,7 +56,7 @@ test('robots.txt allows crawling', () => {
   assert.match(robots, /^User-agent: \*$/m);
   assert.match(robots, /^Allow: \/$/m);
   assert.equal(robots.includes('Disallow:'), false);
-  assert.match(robots, /Sitemap: https:\/\/clearcalc-tools\.pages\.dev\/sitemap-index\.xml\s*$/);
+  assert.match(robots, /Sitemap: https:\/\/clearcalctools\.com\/sitemap-index\.xml\s*$/);
 });
 
 test('publish mirrors built pages and sitemaps without site content', async () => {

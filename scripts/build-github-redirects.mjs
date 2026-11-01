@@ -1,11 +1,12 @@
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SITE_ORIGIN } from '../src/data/site.js';
 
 // GitHub Pages cannot send 301s. Each built URL is a 200 with a refresh,
-// canonical, and location.replace to the same path on pages.dev. These pages
-// must not be noindex, or Google drops the old URL before it can move.
-export const destinationOrigin = 'https://clearcalc-tools.pages.dev';
+// canonical, and location.replace to the same path on the canonical host.
+// These pages must not be noindex, or Google drops the old URL before it can move.
+export const destinationOrigin = SITE_ORIGIN;
 export const pagesOutputDirectory = 'github-pages';
 export const siteOutputDirectory = 'dist';
 
@@ -110,7 +111,7 @@ export async function assertRedirectSite(outputDirectory) {
   }
   const robots = await readFile(path.join(outputDirectory, 'robots.txt'), 'utf8');
   if (robots !== robotsTxt()) {
-    throw new Error('robots.txt must allow crawling and point at the pages.dev sitemap');
+    throw new Error('robots.txt must allow crawling and point at the canonical sitemap');
   }
   for (const file of files) {
     if (file === 'robots.txt') continue;
@@ -122,7 +123,7 @@ export async function assertRedirectSite(outputDirectory) {
       throw new Error(`${file} must point at ${destinationOrigin}/`);
     }
     if (siteContentPattern.test(actual)) throw new Error(`${file} contains site content`);
-    if (actual !== expected) throw new Error(`${file} is not a pages.dev redirect page`);
+    if (actual !== expected) throw new Error(`${file} is not a canonical-host redirect page`);
   }
 }
 

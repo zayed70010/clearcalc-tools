@@ -249,7 +249,7 @@ test('length converter slug matches the page title', () => {
 
 test('robots.txt points at the Astro sitemap index only', () => {
   const robots = readFileSync('public/robots.txt', 'utf8');
-  assert.match(robots, /Sitemap: https:\/\/clearcalc-tools\.pages\.dev\/sitemap-index\.xml\s*$/);
+  assert.match(robots, /Sitemap: https:\/\/clearcalctools\.com\/sitemap-index\.xml\s*$/);
   assert.equal(robots.includes('sitemap.xml'), false);
   assert.equal(existsSync('public/sitemap.xml'), false);
 });

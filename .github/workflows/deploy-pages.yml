@@ -27,9 +27,9 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
-      - name: Build GitHub Pages redirects to pages.dev
+      - name: Build GitHub Pages redirects to clearcalctools.com
         run: node scripts/build-github-redirects.mjs
-      - name: Reject redirect pages that leave pages.dev or include site content
+      - name: Reject redirect pages that leave clearcalctools.com or include site content
         run: |
           set -euo pipefail
           node scripts/build-github-redirects.mjs --check
@@ -46,10 +46,14 @@ jobs:
                 fi
                 ;;
               *.html|*.xml)
-                grep -q '<meta http-equiv="refresh" content="0; url=https://clearcalc-tools.pages.dev/' "$f"
-                grep -q '<link rel="canonical" href="https://clearcalc-tools.pages.dev/' "$f"
-                grep -q 'location.replace("https://clearcalc-tools.pages.dev/' "$f"
-                grep -q '<a href="https://clearcalc-tools.pages.dev/' "$f"
+                grep -q '<meta http-equiv="refresh" content="0; url=https://clearcalctools.com/' "$f"
+                grep -q '<link rel="canonical" href="https://clearcalctools.com/' "$f"
+                grep -q 'location.replace("https://clearcalctools.com/' "$f"
+                grep -q '<a href="https://clearcalctools.com/' "$f"
+                if grep -E -q 'pages\.dev|github\.io' "$f"; then
+                  echo "legacy host in $f" >&2
+                  exit 1
+                fi
                 if grep -q 'noindex' "$f"; then
                   echo "noindex in $f" >&2
                   exit 1
