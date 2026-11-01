@@ -836,6 +836,155 @@ const MI_RATE_BASIS_POINTS = 425;
 const MI_EXEMPTION_CENTS = 590_000;
 const DETROIT_EXEMPTION_CENTS = 60_000;
 
+// Tax year 2026 Georgia, HB 463, signed into effect on 11 May 2026 and
+// retroactive to 1 January 2026. O.C.G.A. § 48-7-20(a.1) sets a flat 4.99%.
+// The standard deduction is $15,000 for single and $30,000 for married filing
+// jointly. The dependent deduction is $5,000 each. There is no personal
+// exemption for the taxpayer.
+const GA_RATE_BASIS_POINTS = 499;
+const GA_STANDARD_DEDUCTION = { 1: 1_500_000, 2: 3_000_000 };
+const GA_DEPENDENT_CENTS = 500_000;
+
+// Tax year 2026 North Carolina. Session Law 2023-134 sets the rate at 3.99%
+// for taxable years beginning after 2025. The standard deduction in
+// G.S. 105-153.5 is $12,750 single and $25,500 married filing jointly. The
+// child deduction in G.S. 105-153.5(a1) is per qualifying child and depends
+// on federal adjusted gross income.
+const NC_RATE_BASIS_POINTS = 399;
+const NC_STANDARD_DEDUCTION = { 1: 1_275_000, 2: 2_550_000 };
+const NC_CHILD_BANDS = {
+  1: [
+    [2_000_000, 300_000],
+    [3_000_000, 250_000],
+    [4_000_000, 200_000],
+    [5_000_000, 150_000],
+    [6_000_000, 100_000],
+    [7_000_000, 50_000]
+  ],
+  2: [
+    [4_000_000, 300_000],
+    [6_000_000, 250_000],
+    [8_000_000, 200_000],
+    [10_000_000, 150_000],
+    [12_000_000, 100_000],
+    [14_000_000, 50_000]
+  ]
+};
+
+// Calendar year 2026 Quebec. Brackets and the $18,952 basic personal amount
+// are Revenu Québec's indexed figures (2.05%). The worker deduction is the
+// lesser of $1,450 and 6% of employment income. QPP, QPIP, and the Quebec EI
+// rate are the 2026 employer parameters. The federal abatement is 16.5% of
+// basic federal tax. Quebec does not add a separate credit for base QPP,
+// QPIP, or EI; the basic personal amount is the provincial credit used here.
+const QC_BRACKETS = [
+  [5_434_500, 1400],
+  [10_868_000, 1900],
+  [13_224_500, 2400],
+  [Number.POSITIVE_INFINITY, 2575]
+];
+const QC_BASIC_PERSONAL_CENTS = 1_895_200;
+const QC_WORKER_CAP_CENTS = 145_000;
+const QC_QPP_YMPE_CENTS = 7_460_000;
+const QC_QPP_YAMPE_CENTS = 8_500_000;
+const QC_QPP_EXEMPT_CENTS = 350_000;
+const QC_EI_MAX_CENTS = 6_890_000;
+const QC_QPIP_MAX_CENTS = 10_300_000;
+
+// Duties Act 2008 (WA) Schedule 2 general rate, still the RevenueWA table
+// updated 30 July 2026. Dutiable value is rounded down to the nearest dollar.
+// "Part of $100" rounds the excess up. First home owner rates are the
+// thresholds for transactions entered into on or after 7 May 2026. Foreign
+// transfer duty is an extra 7% of residential dutiable value.
+function waPartsOfHundred(excessCents) {
+  if (excessCents <= 0) return 0;
+  return Math.ceil(excessCents / 10000);
+}
+
+function waDollarCents(priceCents) {
+  return Math.floor(Math.max(0, priceCents) / 100) * 100;
+}
+
+function waGeneralDutyCents(priceCents) {
+  const value = waDollarCents(priceCents);
+  if (value <= 0) return 0;
+  if (value <= 12_000_000) return waPartsOfHundred(value) * 190;
+  if (value <= 15_000_000) return 228_000 + waPartsOfHundred(value - 12_000_000) * 285;
+  if (value <= 36_000_000) return 313_500 + waPartsOfHundred(value - 15_000_000) * 380;
+  if (value <= 72_500_000) return 1_111_500 + waPartsOfHundred(value - 36_000_000) * 475;
+  return 2_845_300 + waPartsOfHundred(value - 72_500_000) * 515;
+}
+
+function waHomeConcessionCents(priceCents) {
+  const value = waDollarCents(priceCents);
+  if (value <= 0) return 0;
+  if (value > 20_000_000) return waGeneralDutyCents(priceCents);
+  if (value <= 12_000_000) return waPartsOfHundred(value) * 150;
+  return 180_000 + waPartsOfHundred(value - 12_000_000) * 404;
+}
+
+function waFirstHomeDutyCents(priceCents, land) {
+  const value = waDollarCents(priceCents);
+  if (land) {
+    if (value <= 45_000_000) return 0;
+    if (value <= 55_000_000) return waPartsOfHundred(value - 45_000_000) * 2014;
+    return waGeneralDutyCents(priceCents);
+  }
+  if (value <= 60_000_000) return 0;
+  if (value <= 80_000_000) return waPartsOfHundred(value - 60_000_000) * 1615;
+  return waGeneralDutyCents(priceCents);
+}
+
+function wholeCount(value, label) {
+  if (!Number.isInteger(value) || value < 0 || value > 15) throw new Error(`Enter a whole number of ${label} from 0 to 15`);
+  return value;
+}
+
+function ncChildEachCents(agiCents, status) {
+  for (const [upTo, amount] of NC_CHILD_BANDS[status]) {
+    if (agiCents <= upTo) return amount;
+  }
+  return 0;
+}
+
+function quebecEmployeePayroll(salary) {
+  const pensionable = Math.min(salary, QC_QPP_YMPE_CENTS);
+  const contributory = Math.max(0, pensionable - QC_QPP_EXEMPT_CENTS);
+  const qppBase = Math.round(contributory * 530 / 10000);
+  const qppFirst = Math.round(contributory * 100 / 10000);
+  const qpp = qppBase + qppFirst;
+  const qpp2 = Math.min(41_600, Math.round(Math.max(0, Math.min(salary, QC_QPP_YAMPE_CENTS) - QC_QPP_YMPE_CENTS) * 400 / 10000));
+  const ei = Math.min(89_570, Math.round(Math.min(salary, QC_EI_MAX_CENTS) * 130 / 10000));
+  const qpip = Math.min(44_290, Math.round(Math.min(salary, QC_QPIP_MAX_CENTS) * 43 / 10000));
+  const federalTaxable = Math.max(0, salary - qppFirst - qpp2);
+  const basicPersonal = federalBasicPersonalAmountCents(federalTaxable);
+  const employmentAmount = Math.min(150_100, salary);
+  const federalCredit = Math.round((basicPersonal + qppBase + ei + qpip + employmentAmount) * 1400 / 10000);
+  const basicFederal = Math.max(0, bracketTaxCents(federalTaxable, CA_FED_BRACKETS) - federalCredit);
+  const abatement = Math.round(basicFederal * 1650 / 10000);
+  const federalTax = basicFederal - abatement;
+  const workerDeduction = Math.min(QC_WORKER_CAP_CENTS, Math.round(salary * 600 / 10000));
+  const quebecTaxable = Math.max(0, salary - workerDeduction - qppFirst - qpp2);
+  const quebecCredit = Math.round(QC_BASIC_PERSONAL_CENTS * 1400 / 10000);
+  const quebecTax = Math.max(0, bracketTaxCents(quebecTaxable, QC_BRACKETS) - quebecCredit);
+  return {
+    qppBase, qppFirst, qpp, qpp2, ei, qpip, federalTaxable, basicPersonal, basicFederal, abatement, federalTax,
+    workerDeduction, quebecTaxable, quebecCredit, quebecTax
+  };
+}
+
+const SQ_FT_IN_SQ_M = 0.3048 * 0.3048;
+
+function feetAndInches(feet, inches, label) {
+  if (!Number.isFinite(feet) || feet < 0) throw new Error(`Enter ${label} feet of zero or more`);
+  if (!Number.isFinite(inches) || inches < 0 || inches > 120) throw new Error(`Enter ${label} inches from 0 to 120`);
+  return feet + inches / 12;
+}
+
+function areaText(value) {
+  return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+}
+
 // Residential Land Transaction Tax. Main rates from 10 October 2022 and higher
 // residential rates from 11 December 2024, both still the GOV.WALES tables in
 // 2026. Rates are percent. Higher rates are not used under £40,000. Wales has
@@ -2352,6 +2501,192 @@ export function calculate(slug, values) {
         `Started from: ${entered}`,
         sameDigits,
         'A US gallon is 3.785411784 litres. An imperial gallon is 4.54609 litres. A mile is 1.609344 kilometres. Canada and Australia use litres per 100 km. The United Kingdom uses the imperial gallon. The United States uses the smaller gallon.'
+      ]
+    };
+  }
+  if (slug === 'georgia-paycheck-calculator') {
+    const status = filingStatusCode(v.status);
+    const periods = payPeriodCount(v.periods);
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const requestedDeferral = nonNegativeCents(v.deferral, '401(k) deferral');
+    const deferral = Math.min(requestedDeferral, salary, US_401K_DEFERRAL_CENTS);
+    const dependents = wholeCount(v.dependents, 'Georgia dependent allowances');
+    const agi = Math.max(0, salary - deferral);
+    const standard = Math.min(GA_STANDARD_DEDUCTION[status], agi);
+    const dependentAllowance = Math.min(dependents * GA_DEPENDENT_CENTS, agi - standard);
+    const georgiaBase = Math.max(0, agi - standard - dependentAllowance);
+    const stateTax = Math.round(georgiaBase * GA_RATE_BASIS_POINTS / 10000);
+    const federalTaxable = Math.max(0, agi - US_STANDARD_DEDUCTION[status]);
+    const federal = bracketTaxCents(federalTaxable, status === 1 ? US_SINGLE_BRACKETS : US_JOINT_BRACKETS);
+    const socialSecurity = Math.round(Math.min(salary, US_SS_WAGE_BASE_CENTS) * 620 / 10000);
+    const medicare = Math.round(salary * 145 / 10000);
+    const additionalMedicare = Math.round(Math.max(0, salary - US_ADDL_MEDICARE_CENTS) * 90 / 10000);
+    const takeHome = salary - federal - socialSecurity - medicare - additionalMedicare - stateTax - deferral;
+    const details = [
+      `Federal income tax: ${usdCents(federal)}`,
+      `Social Security: ${usdCents(socialSecurity)}`,
+      `Medicare: ${usdCents(medicare)}`,
+      `Additional Medicare Tax: ${usdCents(additionalMedicare)}`,
+      `Georgia income tax: ${usdCents(stateTax)}`,
+      `Georgia standard deduction applied: ${usdCents(standard)}`,
+      `Georgia dependent allowance: ${usdCents(dependentAllowance)}`,
+      `401(k) deferred: ${usdCents(deferral)}`,
+      `Annual take-home: ${usdCents(takeHome)}`,
+      status === 1
+        ? 'Filing status: single. The 4.99% rate does not change with filing status. The $15,000 standard deduction is the single, head of household, and married filing separately amount.'
+        : 'Filing status: married filing jointly, with this salary as the only wage on the return. The $30,000 standard deduction belongs to the return, not to each spouse.',
+      `Georgia taxable income after the 401(k), standard deduction, and dependent allowances: ${usdCents(georgiaBase)}.`
+    ];
+    if (requestedDeferral > deferral) {
+      details.push(`401(k) entered above the 2026 elective deferral limit or above wages was reduced to ${usdCents(deferral)}`);
+    }
+    return {
+      headline: `${usdCents(Math.round(takeHome / periods))} ${PAY_PERIOD_LABEL[periods]}`,
+      details
+    };
+  }
+  if (slug === 'north-carolina-paycheck-calculator') {
+    const status = filingStatusCode(v.status);
+    const periods = payPeriodCount(v.periods);
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const requestedDeferral = nonNegativeCents(v.deferral, '401(k) deferral');
+    const deferral = Math.min(requestedDeferral, salary, US_401K_DEFERRAL_CENTS);
+    const children = wholeCount(v.children, 'qualifying children');
+    const agi = Math.max(0, salary - deferral);
+    const eachChild = ncChildEachCents(agi, status);
+    const childDeduction = Math.min(children * eachChild, agi);
+    const standard = Math.min(NC_STANDARD_DEDUCTION[status], Math.max(0, agi - childDeduction));
+    const ncBase = Math.max(0, agi - standard - childDeduction);
+    const stateTax = Math.round(ncBase * NC_RATE_BASIS_POINTS / 10000);
+    const federalTaxable = Math.max(0, agi - US_STANDARD_DEDUCTION[status]);
+    const federal = bracketTaxCents(federalTaxable, status === 1 ? US_SINGLE_BRACKETS : US_JOINT_BRACKETS);
+    const socialSecurity = Math.round(Math.min(salary, US_SS_WAGE_BASE_CENTS) * 620 / 10000);
+    const medicare = Math.round(salary * 145 / 10000);
+    const additionalMedicare = Math.round(Math.max(0, salary - US_ADDL_MEDICARE_CENTS) * 90 / 10000);
+    const takeHome = salary - federal - socialSecurity - medicare - additionalMedicare - stateTax - deferral;
+    const childBand = children === 0
+      ? 'Qualifying children: 0. The child deduction was not applied.'
+      : `Child deduction: ${usdCents(childDeduction)} (${usdCents(eachChild)} for each of ${children} qualifying ${children === 1 ? 'child' : 'children'} at this federal AGI).`;
+    const details = [
+      `Federal income tax: ${usdCents(federal)}`,
+      `Social Security: ${usdCents(socialSecurity)}`,
+      `Medicare: ${usdCents(medicare)}`,
+      `Additional Medicare Tax: ${usdCents(additionalMedicare)}`,
+      `North Carolina income tax: ${usdCents(stateTax)}`,
+      `North Carolina standard deduction applied: ${usdCents(standard)}`,
+      `North Carolina child deduction: ${usdCents(childDeduction)}`,
+      `401(k) deferred: ${usdCents(deferral)}`,
+      `Annual take-home: ${usdCents(takeHome)}`,
+      status === 1
+        ? 'Filing status: single. The 3.99% rate does not change with filing status. The standard deduction is $12,750.'
+        : 'Filing status: married filing jointly, with this salary as the only wage on the return. The standard deduction is $25,500 for the return, not for each spouse.',
+      `North Carolina taxable income after the 401(k), standard deduction, and child deduction: ${usdCents(ncBase)}.`,
+      childBand
+    ];
+    if (requestedDeferral > deferral) {
+      details.push(`401(k) entered above the 2026 elective deferral limit or above wages was reduced to ${usdCents(deferral)}`);
+    }
+    return {
+      headline: `${usdCents(Math.round(takeHome / periods))} ${PAY_PERIOD_LABEL[periods]}`,
+      details
+    };
+  }
+  if (slug === 'quebec-take-home-pay-calculator') {
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const payroll = quebecEmployeePayroll(salary);
+    const takeHome = salary - payroll.qpp - payroll.qpp2 - payroll.qpip - payroll.ei - payroll.federalTax - payroll.quebecTax;
+    return {
+      headline: `${cadCents(Math.round(takeHome / 12))} / month`,
+      details: [
+        `Federal income tax after the 16.5% abatement: ${cadCents(payroll.federalTax)}`,
+        `Quebec income tax: ${cadCents(payroll.quebecTax)}`,
+        `Employee QPP, including QPP2: ${cadCents(payroll.qpp + payroll.qpp2)}`,
+        `Employee QPIP: ${cadCents(payroll.qpip)}`,
+        `Employee EI: ${cadCents(payroll.ei)}`,
+        `Annual take-home: ${cadCents(takeHome)}`,
+        `Every two weeks: ${cadCents(Math.round(takeHome / 26))}`,
+        `Federal basic personal amount applied: ${cadCents(payroll.basicPersonal)}`,
+        `Quebec basic personal amount applied: ${cadCents(QC_BASIC_PERSONAL_CENTS)}`,
+        `Quebec worker deduction: ${cadCents(payroll.workerDeduction)}`,
+        `Quebec abatement, 16.5% of basic federal tax: ${cadCents(payroll.abatement)}`,
+        'Quebec rates used: 14% to $54,345, 19% to $108,680, 24% to $132,245, and 25.75% above that. The provincial credit is the $18,952 basic amount at 14%. Base QPP, QPIP, and EI are federal credits, not a second Quebec credit.'
+      ]
+    };
+  }
+  if (slug === 'western-australia-stamp-duty-calculator') {
+    const price = nonNegativeCents(v.price, 'price');
+    const buyer = Number(v.buyer);
+    const foreign = Number(v.foreign);
+    if (![1, 2, 3, 4].includes(buyer)) throw new Error('Choose a buyer type');
+    if (foreign !== 1 && foreign !== 2) throw new Error('Choose whether foreign transfer duty applies');
+    const value = waDollarCents(price);
+    const general = waGeneralDutyCents(price);
+    const foreignPerson = foreign === 2;
+    const firstHomeRequested = buyer === 2 || buyer === 3;
+    const firstHomeApplied = firstHomeRequested && !foreignPerson;
+    let transfer = general;
+    let rule = 'Rates used: general rate in Duties Act 2008 (WA) Schedule 2. The dutiable value is rounded down to the nearest dollar, then each started $100 is charged.';
+    if (buyer === 1 && !foreignPerson) {
+      transfer = waHomeConcessionCents(price);
+      rule = value <= 20_000_000
+        ? 'Rates used: concessional rate for a principal place of residence whose whole value does not exceed $200,000. $1.50 per $100 to $120,000, then $1,800 plus $4.04 per $100 above $120,000.'
+        : 'Rates used: general rate. The residential concession stops once the whole property exceeds $200,000, so this home is on the Schedule 2 general scale.';
+    } else if (firstHomeApplied) {
+      transfer = waFirstHomeDutyCents(price, buyer === 3);
+      rule = buyer === 3
+        ? 'Rates used: first home owner rate for vacant land, for an agreement entered into on or after 7 May 2026. No duty to $450,000, then $20.14 per $100 or part above $450,000 through $550,000. Above $550,000 the general rate applies to the whole value.'
+        : 'Rates used: first home owner rate for a home, for an agreement entered into on or after 7 May 2026. No duty to $600,000, then $16.15 per $100 or part above $600,000 through $800,000. Above $800,000 the general rate applies to the whole value.';
+    } else if (firstHomeRequested && foreignPerson) {
+      rule = 'A foreign person is not given the first home owner rate on this page. RevenueWA aligns that rate with first home owner grant eligibility, which a foreign person generally does not meet. General duty is used, plus 7% foreign transfer duty.';
+    }
+    const surcharge = foreignPerson ? Math.round(value * 7 / 100) : 0;
+    const duty = transfer + surcharge;
+    const effective = price === 0 ? 0 : duty / price * 100;
+    return {
+      headline: audCents(duty),
+      details: [
+        rule,
+        `Transfer duty before the foreign surcharge: ${audCents(transfer)}`,
+        `General rate on this value, for comparison: ${audCents(general)}`,
+        foreignPerson ? `Foreign transfer duty at 7%: ${audCents(surcharge)}` : 'Foreign transfer duty: not applied.',
+        `Effective rate on the price entered: ${percent(effective)}%`,
+        `Dutiable value used after rounding down to the nearest dollar: ${audCents(value)}`,
+        'Western Australia only. NSW, Victoria, and Queensland use different statutes. The first home owner grant is a separate payment and is not subtracted here.'
+      ]
+    };
+  }
+  if (slug === 'square-footage-calculator') {
+    const length = feetAndInches(v.length, v.lengthinches, 'length');
+    const width = feetAndInches(v.width, v.widthinches, 'width');
+    const wingLength = v.winglength;
+    const wingWidth = v.wingwidth;
+    const waste = v.waste;
+    if (!Number.isFinite(wingLength) || wingLength < 0) throw new Error('Enter a second rectangle length of zero or more');
+    if (!Number.isFinite(wingWidth) || wingWidth < 0) throw new Error('Enter a second rectangle width of zero or more');
+    if ((wingLength === 0) !== (wingWidth === 0)) throw new Error('Enter both sides of the second rectangle, or leave both at zero');
+    if (!Number.isFinite(waste) || waste < 0 || waste > 100) throw new Error('Enter an extra-to-order allowance from 0 to 100 percent');
+    const main = length * width;
+    const wing = wingLength * wingWidth;
+    const area = main + wing;
+    if (!(area > 0)) throw new Error('Enter a length and a width above zero');
+    const withWaste = area * (1 + waste / 100);
+    const squareMetres = area * SQ_FT_IN_SQ_M;
+    const squareYards = area / 9;
+    const orderMetres = withWaste * SQ_FT_IN_SQ_M;
+    const orderYards = withWaste / 9;
+    const inchesNote = v.lengthinches === 0 && v.widthinches === 0
+      ? 'No extra inches were added to the first rectangle.'
+      : `Extra inches added: ${areaText(v.lengthinches)} on the length and ${areaText(v.widthinches)} on the width. Twelve inches equal one foot.`;
+    return {
+      headline: `${areaText(area)} sq ft`,
+      details: [
+        `First rectangle: ${areaText(main)} sq ft`,
+        wing > 0 ? `Second rectangle: ${areaText(wing)} sq ft` : 'Second rectangle: not used. Both of its sides were zero.',
+        `Square yards: ${areaText(squareYards)}`,
+        `Square metres: ${areaText(squareMetres)}`,
+        `Area with ${areaText(waste)}% extra to order: ${areaText(withWaste)} sq ft (${areaText(orderYards)} sq yd, ${areaText(orderMetres)} sq m)`,
+        inchesNote,
+        'The second rectangle is added. It is not a bounding box, so do not include the first rectangle inside it. One square foot is 0.09290304 square metres, from the international foot of 0.3048 metres. One square yard is 9 square feet.'
       ]
     };
   }

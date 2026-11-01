@@ -295,10 +295,11 @@ export const growthCalculatorContent = {
       },
       {
         q: 'Is Queensland transfer duty the same figure as Victoria at $700,000?',
-        a: 'No. An established Queensland first home at $700,000 is $0.00 of transfer duty on this calculator. Victoria’s first home concession at $700,000 is a different formula under the Duties Act 2000 (Vic), and the Victoria page on this site does not return zero at that price. NSW is a third table. Use the state where the land is.'
+        a: 'No. An established Queensland first home at $700,000 is $0.00 of transfer duty on this calculator. Victoria’s first home concession at $700,000 is a different formula under the Duties Act 2000 (Vic), and the Victoria page on this site does not return zero at that price. NSW is a third table. Western Australia is a fourth. A $730,000 Western Australian home bought on or after 7 May 2026 by an eligible first home buyer is $20,995.00, not this $6,555.00, and the general rate there is $28,710.50. Use the state where the land is.'
       }
     ],
     relatedLinks: [
+      { slug: 'western-australia-stamp-duty-calculator', label: 'Western Australia stamp duty calculator', note: 'First home owner rate for an agreement on or after 7 May 2026. A $730,000 home is $20,995.00 there, not this $6,555.00 established-first-home figure.' },
       { slug: 'victoria-stamp-duty-calculator', label: 'Victoria stamp duty calculator for 2026', note: 'Victorian land transfer duty, including that state’s first home concession through $750,000 and 8% foreign purchaser additional duty.' },
       { slug: 'nsw-stamp-duty-calculator', label: 'NSW stamp duty calculator for 2026/27', note: 'New South Wales transfer duty and a 9% surcharge. Not this Queensland scale.' },
       { slug: 'australia-take-home-pay-calculator', label: 'Australia take-home pay calculator for 2026–27', note: 'Resident income tax and the Medicare levy on a salary. It is not the duty on a house.' },
