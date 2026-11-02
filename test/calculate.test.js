@@ -1008,3 +1008,102 @@ test('5K pace uses the international mile and standard race distances', () => {
   assert.equal(approx.details[6], 'Half marathon at this pace: 1:45:04.5');
   assert.throws(() => calculate('5k-pace-calculator', { distance: 5, unit: 1, hours: 0, minutes: 0, seconds: 0 }), /time/);
 });
+
+test('credit card payoff uses monthly interest rounded to the cent', () => {
+  assert.deepEqual(calculate('credit-card-payoff-calculator', { balance: 5000, apr: 21.99, payment: 200 }), {
+    headline: '34 months',
+    details: [
+      'Payoff time: 2 years and 10 months',
+      'Total interest: $1,748.71',
+      'Total paid: $6,748.71',
+      'Starting balance: $5,000.00',
+      'Interest in the first month: $91.63',
+      'Final payment: $148.71',
+      'APR used: 21.99%. Each month the interest is the unpaid balance times that APR divided by 12, rounded to the nearest cent. The fixed payment is then applied. This is not a daily periodic rate and it is not a minimum-payment formula.'
+    ]
+  });
+  const lower = calculate('credit-card-payoff-calculator', { balance: 5000, apr: 21.99, payment: 150 });
+  assert.equal(lower.headline, '52 months');
+  assert.equal(lower.details[1], 'Total interest: $2,795.72');
+  const zero = calculate('credit-card-payoff-calculator', { balance: 1200, apr: 0, payment: 100 });
+  assert.equal(zero.headline, '12 months');
+  assert.equal(zero.details[1], 'Total interest: $0.00');
+  const stuck = calculate('credit-card-payoff-calculator', { balance: 5000, apr: 21.99, payment: 91.63 });
+  assert.equal(stuck.headline, 'Balance does not fall');
+  assert.equal(stuck.details[2], 'Balance after the first payment: $5,000.00');
+});
+
+test('house affordability inverts the 6.5% mortgage payment', () => {
+  const sample = calculate('house-affordability-calculator', {
+    income: 120000, debts: 400, down: 60000, rate: 6.5, years: 30, tax: 3600, insurance: 1800, hoa: 0, rule: 1
+  });
+  assert.equal(sample.headline, '$431,795.43 home');
+  assert.equal(sample.details[1], 'Loan amount: $371,795.43');
+  assert.equal(sample.details[3], 'Principal and interest on that loan: $2,350.00 / month');
+  assert.equal(
+    calculate('mortgage-calculator', { principal: 371795.43, rate: 6.5, years: 30 }).headline,
+    '$2,350.00 / month'
+  );
+  const debts = calculate('house-affordability-calculator', {
+    income: 120000, debts: 1500, down: 60000, rate: 6.5, years: 30, tax: 3600, insurance: 1800, hoa: 0, rule: 1
+  });
+  assert.equal(debts.headline, '$321,047.85 home');
+  assert.match(debts.details[9], /debt cap/);
+  const blocked = calculate('house-affordability-calculator', {
+    income: 120000, debts: 400, down: 60000, rate: 6.5, years: 30, tax: 40000, insurance: 1800, hoa: 0, rule: 1
+  });
+  assert.equal(blocked.headline, 'No mortgage payment fits');
+});
+
+test('2026 Virginia paycheck uses the 5.75% bracket and the $8,750 deduction', () => {
+  const sample = calculate('virginia-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 0, exemptions: 1, ageblind: 0
+  });
+  assert.equal(sample.headline, '$1,980.16 / two weeks');
+  assert.equal(sample.details[4], 'Virginia income tax: $2,923.40');
+  assert.equal(sample.details[9], 'Annual take-home: $51,484.10');
+  assert.equal(sample.details[11], 'Virginia taxable income after the 401(k), standard deduction, and exemptions: $55,320.00.');
+  const deferred = calculate('virginia-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 6500, exemptions: 1, ageblind: 0
+  });
+  assert.equal(deferred.details[4], 'Virginia income tax: $2,549.65');
+  const joint = calculate('virginia-paycheck-calculator', {
+    salary: 65000, status: 2, periods: 26, deferral: 0, exemptions: 2, ageblind: 0
+  });
+  assert.equal(joint.details[4], 'Virginia income tax: $2,366.80');
+  assert.equal(joint.headline, '$2,085.41 / two weeks');
+});
+
+test('2026 Prince Edward Island take-home pay uses the 20% annual rate', () => {
+  assert.deepEqual(calculate('prince-edward-island-take-home-pay-calculator', { salary: 70000 }).headline, '$4,281.99 / month');
+  const sample = calculate('prince-edward-island-take-home-pay-calculator', { salary: 70000 });
+  assert.equal(sample.details[0], 'Federal income tax: $7,278.19');
+  assert.equal(sample.details[1], 'Prince Edward Island income tax: $6,258.09');
+  assert.equal(sample.details[4], 'Annual take-home: $51,383.90');
+  assert.match(sample.details.at(-1), /20%/);
+  assert.match(sample.details.at(-1), /not applied/);
+  const high = calculate('prince-edward-island-take-home-pay-calculator', { salary: 250000 });
+  assert.equal(high.details[1], 'Prince Edward Island income tax: $39,444.40');
+  assert.equal(high.details[6], 'Federal basic personal amount applied: $15,031.43');
+});
+
+test('drywall sheets round up after the waste allowance', () => {
+  const sample = calculate('drywall-calculator', {
+    length: 12, width: 10, height: 8, openings: 36, ceiling: 1, sheet: 32, waste: 10
+  });
+  assert.equal(sample.headline, '15 sheets');
+  assert.equal(sample.details[0], 'Wall area after openings: 316 sq ft');
+  assert.equal(sample.details[1], 'Ceiling area: 120 sq ft');
+  assert.equal(sample.details[3], 'Area with 10% waste: 479.6 sq ft');
+  const walls = calculate('drywall-calculator', {
+    length: 12, width: 10, height: 8, openings: 36, ceiling: 0, sheet: 32, waste: 10
+  });
+  assert.equal(walls.headline, '11 sheets');
+  const exact = calculate('drywall-calculator', {
+    length: 8, width: 8, height: 8, openings: 0, ceiling: 0, sheet: 32, waste: 0
+  });
+  assert.equal(exact.headline, '8 sheets');
+  assert.throws(() => calculate('drywall-calculator', {
+    length: 12, width: 10, height: 8, openings: 400, ceiling: 1, sheet: 32, waste: 10
+  }), /Openings/);
+});

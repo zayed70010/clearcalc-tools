@@ -6,6 +6,7 @@ import { growthCalculatorContent } from './growth-calculator-content.js';
 import { dailyCalculatorContent } from './daily-calculator-content.js';
 import { waveCalculatorContent } from './wave-calculator-content.js';
 import { batchCalculatorContent } from './batch-calculator-content.js';
+import { novemberCalculatorContent } from './november-calculator-content.js';
 
 export const calculatorContent = {
   'mortgage-calculator': {
@@ -14,7 +15,8 @@ export const calculatorContent = {
     description: 'Estimate the monthly principal-and-interest payment on a fixed-rate mortgage, plus total interest over the full term. Includes the amortization formula and examples.',
     intro: [
       'This fixed-rate mortgage calculator estimates the monthly principal-and-interest payment that pays a home loan down to zero over a set term. Enter the amount borrowed, the annual interest rate, and the length of the loan in years. The result assumes every payment is made on time and the rate never changes.',
-      'The figure is only the loan payment. Property taxes, homeowners insurance, mortgage insurance, and HOA dues are real parts of a housing bill, but they are not part of the amortization formula, so this page does not guess them. Use the result to compare a rate or a shorter term before you talk with a lender. It is a planning estimate, not a Loan Estimate or an approval.'
+      'The figure is only the loan payment. Property taxes, homeowners insurance, mortgage insurance, and HOA dues are real parts of a housing bill, but they are not part of the amortization formula, so this page does not guess them. Use the result to compare a rate or a shorter term before you talk with a lender. It is a planning estimate, not a Loan Estimate or an approval.',
+      'A payment is not a price. The how-much-house calculator runs this same formula backwards from a housing cap. On $120,000 of gross income, $400 of other monthly debts, a $60,000 down payment, 6.5% for 30 years, $3,600 of property tax, and $1,800 of insurance, the 28% cap leaves $2,350.00 a month for principal and interest. That payment supports a $371,795.43 loan and a $431,795.43 home. FHFA set the 2026 baseline conforming limit for a one-unit home at $832,750 on 25 November 2025, with a high-cost ceiling of $1,249,125. The loan in that example sits under the baseline. This page still does not solve for the price, and it still leaves tax and insurance out of the payment.'
     ],
     steps: [
       'Enter the amount borrowed in US dollars. The sample value is 300,000.',
@@ -26,7 +28,8 @@ export const calculatorContent = {
     howItWorks: [
       'The calculator converts the annual percentage rate into a monthly rate by dividing by 100 and then by 12. A 6.5% rate becomes 0.065 / 12. It then counts the payments as years times 12. Those two numbers, plus the principal, are the only inputs to the standard fully amortizing loan formula.',
       'Each monthly payment covers that month\'s interest on the remaining balance and puts the rest toward principal. Early payments are mostly interest. Later payments retire principal faster. The tool does not print a full amortization schedule. It reports the level payment, the sum of every payment, and the interest portion of that sum.',
-      'If the rate is exactly zero, there is no interest to compound. The payment is the principal divided by the number of months, and total interest is zero. Negative rates, extra principal payments, interest-only periods, and adjustable rates are outside what this form models.'
+      'If the rate is exactly zero, there is no interest to compound. The payment is the principal divided by the number of months, and total interest is zero. Negative rates, extra principal payments, interest-only periods, and adjustable rates are outside what this form models.',
+      'The affordability example is a check on the algebra, not a second payment. Enter 371795.43, 6.5, and 30 here and the payment is $2,350.00 / month, with total interest of $474,204.58. The 15-year loan that carries the same $2,350.00 under that cap is $269,771.57, and this page shows $153,228.43 of interest on it. The home price on that shorter term is $329,771.57, down from $431,795.43, because the monthly room did not grow. A $300,000 loan at 6.5% for 30 years remains $1,896.20 on this page whether or not it is under the $832,750 baseline.'
     ],
     formula: 'Monthly rate r = annual percent / 100 / 12\nPayments n = years × 12\nIf r = 0: payment M = principal / n\nOtherwise: M = principal × r × (1 + r)^n / ((1 + r)^n − 1)\nTotal repayment = M × n\nTotal interest = total repayment − principal',
     formulaNotes: [
@@ -97,9 +100,18 @@ export const calculatorContent = {
       {
         q: 'Will this match a lender Loan Estimate?',
         a: 'Only the principal-and-interest line can be close, and only when the amount, note rate, and term match and the loan is a standard fixed monthly payment. A Loan Estimate also includes fees, escrow, and prepaid items that this calculator never sees.'
+      },
+      {
+        q: 'How does this payment relate to the 2026 conforming loan limit?',
+        a: 'It does not apply the limit. FHFA’s 2026 baseline for a one-unit home in most of the United States is $832,750, and the high-cost ceiling is $1,249,125. A $300,000 loan at 6.5% for 30 years is under that baseline and the payment is still $1,896.20. The how-much-house page is the one that compares its solved loan with those 2026 limits. This page only amortizes the amount you type.'
       }
     ],
     relatedLinks: [
+      {
+        slug: 'house-affordability-calculator',
+        label: 'How much house can I afford calculator',
+        note: 'Turns the $2,350.00 payment back into a $371,795.43 loan and a $431,795.43 home under a 28/36 cap. This page does not start from income.'
+      },
       {
         slug: 'uk-take-home-pay-calculator',
         label: '2026/27 take-home pay calculator for England, Wales and Northern Ireland',
@@ -206,7 +218,7 @@ export const calculatorContent = {
       },
       {
         q: 'Why is this not a credit-card payoff calculator?',
-        a: 'A credit card is revolving credit. The balance and the minimum payment change, and interest is often charged with a daily periodic rate. This form locks in one balance, one rate, and one term, then computes a single level payment that reaches zero on schedule.'
+        a: 'A credit card is revolving credit. The balance and the minimum payment change, and interest is often charged with a daily periodic rate. This form locks in one balance, one rate, and one term, then computes a single level payment that reaches zero on schedule. The credit card payoff calculator does the other job: a $5,000 balance at 21.99% with a fixed $200 payment takes 34 months and $1,748.71 of interest.'
       },
       {
         q: 'What does a zero interest rate do on a personal loan?',
@@ -231,6 +243,11 @@ export const calculatorContent = {
         slug: 'percentage-calculator',
         label: 'Percentage calculator',
         note: 'Enter the monthly payment as the part and monthly take-home as the whole if you want the same ratio as a percent.'
+      },
+      {
+        slug: 'credit-card-payoff-calculator',
+        label: 'Credit card payoff calculator',
+        note: 'A $5,000 balance at 21.99% with a fixed $200 payment takes 34 months and $1,748.71 of interest. This loan page solves a payment from a term instead.'
       }
     ]
   },
@@ -1330,7 +1347,8 @@ export const calculatorContent = {
   ...growthCalculatorContent,
   ...dailyCalculatorContent,
   ...waveCalculatorContent,
-  ...batchCalculatorContent
+  ...batchCalculatorContent,
+  ...novemberCalculatorContent
 };
 
 export function contentWordCount(entry) {

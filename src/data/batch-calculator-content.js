@@ -96,7 +96,8 @@ export const batchCalculatorContent = {
       { slug: 'north-carolina-paycheck-calculator', label: 'North Carolina paycheck calculator for 2026', note: 'A 3.99% tax after a $12,750 standard deduction. At $65,000 single the North Carolina tax is $2,084.78 and the two-week headline is $2,012.41.' },
       { slug: 'michigan-paycheck-calculator', label: 'Michigan paycheck calculator for 2026', note: 'A 4.25% tax after a $5,900 exemption. At $65,000 single with one exemption and no city tax, Michigan tax is $2,511.75.' },
       { slug: 'texas-paycheck-calculator', label: 'Texas paycheck calculator for 2026', note: 'The same federal and FICA lines at $65,000, with state income tax at $0 and annual take-home of $54,407.50.' },
-      { slug: '401k-contribution-calculator', label: '2026 401(k) contribution calculator', note: 'Check a deferral against the $24,500 limit before you type the dollar amount here. The deferral reduces Georgia tax and federal income tax.' }
+      { slug: '401k-contribution-calculator', label: '2026 401(k) contribution calculator', note: 'Check a deferral against the $24,500 limit before you type the dollar amount here. The deferral reduces Georgia tax and federal income tax.' },
+      { slug: 'virginia-paycheck-calculator', label: 'Virginia paycheck calculator for 2026', note: 'At $65,000 single with one $930 exemption, Virginia tax is $2,923.40 and the two-week headline is $1,980.16. This Georgia tax is $2,495.00.' }
     ]
   },
   'north-carolina-paycheck-calculator': {
@@ -499,7 +500,8 @@ export const batchCalculatorContent = {
       { slug: 'floor-tile-calculator', label: 'Floor tile calculator', note: 'The 10 by 12 foot floor is 120 square feet here and 130 tiles there, once a 1/8 inch joint and 10% waste are included.' },
       { slug: 'room-paint-calculator', label: 'Room paint calculator', note: 'Gallons from wall height, openings, and coats. A floor area is not a wall area, and this page has no ceiling height.' },
       { slug: 'concrete-slab-calculator', label: 'Concrete slab calculator', note: 'Cubic yards and bags from a thickness in inches. Square feet are only the start of that volume.' },
-      { slug: 'length-converter', label: 'Length converter from meters', note: 'Metres to feet for one length. It does not multiply two sides, and its displayed foot factor is a rounded 3.28084 rather than this page’s exact 0.3048 metre foot.' }
+      { slug: 'length-converter', label: 'Length converter from meters', note: 'Metres to feet for one length. It does not multiply two sides, and its displayed foot factor is a rounded 3.28084 rather than this page’s exact 0.3048 metre foot.' },
+      { slug: 'drywall-calculator', label: 'Drywall calculator', note: 'The 12 by 10 foot ceiling is 120 square feet here and 15 of the 4×8 sheets there, once 8 foot walls, 36 square feet of openings, and 10% waste are included.' }
     ]
   }
 };

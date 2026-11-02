@@ -523,7 +523,8 @@ export const searchCalculatorContent = {
       { slug: 'concrete-slab-calculator', label: 'Concrete slab calculator', note: 'Bags and cubic yards for a rectangular pour. A different material and a different unit.' },
       { slug: 'floor-tile-calculator', label: 'Floor tile calculator', note: 'A 10 by 12 foot floor with 12 inch tiles, a 1/8 inch joint, and 10% waste is 130 tiles. Paint on this page is gallons, not a tile count.' },
       { slug: 'length-converter', label: 'Length converter from meters', note: 'Convert a metric room to feet before you type the length, width, and height here.' },
-      { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'Useful if you want to raise the coverage assumption by a percent after you have read the can. This paint form has no separate waste field.' }
+      { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'Useful if you want to raise the coverage assumption by a percent after you have read the can. This paint form has no separate waste field.' },
+      { slug: 'drywall-calculator', label: 'Drywall calculator', note: 'A 12 by 10 foot room with 8 foot walls, 36 square feet of openings, the ceiling, and 10% waste is 15 sheets of 4×8 drywall. This page counts gallons, not sheets.' }
     ]
   }
 };
