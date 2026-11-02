@@ -240,6 +240,38 @@ test('five batch calculators are linked from the homepage and a related page', (
   assert.match(calculatorContent['square-footage-calculator'].table.rows[0][1], /125\.00/);
 });
 
+test('five november calculators are linked from the homepage and a related page', () => {
+  const home = readFileSync('src/pages/index.astro', 'utf8');
+  const links = [
+    ['credit-card-payoff-calculator', 'loan-calculator'],
+    ['house-affordability-calculator', 'mortgage-calculator'],
+    ['virginia-paycheck-calculator', 'georgia-paycheck-calculator'],
+    ['prince-edward-island-take-home-pay-calculator', 'new-brunswick-take-home-pay-calculator'],
+    ['drywall-calculator', 'square-footage-calculator']
+  ];
+  for (const [slug, related] of links) {
+    assert.match(home, new RegExp(`calculators/${slug}/`));
+    assert.ok(calculatorContent[slug], slug);
+    assert.equal(
+      calculatorContent[related].relatedLinks.some((link) => link.slug === slug),
+      true,
+      related
+    );
+  }
+  assert.match(calculatorContent['credit-card-payoff-calculator'].description, /21\.99%/);
+  assert.match(calculatorContent['credit-card-payoff-calculator'].table.rows[0][2], /34/);
+  assert.match(calculatorContent['house-affordability-calculator'].table.rows[0][3], /\$431,795\.43/);
+  assert.match(calculatorContent['virginia-paycheck-calculator'].description, /5\.75%/);
+  assert.match(calculatorContent['virginia-paycheck-calculator'].table.rows[0][3], /\$2,923\.40/);
+  assert.match(calculatorContent['prince-edward-island-take-home-pay-calculator'].description, /\$15,000/);
+  assert.match(calculatorContent['prince-edward-island-take-home-pay-calculator'].table.rows[0][4], /\$4,281\.99/);
+  assert.match(calculatorContent['drywall-calculator'].table.rows[0][5], /15/);
+  const mortgage = calculatorContent['mortgage-calculator'];
+  assert.match(mortgage.intro[2], /\$832,750/);
+  assert.match(mortgage.howItWorks.at(-1), /\$431,795\.43/);
+  assert.equal(mortgage.faqs.length, 6);
+});
+
 test('length converter slug matches the page title', () => {
   const length = calculators.find((item) => item.slug === 'length-converter');
   assert.equal(length.title, 'Length Converter');

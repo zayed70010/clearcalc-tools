@@ -203,7 +203,8 @@ export const waveCalculatorContent = {
       { slug: 'nova-scotia-take-home-pay-calculator', label: 'Nova Scotia take-home pay calculator for 2026', note: 'Same federal tax, CPP, and EI at $70,000. Nova Scotia tax is $7,145.72 rather than this $5,600.17, and the monthly headline is $4,208.02.' },
       { slug: 'saskatchewan-take-home-pay-calculator', label: 'Saskatchewan take-home pay calculator for 2026', note: 'Same federal pieces. Saskatchewan tax is $4,972.68 and the monthly headline is $4,389.11.' },
       { slug: 'ontario-take-home-pay-calculator', label: 'Ontario take-home pay calculator for 2026', note: 'Same federal payroll system, plus Ontario tax and the Ontario Health Premium. Not these New Brunswick brackets.' },
-      { slug: 'alberta-take-home-pay-calculator', label: 'Alberta take-home pay calculator for 2026', note: 'Same federal pieces at a given salary, with Alberta’s own brackets and no provincial sales-tax field on that page either.' }
+      { slug: 'alberta-take-home-pay-calculator', label: 'Alberta take-home pay calculator for 2026', note: 'Same federal pieces at a given salary, with Alberta’s own brackets and no provincial sales-tax field on that page either.' },
+      { slug: 'prince-edward-island-take-home-pay-calculator', label: 'Prince Edward Island take-home pay calculator for 2026', note: 'Same federal tax, CPP, and EI at $70,000. PEI tax is $6,258.09 rather than this $5,600.17, and the monthly headline is $4,281.99.' }
     ]
   },
   'wales-land-transaction-tax-calculator': {

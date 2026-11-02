@@ -828,6 +828,42 @@ const NB_BRACKETS = [
 ];
 const NB_BASIC_PERSONAL_CENTS = 1_366_400;
 
+// 2026 Prince Edward Island. Brackets through 19% and the dollar thresholds are
+// Income Tax Act (PEI) s. 7 as amended by SPEI 2025, c. 6, for 2026 and later.
+// The 20% rate on taxable income over $200,000 is the annual rate the province
+// published for 2026. July 2026 payroll tables use 21% on that slice as a
+// withholding catch-up; that prorated rate is not the annual tax. The basic
+// personal amount is $15,000, credited at 9.50%. The low-income tax reduction
+// in s. 32 is not applied.
+const PEI_BRACKETS = [
+  [3_392_800, 950],
+  [6_582_000, 1347],
+  [10_689_000, 1660],
+  [14_252_000, 1762],
+  [20_000_000, 1900],
+  [Number.POSITIVE_INFINITY, 2000]
+];
+const PEI_BASIC_PERSONAL_CENTS = 1_500_000;
+
+// Tax year 2026 Virginia. Brackets are the long-standing schedule on Virginia
+// Tax's rate table: 2% to $3,000, 3% to $5,000, 5% to $17,000, and 5.75% above
+// that. Standard deduction for a year beginning in 2026 is $8,750 single and
+// $17,500 joint under Code of Virginia § 58.1-322.03. A personal exemption is
+// $930. An additional age-65 or blind exemption is $800.
+const VA_BRACKETS = [
+  [300_000, 200],
+  [500_000, 300],
+  [1_700_000, 500],
+  [Number.POSITIVE_INFINITY, 575]
+];
+const VA_STANDARD_DEDUCTION = { 1: 875_000, 2: 1_750_000 };
+const VA_PERSONAL_EXEMPTION_CENTS = 93_000;
+const VA_AGE_BLIND_EXEMPTION_CENTS = 80_000;
+
+// FHFA, 25 November 2025. One-unit baseline for 2026, and 150% of that baseline.
+const CONFORMING_BASELINE_2026_CENTS = 83_275_000;
+const CONFORMING_CEILING_2026_CENTS = 124_912_500;
+
 // Tax year 2026 Michigan. Treasury’s withholding page and the 15 April 2026
 // rate letter under MCL 206.51 keep the rate at 4.25%. The personal exemption
 // for withholding is $5,900. Detroit’s 2026 withholding guide uses 2.4% for
@@ -2687,6 +2723,254 @@ export function calculate(slug, values) {
         `Area with ${areaText(waste)}% extra to order: ${areaText(withWaste)} sq ft (${areaText(orderYards)} sq yd, ${areaText(orderMetres)} sq m)`,
         inchesNote,
         'The second rectangle is added. It is not a bounding box, so do not include the first rectangle inside it. One square foot is 0.09290304 square metres, from the international foot of 0.3048 metres. One square yard is 9 square feet.'
+      ]
+    };
+  }
+  if (slug === 'credit-card-payoff-calculator') {
+    const balance = nonNegativeCents(v.balance, 'balance');
+    const payment = nonNegativeCents(v.payment, 'monthly payment');
+    const apr = v.apr;
+    if (balance <= 0) throw new Error('Enter a balance above zero');
+    if (payment <= 0) throw new Error('Enter a monthly payment above zero');
+    if (!Number.isFinite(apr) || apr < 0 || apr > 100) throw new Error('Enter an APR from 0 to 100 percent');
+    const firstInterest = Math.round(balance * apr / 1200);
+    if (payment <= firstInterest) {
+      const gap = firstInterest - payment;
+      return {
+        headline: 'Balance does not fall',
+        details: [
+          `Interest in the first month: ${usdCents(firstInterest)}`,
+          gap === 0
+            ? 'The payment equals that interest, so the balance is unchanged after month one.'
+            : `The payment is short by ${usdCents(gap)}, so the balance grows by that amount in month one.`,
+          `Balance after the first payment: ${usdCents(balance + gap)}`,
+          `APR used: ${percent(apr)}%`,
+          'Interest each month is the balance times the APR divided by 12, rounded to the nearest cent, then the payment is applied. A payment has to exceed that interest before the balance can fall.'
+        ]
+      };
+    }
+    let remaining = balance;
+    let interestPaid = 0;
+    let paid = 0;
+    let months = 0;
+    while (remaining > 0 && months < 600) {
+      const interest = Math.round(remaining * apr / 1200);
+      const due = remaining + interest;
+      const pay = Math.min(payment, due);
+      remaining = due - pay;
+      interestPaid += interest;
+      paid += pay;
+      months += 1;
+    }
+    if (remaining > 0) {
+      return {
+        headline: 'Not paid off in 50 years',
+        details: [
+          `Balance still owed after 600 payments: ${usdCents(remaining)}`,
+          `Interest charged over those 600 months: ${usdCents(interestPaid)}`,
+          `Total paid over those 600 months: ${usdCents(paid)}`,
+          `Starting balance: ${usdCents(balance)}`,
+          `Interest in the first month: ${usdCents(firstInterest)}`,
+          'The count stops at 600 months. Raise the payment if you need a payoff date inside that window.'
+        ]
+      };
+    }
+    const years = Math.floor(months / 12);
+    const extraMonths = months % 12;
+    const yearLabel = years === 1 ? '1 year' : `${years} years`;
+    const monthLabel = extraMonths === 1 ? '1 month' : `${extraMonths} months`;
+    const span = years === 0 ? monthLabel : extraMonths === 0 ? yearLabel : `${yearLabel} and ${monthLabel}`;
+    return {
+      headline: months === 1 ? '1 month' : `${number(months, 0)} months`,
+      details: [
+        `Payoff time: ${span}`,
+        `Total interest: ${usdCents(interestPaid)}`,
+        `Total paid: ${usdCents(paid)}`,
+        `Starting balance: ${usdCents(balance)}`,
+        `Interest in the first month: ${usdCents(firstInterest)}`,
+        `Final payment: ${usdCents(paid - payment * (months - 1))}`,
+        `APR used: ${percent(apr)}%. Each month the interest is the unpaid balance times that APR divided by 12, rounded to the nearest cent. The fixed payment is then applied. This is not a daily periodic rate and it is not a minimum-payment formula.`
+      ]
+    };
+  }
+  if (slug === 'house-affordability-calculator') {
+    const income = nonNegativeCents(v.income, 'income');
+    const debts = nonNegativeCents(v.debts, 'monthly debt');
+    const down = nonNegativeCents(v.down, 'down payment');
+    const tax = nonNegativeCents(v.tax, 'property tax');
+    const insurance = nonNegativeCents(v.insurance, 'insurance');
+    const hoa = nonNegativeCents(v.hoa, 'HOA dues');
+    const rate = v.rate;
+    const years = v.years;
+    const rule = Number(v.rule);
+    if (income <= 0) throw new Error('Enter an annual income above zero');
+    if (!Number.isFinite(rate) || rate < 0 || rate > 40) throw new Error('Enter a mortgage rate from 0 to 40 percent');
+    if (!Number.isFinite(years) || years <= 0 || years > 50) throw new Error('Enter a term from above zero through 50 years');
+    if (rule !== 1 && rule !== 2) throw new Error('Choose a payment rule');
+    const frontRate = rule === 1 ? 28 : 31;
+    const backRate = rule === 1 ? 36 : 43;
+    const months = years * 12;
+    const frontCap = Math.round(income * frontRate / 100 / 12);
+    const backCap = Math.round(income * backRate / 100 / 12) - debts;
+    const housing = Math.max(0, Math.min(frontCap, backCap));
+    const monthlyTax = Math.round(tax / 12);
+    const monthlyInsurance = Math.round(insurance / 12);
+    const carrying = monthlyTax + monthlyInsurance + hoa;
+    const piRoom = housing - carrying;
+    const monthlyGross = income / 12;
+    const binding = backCap < frontCap ? 'the debt cap' : 'the housing cap';
+    const ruleText = rule === 1
+      ? 'Rule used: 28% of gross income for the housing payment, and 36% of gross income for that payment plus the other debts you entered. This is a budgeting rule. It is not a 2026 Fannie Mae maximum.'
+      : 'Rule used: 31% of gross income for the housing payment, and 43% of gross income for that payment plus the other debts you entered. This is a wider budgeting pair. It is not an FHA approval.';
+    if (piRoom <= 0) {
+      return {
+        headline: 'No mortgage payment fits',
+        details: [
+          ruleText,
+          `Housing payment cap: ${usdCents(housing)} / month, set by ${binding}.`,
+          `The ${frontRate}% cap is ${usdCents(frontCap)} and the ${backRate}% cap after other debts is ${usdCents(Math.max(0, backCap))}.`,
+          `Property tax, insurance, and HOA already use ${usdCents(carrying)} / month.`,
+          `Down payment entered: ${usdCents(down)}. It is not added to a loan, because no principal-and-interest payment fits under the cap.`,
+          'Lower the tax, insurance, HOA, or other debts, or choose the wider rule, before this form will solve for a price.'
+        ]
+      };
+    }
+    const r = rate / 1200;
+    const loan = r === 0
+      ? Math.round(piRoom * months)
+      : Math.round(piRoom * ((1 + r) ** months - 1) / (r * (1 + r) ** months));
+    const price = loan + down;
+    const actualPi = r === 0 ? Math.round(loan / months) : Math.round(loan * r * (1 + r) ** months / ((1 + r) ** months - 1));
+    const housingPayment = actualPi + carrying;
+    const frontShare = housingPayment / monthlyGross * 100;
+    const backShare = (housingPayment + debts) / monthlyGross * 100;
+    const conforming = loan <= CONFORMING_BASELINE_2026_CENTS
+      ? `The loan is at or under the 2026 baseline conforming limit of ${usdCents(CONFORMING_BASELINE_2026_CENTS)} for a one-unit home in most of the United States.`
+      : loan <= CONFORMING_CEILING_2026_CENTS
+        ? `The loan is above the 2026 baseline of ${usdCents(CONFORMING_BASELINE_2026_CENTS)} and at or under the high-cost ceiling of ${usdCents(CONFORMING_CEILING_2026_CENTS)}.`
+        : `The loan is above the 2026 one-unit high-cost ceiling of ${usdCents(CONFORMING_CEILING_2026_CENTS)}. Alaska, Hawaii, Guam, and the U.S. Virgin Islands can go higher than that ceiling.`;
+    return {
+      headline: `${usdCents(price)} home`,
+      details: [
+        ruleText,
+        `Loan amount: ${usdCents(loan)}`,
+        `Down payment: ${usdCents(down)}`,
+        `Principal and interest on that loan: ${usdCents(actualPi)} / month`,
+        `Property tax: ${usdCents(monthlyTax)} / month`,
+        `Homeowners insurance: ${usdCents(monthlyInsurance)} / month`,
+        `HOA: ${usdCents(hoa)} / month`,
+        `Housing payment used for the ratios: ${usdCents(housingPayment)} / month`,
+        `That payment is ${percent(frontShare)}% of gross monthly income. With the other debts it is ${percent(backShare)}%.`,
+        `The ${frontRate}% cap is ${usdCents(frontCap)} and the ${backRate}% cap after other debts is ${usdCents(Math.max(0, backCap))}. The price was solved from ${binding}.`,
+        conforming,
+        'FHFA set the 2026 baseline at $832,750 on 25 November 2025. The price here is income math. It is not an appraisal or a Loan Estimate.'
+      ]
+    };
+  }
+  if (slug === 'virginia-paycheck-calculator') {
+    const status = filingStatusCode(v.status);
+    const periods = payPeriodCount(v.periods);
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const requestedDeferral = nonNegativeCents(v.deferral, '401(k) deferral');
+    const deferral = Math.min(requestedDeferral, salary, US_401K_DEFERRAL_CENTS);
+    const exemptions = wholeCount(v.exemptions, 'Virginia personal exemptions');
+    const ageBlind = wholeCount(v.ageblind, 'Virginia age or blind exemptions');
+    const agi = Math.max(0, salary - deferral);
+    const standard = Math.min(VA_STANDARD_DEDUCTION[status], agi);
+    const personal = Math.min(exemptions * VA_PERSONAL_EXEMPTION_CENTS, agi - standard);
+    const aged = Math.min(ageBlind * VA_AGE_BLIND_EXEMPTION_CENTS, agi - standard - personal);
+    const virginiaBase = Math.max(0, agi - standard - personal - aged);
+    const stateTax = bracketTaxCents(virginiaBase, VA_BRACKETS);
+    const federalTaxable = Math.max(0, agi - US_STANDARD_DEDUCTION[status]);
+    const federal = bracketTaxCents(federalTaxable, status === 1 ? US_SINGLE_BRACKETS : US_JOINT_BRACKETS);
+    const socialSecurity = Math.round(Math.min(salary, US_SS_WAGE_BASE_CENTS) * 620 / 10000);
+    const medicare = Math.round(salary * 145 / 10000);
+    const additionalMedicare = Math.round(Math.max(0, salary - US_ADDL_MEDICARE_CENTS) * 90 / 10000);
+    const takeHome = salary - federal - socialSecurity - medicare - additionalMedicare - stateTax - deferral;
+    const details = [
+      `Federal income tax: ${usdCents(federal)}`,
+      `Social Security: ${usdCents(socialSecurity)}`,
+      `Medicare: ${usdCents(medicare)}`,
+      `Additional Medicare Tax: ${usdCents(additionalMedicare)}`,
+      `Virginia income tax: ${usdCents(stateTax)}`,
+      `Virginia standard deduction applied: ${usdCents(standard)}`,
+      `Virginia personal exemptions: ${usdCents(personal)}`,
+      `Virginia age or blind exemptions: ${usdCents(aged)}`,
+      `401(k) deferred: ${usdCents(deferral)}`,
+      `Annual take-home: ${usdCents(takeHome)}`,
+      status === 1
+        ? 'Filing status: single. The standard deduction is $8,750. One personal exemption is $930. A joint return that claims both spouses should use 2 exemptions and the $17,500 deduction, not this single column.'
+        : 'Filing status: married filing jointly, with this salary as the only wage on the return. The $17,500 standard deduction belongs to the return. Two spouses are 2 personal exemptions, which is $1,860, only if you typed 2.',
+      `Virginia taxable income after the 401(k), standard deduction, and exemptions: ${usdCents(virginiaBase)}.`,
+      'Virginia rates used: 2% on the first $3,000, 3% on the next $2,000, 5% on the next $12,000, and 5.75% above $17,000. There is no local wage tax on this page.'
+    ];
+    if (requestedDeferral > deferral) {
+      details.push(`401(k) entered above the 2026 elective deferral limit or above wages was reduced to ${usdCents(deferral)}`);
+    }
+    return {
+      headline: `${usdCents(Math.round(takeHome / periods))} ${PAY_PERIOD_LABEL[periods]}`,
+      details
+    };
+  }
+  if (slug === 'prince-edward-island-take-home-pay-calculator') {
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const payroll = canadaEmployeePayroll(salary);
+    const peiCredit = Math.round((PEI_BASIC_PERSONAL_CENTS + payroll.cppBase + payroll.ei) * 950 / 10000);
+    const peiTax = Math.max(0, bracketTaxCents(payroll.taxable, PEI_BRACKETS) - peiCredit);
+    const takeHome = salary - payroll.cpp - payroll.cpp2 - payroll.ei - payroll.federalTax - peiTax;
+    return {
+      headline: `${cadCents(Math.round(takeHome / 12))} / month`,
+      details: [
+        `Federal income tax: ${cadCents(payroll.federalTax)}`,
+        `Prince Edward Island income tax: ${cadCents(peiTax)}`,
+        `Employee CPP, including CPP2: ${cadCents(payroll.cpp + payroll.cpp2)}`,
+        `Employee EI: ${cadCents(payroll.ei)}`,
+        `Annual take-home: ${cadCents(takeHome)}`,
+        `Every two weeks: ${cadCents(Math.round(takeHome / 26))}`,
+        `Federal basic personal amount applied: ${cadCents(payroll.basicPersonal)}`,
+        `Prince Edward Island basic personal amount applied: ${cadCents(PEI_BASIC_PERSONAL_CENTS)}`,
+        `Prince Edward Island credit at 9.50% for the basic amount, CPP base, and EI: ${cadCents(peiCredit)}`,
+        'Prince Edward Island rates used: 9.50% to $33,928, 13.47% to $65,820, 16.60% to $106,890, 17.62% to $142,520, 19% to $200,000, and 20% above that. The 21% July withholding rate is not used. The low-income tax reduction is not applied.'
+      ]
+    };
+  }
+  if (slug === 'drywall-calculator') {
+    const length = v.length;
+    const width = v.width;
+    const height = v.height;
+    const openings = v.openings;
+    const ceiling = Number(v.ceiling);
+    const sheet = Number(v.sheet);
+    const waste = v.waste;
+    if (!Number.isFinite(length) || length <= 0) throw new Error('Enter a length above zero');
+    if (!Number.isFinite(width) || width <= 0) throw new Error('Enter a width above zero');
+    if (!Number.isFinite(height) || height <= 0) throw new Error('Enter a wall height above zero');
+    if (!Number.isFinite(openings) || openings < 0) throw new Error('Enter openings of zero or more');
+    if (ceiling !== 0 && ceiling !== 1) throw new Error('Choose whether to include the ceiling');
+    if (sheet !== 32 && sheet !== 48) throw new Error('Choose a sheet size');
+    if (!Number.isFinite(waste) || waste < 0 || waste > 100) throw new Error('Enter a waste allowance from 0 to 100 percent');
+    const wallArea = 2 * (length + width) * height;
+    if (openings > wallArea) throw new Error('Openings are larger than the wall area');
+    const walls = wallArea - openings;
+    const ceilingArea = ceiling === 1 ? length * width : 0;
+    const area = walls + ceilingArea;
+    const withWaste = area * (1 + waste / 100);
+    const sheets = Math.ceil(withWaste / sheet - 1e-9);
+    const sheetsWithoutWaste = Math.ceil(area / sheet - 1e-9);
+    const sheetName = sheet === 32 ? '4×8' : '4×12';
+    const sheetWord = sheets === 1 ? 'sheet' : 'sheets';
+    return {
+      headline: `${number(sheets, 0)} ${sheetWord}`,
+      details: [
+        `Wall area after openings: ${number(walls, 2)} sq ft`,
+        ceiling === 1 ? `Ceiling area: ${number(ceilingArea, 2)} sq ft` : 'Ceiling: not included.',
+        `Area to cover: ${number(area, 2)} sq ft`,
+        `Area with ${number(waste, 2)}% waste: ${number(withWaste, 2)} sq ft`,
+        `${sheetName} sheets with no waste allowance, rounded up: ${number(sheetsWithoutWaste, 0)}`,
+        `Each ${sheetName} sheet covers ${number(sheet, 0)} sq ft. The count is one face of the walls, not both faces of a partition.`,
+        openings === 0
+          ? 'No door or window area was subtracted.'
+          : `${number(openings, 2)} sq ft of doors and windows was subtracted from the walls, not from the ceiling.`
       ]
     };
   }
