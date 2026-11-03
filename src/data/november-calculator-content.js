@@ -304,6 +304,7 @@ export const novemberCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'new-jersey-paycheck-calculator', label: 'New Jersey paycheck calculator for 2026', note: 'At $65,000 single with one $1,000 exemption, New Jersey tax is $2,043.50 and the two-week headline is $2,014.00. A 401(k) does not reduce that New Jersey tax. This Virginia tax is $2,923.40.' },
       { slug: 'georgia-paycheck-calculator', label: 'Georgia paycheck calculator for 2026', note: 'A 4.99% tax after a $15,000 standard deduction. At $65,000 single with no dependents, Georgia tax is $2,495.00 and the two-week headline is $1,996.63.' },
       { slug: 'north-carolina-paycheck-calculator', label: 'North Carolina paycheck calculator for 2026', note: 'A 3.99% tax after a $12,750 standard deduction. At $65,000 single the North Carolina tax is $2,084.78 and the two-week headline is $2,012.41.' },
       { slug: 'california-paycheck-calculator', label: 'California paycheck calculator for 2026', note: 'At $90,000 single, California income tax is $3,980.86 plus $1,170.00 of SDI. Virginia tax on that wage is $4,360.90 and annual take-home is $67,784.10, against $66,994.14 in California.' },
@@ -408,6 +409,7 @@ export const novemberCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'newfoundland-and-labrador-take-home-pay-calculator', label: 'Newfoundland and Labrador take-home pay calculator for 2026', note: 'Same federal tax, CPP, and EI at $70,000. Newfoundland and Labrador tax is $5,938.98 rather than this $6,258.09, and the monthly headline is $4,308.58.' },
       { slug: 'new-brunswick-take-home-pay-calculator', label: 'New Brunswick take-home pay calculator for 2026', note: 'Same federal tax, CPP, and EI at $70,000. New Brunswick tax is $5,600.17 rather than this $6,258.09, and the monthly headline is $4,336.82.' },
       { slug: 'nova-scotia-take-home-pay-calculator', label: 'Nova Scotia take-home pay calculator for 2026', note: 'Same federal pieces. Nova Scotia tax is $7,145.72 and the monthly headline is $4,208.02, which is $73.97 below this PEI headline.' },
       { slug: 'quebec-take-home-pay-calculator', label: 'Quebec take-home pay calculator for 2026', note: 'QPP, QPIP, the 1.30% EI rate, and the 16.5% abatement. At $70,000 the monthly headline is $4,253.73.' },

@@ -397,6 +397,7 @@ export const batchCalculatorContent = {
       }
     ],
     relatedLinks: [
+      { slug: 'south-australia-stamp-duty-calculator', label: 'South Australia stamp duty calculator', note: 'General duty at $650,000 is $29,580.00. An eligible first buyer of a new home pays $0.00 at any price. This Western Australian first home at $650,000 is $8,075.00.' },
       { slug: 'queensland-stamp-duty-calculator', label: 'Queensland stamp duty calculator', note: 'An established first home at $730,000 is $6,555.00 there. The Western Australian first home figure at that price is $20,995.00.' },
       { slug: 'victoria-stamp-duty-calculator', label: 'Victoria stamp duty calculator', note: 'Victorian land transfer duty, including an 8% foreign purchaser additional duty. Not this 7% Western Australian surcharge.' },
       { slug: 'nsw-stamp-duty-calculator', label: 'NSW stamp duty calculator', note: 'New South Wales transfer duty and a 9% surcharge. A different scale from Schedule 2 of the Duties Act 2008 (WA).' },

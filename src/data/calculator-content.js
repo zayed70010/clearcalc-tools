@@ -7,6 +7,7 @@ import { dailyCalculatorContent } from './daily-calculator-content.js';
 import { waveCalculatorContent } from './wave-calculator-content.js';
 import { batchCalculatorContent } from './batch-calculator-content.js';
 import { novemberCalculatorContent } from './november-calculator-content.js';
+import { nov3CalculatorContent } from './nov3-calculator-content.js';
 
 export const calculatorContent = {
   'mortgage-calculator': {
@@ -540,7 +541,8 @@ export const calculatorContent = {
     description: 'Find what percentage one number is of another. Includes the formula, worked examples, a common-percent table, and the related percent-of and percent-change formulas.',
     intro: [
       'This percentage calculator answers one question: what percent is the part of the whole? Divide the part by the whole and multiply by 100. Enter 25 as the part and 200 as the whole, and the result is 12.5%.',
-      'People use the words "percentage calculator" for three different jobs: this ratio, "what is X percent of Y," and percent change from an old number to a new one. This form does only the first. The other two formulas are written out below so you can do them by hand without pretending the button did them. The whole must not be zero, because division by zero is undefined.'
+      'People use the words "percentage calculator" for three different jobs: this ratio, "what is X percent of Y," and percent change from an old number to a new one. This form does only the first. The other two formulas are written out below so you can do them by hand without pretending the button did them. The whole must not be zero, because division by zero is undefined.',
+      'A sales tax rate is the second job, not this one. Eight and a quarter percent of $100 is $8.25, which the sales tax page adds to the price and turns into a $108.25 total. If you already have those two dollar amounts, this page will tell you the ratio: part 8.25 and whole 100 is 8.25%, and part 8.25 and whole 108.25 is 7.62%. The 7.62% figure is the tax as a share of the tax-inclusive total. It is not a rate to type back into the sales tax form. Typing 7.62 there would charge too little.'
     ],
     steps: [
       'Enter the part, the number you are measuring.',
@@ -552,12 +554,14 @@ export const calculatorContent = {
     howItWorks: [
       'A percent is a ratio scaled to 100. If the part equals the whole, the result is 100%. If the part is half the whole, the result is 50%. If the part is larger than the whole, the result is above 100%, which is allowed and often correct. 150 out of 80 is more than the whole, so the percent is above 100.',
       'The calculator does not know which number is a price, a score, or a count. It will happily report a percent for any pair except a zero whole. Negative inputs are passed through the same division, which can produce a negative percent. That is rarely what a shopping or grading question wants.',
-      'Displayed percents use at most two decimal places. Two divided by three, times 100, is 66.666…%, and the calculator shows 66.67%. The repeating value is not stored as a fraction.'
+      'Displayed percents use at most two decimal places. Two divided by three, times 100, is 66.666…%, and the calculator shows 66.67%. The repeating value is not stored as a fraction.',
+      'Cent rounding can pull a ratio off the rate that produced it. New Jersey’s statewide sales tax is 6.625%. On a $49.99 price the tax rounds to $3.31 and the total is $53.30. Part 3.31 and whole 49.99 on this page is 6.62%, not 6.625%, because the cent was already rounded before the division. Part 3.31 and whole 53.30 is 6.21%, which is the share of the total. The sales tax page prints both shares next to the rate so the three numbers stay distinct. This page only does the division you type.'
     ],
     formula: 'Percentage = (part ÷ whole) × 100\nThe whole must not be 0.\nRelated, not what this form computes:\nX percent of Y = Y × X / 100\nPercent change = (new − old) / old × 100',
     formulaNotes: [
       'Finding 18% of 85 is the second formula: 85 × 18 / 100 = 15.3. You would not get that by entering part 18 and whole 85. That entry answers a different question and returns 21.18%, because 18 is 21.18% of 85.',
-      'Percent change needs an old value and a new value. From 80 to 100, the change is (100 − 80) / 80 × 100 = 25% increase. From 100 to 80, it is (80 − 100) / 100 × 100 = −20%, a 20% decrease. The base is the old number, so a rise and the reverse fall are not the same percent.'
+      'Percent change needs an old value and a new value. From 80 to 100, the change is (100 − 80) / 80 × 100 = 25% increase. From 100 to 80, it is (80 − 100) / 100 × 100 = −20%, a 20% decrease. The base is the old number, so a rise and the reverse fall are not the same percent.',
+      'South Australia transfer duty of $26,830 on a $600,000 home is another ratio this form can check after the duty page has done the bands. Part 26830 and whole 600000 displays as 4.47%. The marginal rate on the slice above $500,000 is 5.5%, and 5.5% of the whole price would be $33,000. The 4.47% is the effective rate. Neither number is something this form can build from the duty bands.'
     ],
     examplesHeading: 'Worked percentage examples',
     examples: [
@@ -581,6 +585,13 @@ export const calculatorContent = {
           'What is 18% of 85? Compute 85 × 18 / 100 = 15.3 by hand. Entering 18 and 85 in this form instead produces about 21.18%, which is the share 18 represents of 85, not 18 percent of 85.',
           'What is the percent change from 80 to 100? Compute (100 − 80) / 80 × 100 = 25, a 25% increase. The reverse, from 100 down to 80, is a 20% decrease because the base is now 100. This form has no "old" and "new" fields, so it cannot apply that formula for you.'
         ]
+      },
+      {
+        title: 'A sales tax rate, and the two ratios it leaves behind',
+        paragraphs: [
+          'The sales tax page turns $100 at 8.25% into $8.25 of tax and a $108.25 total. Bring those dollars here. Part 8.25 and whole 100 shows 8.25%. Part 8.25 and whole 108.25 shows 7.62%. The first match is the rate, because the tax on $100 came out in even cents. The second is the share of the total, and it is smaller because the whole now includes the tax.',
+          'On $49.99 at New Jersey’s 6.625% statewide rate, the tax is $3.31 and the total is $53.30. Part 3.31 and whole 49.99 shows 6.62%. Part 3.31 and whole 53.30 shows 6.21%. The rate that was applied is still 6.625%. The cent rounding happened before this division, so this page cannot recover the third decimal. Use the sales tax page for the rate and this page for a ratio you already have in dollars.'
+        ]
       }
     ],
     table: {
@@ -600,7 +611,8 @@ export const calculatorContent = {
     limits: [
       'The calculator does not convert a fraction in lowest terms, and it does not show repeating decimals beyond two places. 66.67% is not exactly two thirds. If you need an exact fraction, keep the division as 2/3 rather than the rounded percent.',
       'Percent change, percent of a number, percentage points, and "percent greater than" are easy to mix up. A move from 10% to 15% is a rise of 5 percentage points, and it is also a 50% increase relative to 10. This form will not choose the interpretation. You have to know which number is the part and which is the whole.',
-      'A whole of zero cannot be used. There is no percent that expresses a part of nothing. Leave the field blank or enter 0 and the division does not produce a usable ratio.'
+      'A whole of zero cannot be used. There is no percent that expresses a part of nothing. Leave the field blank or enter 0 and the division does not produce a usable ratio.',
+      'This form also will not add sales tax, take a percent off a price, or split a tip. Those are the sales tax, discount, and tip pages. A discount of 20% off $100 is $80 on the discount page. What percent $20 of savings is of the original $100 is a question for this page, and the answer is 20%. The order matters: do the price change on the page that knows the operation, then bring the two dollar amounts here if you want the ratio stated back.'
     ],
     disclaimer: 'This percentage tool is general arithmetic, not financial, grading, or tax advice. Match the part and the whole to the question you actually have.',
     faqs: [
@@ -623,7 +635,16 @@ export const calculatorContent = {
       {
         q: 'How do I calculate a percent of a number instead?',
         a: 'Multiply the number by the percent and divide by 100. Eighteen percent of 85 is 85 × 18 / 100 = 15.3. Entering 18 and 85 here answers a different question: 18 is about 21.18% of 85.'
+      },
+      {
+        q: 'Why is $3.31 of tax on $49.99 shown as 6.62% rather than 6.625%?',
+        a: 'Because the sales tax was rounded to the cent before this division. New Jersey’s statewide rate is 6.625%, and $49.99 times that rate is $3.3118375, which rounds to $3.31. Part 3.31 and whole 49.99 is 6.62% here. Part 3.31 and whole 53.30, the tax-inclusive total, is 6.21%. Neither line is the rate. The sales tax page keeps 6.625% as the rate it applied.'
       }
+    ],
+    relatedLinks: [
+      { slug: 'sales-tax-calculator', label: 'Sales tax calculator', note: '$100 at 8.25% is $8.25 of tax and a $108.25 total. $8.25 is 8.25% of $100 and 7.62% of $108.25 on this page. The 7.62% is not the rate.' },
+      { slug: 'discount-calculator', label: 'Discount calculator', note: 'Takes 20% off a price. This page can then say what percent the dollars saved are of the original price. It does not compute the sale price.' },
+      { slug: 'tip-calculator', label: 'Tip calculator', note: 'An 18% tip on $85 is $15.30. Part 15.30 and whole 85 on this page is 18%. The tip page also splits the bill.' }
     ]
   },
   'tip-calculator': {
@@ -1016,11 +1037,12 @@ export const calculatorContent = {
       },
       {
         q: 'Can this convert weight, temperature, or area?',
-        a: 'No. The menu is only feet, inches, yards, and kilometers, and the input is meters of length. Square and cubic conversions need the length factor raised to the second or third power, which this form does not do. Fuel economy, in US mpg, UK mpg, or litres per 100 km, is a different rate and has its own page.'
+        a: 'No. The menu is only feet, inches, yards, and kilometers, and the input is meters of length. Square and cubic conversions need the length factor raised to the second or third power, which this form does not do. Temperature uses °F = °C × 9/5 + 32 on its own page: 180°C is 356°F. Fuel economy, in US mpg, UK mpg, or litres per 100 km, is a different rate and has its own page.'
       }
     ],
     relatedLinks: [
       { slug: 'fuel-economy-converter', label: 'Fuel economy converter', note: '30 US mpg is 7.84 L/100 km and 36.03 UK mpg. This length page does not divide by a gallon. The mile on that page is 1.609344 kilometres, which is not the rounded foot factor used here.' },
+      { slug: 'celsius-to-fahrenheit-calculator', label: 'Celsius to Fahrenheit calculator', note: '180°C is 356°F by °F = °C × 9/5 + 32. A chart that says 350°F is rounding. This length page does not convert a temperature.' },
       { slug: 'concrete-slab-calculator', label: 'Concrete slab calculator', note: 'If the slab was measured in meters, convert to feet here first. Thickness on that page stays in inches.' }
     ]
   },
@@ -1348,7 +1370,8 @@ export const calculatorContent = {
   ...dailyCalculatorContent,
   ...waveCalculatorContent,
   ...batchCalculatorContent,
-  ...novemberCalculatorContent
+  ...novemberCalculatorContent,
+  ...nov3CalculatorContent
 };
 
 export function contentWordCount(entry) {

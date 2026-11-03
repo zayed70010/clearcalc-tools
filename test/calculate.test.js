@@ -1087,6 +1087,107 @@ test('2026 Prince Edward Island take-home pay uses the 20% annual rate', () => {
   assert.equal(high.details[6], 'Federal basic personal amount applied: $15,031.43');
 });
 
+test('celsius and fahrenheit use the 9/5 definition', () => {
+  assert.equal(calculate('celsius-to-fahrenheit-calculator', { temperature: 180, direction: 1 }).headline, '356°F');
+  assert.equal(calculate('celsius-to-fahrenheit-calculator', { temperature: 0, direction: 1 }).headline, '32°F');
+  assert.equal(calculate('celsius-to-fahrenheit-calculator', { temperature: 100, direction: 1 }).headline, '212°F');
+  assert.equal(calculate('celsius-to-fahrenheit-calculator', { temperature: -40, direction: 1 }).headline, '-40°F');
+  const room = calculate('celsius-to-fahrenheit-calculator', { temperature: 72, direction: 2 });
+  assert.equal(room.headline, '22.22°C');
+  assert.match(room.details[0], /22\.2222°C/);
+  assert.equal(calculate('celsius-to-fahrenheit-calculator', { temperature: 98.6, direction: 2 }).headline, '37°C');
+  assert.throws(
+    () => calculate('celsius-to-fahrenheit-calculator', { temperature: -300, direction: 1 }),
+    /absolute zero/
+  );
+});
+
+test('sales tax adds a typed rate and a 1 July 2026 statewide rate', () => {
+  const typed = calculate('sales-tax-calculator', { amount: 100, mode: 1, preset: 'custom', rate: 8.25 });
+  assert.equal(typed.headline, '$108.25 total');
+  assert.equal(typed.details[0], 'Sales tax: $8.25');
+  assert.equal(typed.details[4], 'Tax as a share of the total: 7.62%');
+  const removed = calculate('sales-tax-calculator', { amount: 108.25, mode: 2, preset: 'custom', rate: 8.25 });
+  assert.equal(removed.headline, '$100.00 before tax');
+  const jersey = calculate('sales-tax-calculator', { amount: 49.99, mode: 1, preset: 'NJ', rate: 8.25 });
+  assert.equal(jersey.headline, '$53.30 total');
+  assert.equal(jersey.details[0], 'Sales tax: $3.31');
+  assert.match(jersey.details[5], /6\.625%/);
+  assert.match(jersey.details[5], /was not used/);
+  assert.equal(calculate('sales-tax-calculator', { amount: 100, mode: 1, preset: 'OR', rate: 8.25 }).headline, '$100.00 total');
+  assert.equal(calculate('sales-tax-calculator', { amount: 100, mode: 1, preset: 'TX', rate: 9 }).details[0], 'Sales tax: $6.25');
+});
+
+test('2026 New Jersey paycheck does not deduct a 401(k) from state tax', () => {
+  const sample = calculate('new-jersey-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 0, exemptions: 1, dependents: 0, veterans: 0
+  });
+  assert.equal(sample.headline, '$2,014.00 / two weeks');
+  assert.equal(sample.details[4], 'New Jersey income tax: $2,043.50');
+  assert.equal(sample.details[9], 'Annual take-home: $52,364.00');
+  assert.match(sample.details[11], /\$64,000\.00/);
+  const deferred = calculate('new-jersey-paycheck-calculator', {
+    salary: 65000, status: 1, periods: 26, deferral: 6500, exemptions: 1, dependents: 0, veterans: 0
+  });
+  assert.equal(deferred.details[0], 'Federal income tax: $4,840.00');
+  assert.equal(deferred.details[4], 'New Jersey income tax: $2,043.50');
+  assert.equal(deferred.headline, '$1,794.00 / two weeks');
+  const joint = calculate('new-jersey-paycheck-calculator', {
+    salary: 65000, status: 2, periods: 26, deferral: 0, exemptions: 2, dependents: 0, veterans: 0
+  });
+  assert.equal(joint.details[4], 'New Jersey income tax: $1,123.50');
+  assert.equal(joint.headline, '$2,133.23 / two weeks');
+  const threshold = calculate('new-jersey-paycheck-calculator', {
+    salary: 10000, status: 1, periods: 26, deferral: 0, exemptions: 1, dependents: 0, veterans: 0
+  });
+  assert.equal(threshold.details[4], 'New Jersey income tax: $0.00');
+  assert.match(threshold.details[11], /filing threshold/);
+});
+
+test('2026 Newfoundland and Labrador take-home pay uses the $13,094 amount', () => {
+  const sample = calculate('newfoundland-and-labrador-take-home-pay-calculator', { salary: 70000 });
+  assert.equal(sample.headline, '$4,308.58 / month');
+  assert.equal(sample.details[0], 'Federal income tax: $7,278.19');
+  assert.equal(sample.details[1], 'Newfoundland and Labrador income tax: $5,938.98');
+  assert.equal(sample.details[4], 'Annual take-home: $51,703.01');
+  assert.equal(sample.details[7], 'Newfoundland and Labrador basic personal amount applied: $13,094.00');
+  assert.match(sample.details.at(-1), /\$15,000/);
+  assert.match(sample.details.at(-1), /not applied/);
+  const lower = calculate('newfoundland-and-labrador-take-home-pay-calculator', { salary: 30000 });
+  assert.equal(lower.headline, '$2,103.81 / month');
+  assert.equal(lower.details[1], 'Newfoundland and Labrador income tax: $1,291.11');
+});
+
+test('South Australia duty uses the general scale and the 7% surcharge', () => {
+  assert.equal(
+    calculate('south-australia-stamp-duty-calculator', { price: 600000, buyer: 1, foreign: 1 }).headline,
+    '$26,830.00'
+  );
+  assert.equal(
+    calculate('south-australia-stamp-duty-calculator', { price: 600000, buyer: 2, foreign: 1 }).headline,
+    '$0.00'
+  );
+  assert.equal(
+    calculate('south-australia-stamp-duty-calculator', { price: 1500000, buyer: 2, foreign: 1 }).headline,
+    '$0.00'
+  );
+  const foreign = calculate('south-australia-stamp-duty-calculator', { price: 600000, buyer: 1, foreign: 2 });
+  assert.equal(foreign.headline, '$68,830.00');
+  assert.equal(foreign.details[0], 'Transfer duty: $26,830.00');
+  assert.equal(foreign.details[1], 'Foreign ownership surcharge: $42,000.00');
+  const refused = calculate('south-australia-stamp-duty-calculator', { price: 600000, buyer: 2, foreign: 2 });
+  assert.equal(refused.headline, '$68,830.00');
+  assert.match(refused.details[3], /not applied/);
+  assert.equal(
+    calculate('south-australia-stamp-duty-calculator', { price: 650000, buyer: 1, foreign: 1 }).headline,
+    '$29,580.00'
+  );
+  assert.equal(
+    calculate('south-australia-stamp-duty-calculator', { price: 500000, buyer: 1, foreign: 1 }).headline,
+    '$21,330.00'
+  );
+});
+
 test('drywall sheets round up after the waste allowance', () => {
   const sample = calculate('drywall-calculator', {
     length: 12, width: 10, height: 8, openings: 36, ceiling: 1, sheet: 32, waste: 10
