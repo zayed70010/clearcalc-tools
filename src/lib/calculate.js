@@ -5,6 +5,7 @@ const cadCents = (cents) => new Intl.NumberFormat('en-CA', { style: 'currency', 
 const audCents = (cents) => new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(cents / 100);
 const number = (value, digits = 2) => new Intl.NumberFormat('en-US', { maximumFractionDigits: digits }).format(value);
 const percent = (value) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+const rateText = (value) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 3 }).format(value);
 
 // 2026/27 England, Wales, and Northern Ireland. Annual thresholds from HMRC
 // "Rates and thresholds for employers 2026 to 2027". Allowance taper from
@@ -1154,6 +1155,163 @@ function formatRunClock(totalSeconds) {
   return `${minutes}:${sec}`;
 }
 
+// Statewide general rates as of 1 July 2026 from the Tax Foundation state-rate
+// column. Minnesota, Missouri, and New Jersey are kept at the statutory
+// figures that column rounds (6.875%, 4.225%, and 6.625%). California 7.25%
+// includes the 1.25% mandatory statewide local add-on, Utah 6.10% includes
+// its 1.25% statewide local add-on, and Virginia 5.30% includes its 1%
+// statewide local add-on. City and county rates are not in this list.
+export const SALES_TAX_PRESETS = [
+  ['custom', 'Use the percent I type', null],
+  ['AL', 'Alabama', 4],
+  ['AK', 'Alaska', 0],
+  ['AZ', 'Arizona', 5.6],
+  ['AR', 'Arkansas', 6.5],
+  ['CA', 'California', 7.25],
+  ['CO', 'Colorado', 2.9],
+  ['CT', 'Connecticut', 6.35],
+  ['DE', 'Delaware', 0],
+  ['DC', 'District of Columbia', 6],
+  ['FL', 'Florida', 6],
+  ['GA', 'Georgia', 4],
+  ['HI', 'Hawaii', 4],
+  ['ID', 'Idaho', 6],
+  ['IL', 'Illinois', 6.25],
+  ['IN', 'Indiana', 7],
+  ['IA', 'Iowa', 6],
+  ['KS', 'Kansas', 6.5],
+  ['KY', 'Kentucky', 6],
+  ['LA', 'Louisiana', 5],
+  ['ME', 'Maine', 5.5],
+  ['MD', 'Maryland', 6],
+  ['MA', 'Massachusetts', 6.25],
+  ['MI', 'Michigan', 6],
+  ['MN', 'Minnesota', 6.875],
+  ['MS', 'Mississippi', 7],
+  ['MO', 'Missouri', 4.225],
+  ['MT', 'Montana', 0],
+  ['NE', 'Nebraska', 5.5],
+  ['NV', 'Nevada', 6.85],
+  ['NH', 'New Hampshire', 0],
+  ['NJ', 'New Jersey', 6.625],
+  ['NM', 'New Mexico', 4.88],
+  ['NY', 'New York', 4],
+  ['NC', 'North Carolina', 4.75],
+  ['ND', 'North Dakota', 5],
+  ['OH', 'Ohio', 5.75],
+  ['OK', 'Oklahoma', 4.5],
+  ['OR', 'Oregon', 0],
+  ['PA', 'Pennsylvania', 6],
+  ['RI', 'Rhode Island', 7],
+  ['SC', 'South Carolina', 6],
+  ['SD', 'South Dakota', 4.2],
+  ['TN', 'Tennessee', 7],
+  ['TX', 'Texas', 6.25],
+  ['UT', 'Utah', 6.1],
+  ['VT', 'Vermont', 6],
+  ['VA', 'Virginia', 5.3],
+  ['WA', 'Washington', 6.5],
+  ['WV', 'West Virginia', 6],
+  ['WI', 'Wisconsin', 5],
+  ['WY', 'Wyoming', 4]
+];
+
+const SALES_TAX_BY_CODE = Object.fromEntries(SALES_TAX_PRESETS.map(([code, name, rate]) => [code, { name, rate }]));
+
+// Tax year 2026 New Jersey gross income tax. Rates are the Division of
+// Taxation schedule labeled "2020 and After", still the 2026 NJ-1040-ES
+// tables: Table A for single, Table B for married filing jointly. Rates are
+// hundred-thousandths (5.525% = 5525) because 5.525% is not a whole basis
+// point. Exemptions are $1,000 personal, $1,500 dependent, and $6,000 veteran.
+// There is no standard deduction. A traditional 401(k) deferral is not
+// subtracted from New Jersey gross income. Wages at or under $10,000 single,
+// or $20,000 joint, are below the filing threshold and are taxed at zero.
+const NJ_SINGLE_BRACKETS = [
+  [2_000_000, 1400],
+  [3_500_000, 1750],
+  [4_000_000, 3500],
+  [7_500_000, 5525],
+  [50_000_000, 6370],
+  [100_000_000, 8970],
+  [Number.POSITIVE_INFINITY, 10750]
+];
+const NJ_JOINT_BRACKETS = [
+  [2_000_000, 1400],
+  [5_000_000, 1750],
+  [7_000_000, 2450],
+  [8_000_000, 3500],
+  [15_000_000, 5525],
+  [50_000_000, 6370],
+  [100_000_000, 8970],
+  [Number.POSITIVE_INFINITY, 10750]
+];
+const NJ_PERSONAL_EXEMPTION_CENTS = 100_000;
+const NJ_DEPENDENT_EXEMPTION_CENTS = 150_000;
+const NJ_VETERAN_EXEMPTION_CENTS = 600_000;
+const NJ_FILING_THRESHOLD_CENTS = { 1: 1_000_000, 2: 2_000_000 };
+
+// 2026 Newfoundland and Labrador. Brackets are the Canada.ca 2026 provincial
+// rate table and the Department of Finance personal income tax page. The basic
+// personal amount for the 2026 return is $13,094, credited at 8.7%. July 2026
+// payroll tables use a prorated $15,000 amount for the second half of the year
+// because the increase was announced after January withholding. That catch-up
+// is not the annual amount. The low-income tax reduction is not applied.
+const NL_BRACKETS = [
+  [4_467_800, 870],
+  [8_935_400, 1450],
+  [15_952_800, 1580],
+  [22_334_000, 1780],
+  [28_531_900, 1980],
+  [57_063_800, 2080],
+  [114_127_500, 2130],
+  [Number.POSITIVE_INFINITY, 2180]
+];
+const NL_BASIC_PERSONAL_CENTS = 1_309_400;
+
+// General conveyance duty under the Stamp Duties Act 1923 (SA), the scale
+// RevenueSA still publishes: 1% to $12,000, then 2%, 3%, 3.5%, 4%, 4.25%,
+// 4.75%, 5%, and 5.5% above $500,000. Rates are basis points. An eligible
+// first home buyer of a new home or vacant land pays no duty, with no price
+// cap, for contracts from 6 June 2024. An established home does not get that
+// exemption. Section 72 adds 7% for a foreign person acquiring residential land.
+const SA_DUTY_BANDS = [
+  [1_200_000, 100],
+  [3_000_000, 200],
+  [5_000_000, 300],
+  [10_000_000, 350],
+  [20_000_000, 400],
+  [25_000_000, 425],
+  [30_000_000, 475],
+  [50_000_000, 500],
+  [Number.POSITIVE_INFINITY, 550]
+];
+
+function salesTaxRate(preset, typedRate) {
+  const chosen = SALES_TAX_BY_CODE[preset];
+  if (!chosen) throw new Error('Choose a statewide rate or type your own');
+  if (chosen.rate == null) {
+    if (!Number.isFinite(typedRate) || typedRate < 0 || typedRate > 30) throw new Error('Enter a sales tax rate from 0 to 30 percent');
+    return { rate: typedRate, note: 'Rate source: the percent you typed. It is not looked up from a state.' };
+  }
+  const extra = preset === 'AK'
+    ? ' Alaska has no statewide sales tax, and many boroughs and cities still charge a local tax.'
+    : preset === 'DE' || preset === 'MT' || preset === 'NH' || preset === 'OR'
+      ? ` ${chosen.name} has no general statewide sales tax.`
+      : preset === 'CA'
+        ? ' The 7.25% includes California’s 1.25% mandatory statewide local add-on. District taxes can still be higher.'
+        : preset === 'UT'
+          ? ' The 6.10% includes Utah’s 1.25% mandatory statewide local add-on. Additional local tax can still apply.'
+          : preset === 'VA'
+            ? ' The 5.30% includes Virginia’s 1% statewide local add-on. Some regions add more.'
+            : preset === 'NJ'
+              ? ' Most of New Jersey charges 6.625%. Some Urban Enterprise Zone areas collect less.'
+              : '';
+  return {
+    rate: chosen.rate,
+    note: `Rate source: ${chosen.name} statewide rate of ${rateText(chosen.rate)}% as of 1 July 2026.${extra} City and county tax on top of that rate is not included. The percent typed in the other field was not used.`
+  };
+}
+
 function canadaEmployeePayroll(salary) {
   const pensionable = Math.min(salary, 7_460_000);
   const contributory = Math.max(0, pensionable - 350_000);
@@ -1171,7 +1329,7 @@ function canadaEmployeePayroll(salary) {
 }
 
 export function calculate(slug, values) {
-  const v = Object.fromEntries(Object.entries(values).map(([key, val]) => [key, key.includes('date') ? val : Number(val)]));
+  const v = Object.fromEntries(Object.entries(values).map(([key, val]) => [key, key.includes('date') || key === 'preset' ? val : Number(val)]));
   if (slug === 'mortgage-calculator' || slug === 'loan-calculator') {
     const months = v.years * 12;
     const r = v.rate / 1200;
@@ -2971,6 +3129,171 @@ export function calculate(slug, values) {
         openings === 0
           ? 'No door or window area was subtracted.'
           : `${number(openings, 2)} sq ft of doors and windows was subtracted from the walls, not from the ceiling.`
+      ]
+    };
+  }
+  if (slug === 'celsius-to-fahrenheit-calculator') {
+    const temperature = v.temperature;
+    const direction = Number(v.direction);
+    if (!Number.isFinite(temperature)) throw new Error('Enter a temperature');
+    if (direction !== 1 && direction !== 2) throw new Error('Choose a conversion direction');
+    const celsius = direction === 1 ? temperature : (temperature - 32) * 5 / 9;
+    if (celsius < -273.15 - 1e-6) throw new Error('Enter a temperature at or above absolute zero, −273.15°C or −459.67°F');
+    const fahrenheit = celsius * 9 / 5 + 32;
+    const kelvin = celsius + 273.15;
+    const fromUnit = direction === 1 ? 'C' : 'F';
+    const toValue = direction === 1 ? fahrenheit : celsius;
+    const toUnit = direction === 1 ? 'F' : 'C';
+    return {
+      headline: `${number(toValue, 2)}°${toUnit}`,
+      details: [
+        direction === 1
+          ? `${number(temperature, 2)}°C is ${number(fahrenheit, 4)}°F before the headline is rounded.`
+          : `${number(temperature, 2)}°F is ${number(celsius, 4)}°C before the headline is rounded.`,
+        `Kelvin: ${number(kelvin, 2)} K`,
+        direction === 1
+          ? 'Formula used: °F = °C × 9/5 + 32. The headline keeps at most two decimal places.'
+          : 'Formula used: °C = (°F − 32) × 5/9. The headline keeps at most two decimal places.',
+        `Full-precision pair: ${number(celsius, 4)}°C and ${number(fahrenheit, 4)}°F. Water freezes at 0°C (32°F) and boils at 100°C (212°F). −40 is the same number on both scales.`,
+        'A cookbook that prints 350°F for 180°C is rounding. 180 × 9/5 + 32 is 356. This page shows the formula, not the rounded chart.'
+      ]
+    };
+  }
+  if (slug === 'sales-tax-calculator') {
+    const amount = nonNegativeCents(v.amount, 'amount');
+    const mode = Number(v.mode);
+    if (mode !== 1 && mode !== 2) throw new Error('Choose whether the amount is before tax or already includes tax');
+    const { rate, note } = salesTaxRate(String(v.preset), v.rate);
+    if (mode === 1) {
+      const tax = Math.round(amount * rate / 100);
+      const total = amount + tax;
+      return {
+        headline: `${usdCents(total)} total`,
+        details: [
+          `Sales tax: ${usdCents(tax)}`,
+          `Price before tax: ${usdCents(amount)}`,
+          `Rate used: ${rateText(rate)}%`,
+          amount === 0 ? 'Tax as a share of the price: the price is zero, so that share is undefined.' : `Tax as a share of the price: ${percent(tax / amount * 100)}%`,
+          total === 0 ? 'Tax as a share of the total: the total is zero.' : `Tax as a share of the total: ${percent(tax / total * 100)}%`,
+          note,
+          'The tax is the price times the rate, rounded to the nearest cent, then added. Half a cent rounds away from zero with the usual nearest-cent rule. Groceries, clothing, and prepared food can be exempt or taxed at a different rate. This form uses one rate on the whole amount.'
+        ]
+      };
+    }
+    const preTax = Math.round(amount / (1 + rate / 100));
+    const tax = amount - preTax;
+    return {
+      headline: `${usdCents(preTax)} before tax`,
+      details: [
+        `Sales tax inside the total: ${usdCents(tax)}`,
+        `Tax-inclusive total: ${usdCents(amount)}`,
+        `Rate used: ${rateText(rate)}%`,
+        preTax === 0 ? 'Tax as a share of the price: the price before tax rounds to zero.' : `Tax as a share of the price: ${percent(tax / preTax * 100)}%`,
+        amount === 0 ? 'Tax as a share of the total: the total is zero.' : `Tax as a share of the total: ${percent(tax / amount * 100)}%`,
+        note,
+        'The price before tax is the total divided by 1 plus the rate, rounded to the nearest cent. The tax is the total minus that price. On a total that was built by this same rounding, the reverse returns the price the forward calculation started from.'
+      ]
+    };
+  }
+  if (slug === 'new-jersey-paycheck-calculator') {
+    const status = filingStatusCode(v.status);
+    const periods = payPeriodCount(v.periods);
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const requestedDeferral = nonNegativeCents(v.deferral, '401(k) deferral');
+    const deferral = Math.min(requestedDeferral, salary, US_401K_DEFERRAL_CENTS);
+    const exemptions = wholeCount(v.exemptions, 'New Jersey personal exemptions');
+    const dependents = wholeCount(v.dependents, 'New Jersey dependent exemptions');
+    const veterans = wholeCount(v.veterans, 'New Jersey veteran exemptions');
+    const agi = Math.max(0, salary - deferral);
+    const federalTaxable = Math.max(0, agi - US_STANDARD_DEDUCTION[status]);
+    const federal = bracketTaxCents(federalTaxable, status === 1 ? US_SINGLE_BRACKETS : US_JOINT_BRACKETS);
+    const socialSecurity = Math.round(Math.min(salary, US_SS_WAGE_BASE_CENTS) * 620 / 10000);
+    const medicare = Math.round(salary * 145 / 10000);
+    const additionalMedicare = Math.round(Math.max(0, salary - US_ADDL_MEDICARE_CENTS) * 90 / 10000);
+    const personal = exemptions * NJ_PERSONAL_EXEMPTION_CENTS;
+    const dependent = dependents * NJ_DEPENDENT_EXEMPTION_CENTS;
+    const veteran = veterans * NJ_VETERAN_EXEMPTION_CENTS;
+    const exemptionTotal = personal + dependent + veteran;
+    const njTaxable = Math.max(0, salary - exemptionTotal);
+    const belowThreshold = salary <= NJ_FILING_THRESHOLD_CENTS[status];
+    const stateTax = belowThreshold ? 0 : bracketTaxCents(njTaxable, status === 1 ? NJ_SINGLE_BRACKETS : NJ_JOINT_BRACKETS, 100000);
+    const takeHome = salary - federal - socialSecurity - medicare - additionalMedicare - stateTax - deferral;
+    const details = [
+      `Federal income tax: ${usdCents(federal)}`,
+      `Social Security: ${usdCents(socialSecurity)}`,
+      `Medicare: ${usdCents(medicare)}`,
+      `Additional Medicare Tax: ${usdCents(additionalMedicare)}`,
+      `New Jersey income tax: ${usdCents(stateTax)}`,
+      `New Jersey personal exemptions: ${usdCents(personal)}`,
+      `New Jersey dependent exemptions: ${usdCents(dependent)}`,
+      `New Jersey veteran exemptions: ${usdCents(veteran)}`,
+      `401(k) deferred: ${usdCents(deferral)}`,
+      `Annual take-home: ${usdCents(takeHome)}`,
+      status === 1
+        ? 'Filing status: single. Table A applies. One taxpayer exemption is $1,000. A spouse is a second $1,000 exemption only if you type 2, and a joint return uses Table B, not this single column.'
+        : 'Filing status: married filing jointly, with this salary as the only wage on the return. Table B applies. Two spouses are two $1,000 exemptions only if you typed 2.',
+      belowThreshold
+        ? `New Jersey gross income is at or under the ${usdCents(NJ_FILING_THRESHOLD_CENTS[status])} filing threshold, so New Jersey tax is $0.00. Exemptions are not what zeroed the tax.`
+        : `New Jersey taxable income after exemptions, and without subtracting the 401(k): ${usdCents(njTaxable)}.`,
+      'New Jersey does not subtract a traditional 401(k) from wages. The deferral reduces federal taxable income only. There is no New Jersey standard deduction. Employee unemployment, temporary disability, and family leave insurance are not subtracted.'
+    ];
+    if (requestedDeferral > deferral) {
+      details.push(`401(k) entered above the 2026 elective deferral limit or above wages was reduced to ${usdCents(deferral)}`);
+    }
+    return {
+      headline: `${usdCents(Math.round(takeHome / periods))} ${PAY_PERIOD_LABEL[periods]}`,
+      details
+    };
+  }
+  if (slug === 'newfoundland-and-labrador-take-home-pay-calculator') {
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const payroll = canadaEmployeePayroll(salary);
+    const nlCredit = Math.round((NL_BASIC_PERSONAL_CENTS + payroll.cppBase + payroll.ei) * 870 / 10000);
+    const nlTax = Math.max(0, bracketTaxCents(payroll.taxable, NL_BRACKETS) - nlCredit);
+    const takeHome = salary - payroll.cpp - payroll.cpp2 - payroll.ei - payroll.federalTax - nlTax;
+    return {
+      headline: `${cadCents(Math.round(takeHome / 12))} / month`,
+      details: [
+        `Federal income tax: ${cadCents(payroll.federalTax)}`,
+        `Newfoundland and Labrador income tax: ${cadCents(nlTax)}`,
+        `Employee CPP, including CPP2: ${cadCents(payroll.cpp + payroll.cpp2)}`,
+        `Employee EI: ${cadCents(payroll.ei)}`,
+        `Annual take-home: ${cadCents(takeHome)}`,
+        `Every two weeks: ${cadCents(Math.round(takeHome / 26))}`,
+        `Federal basic personal amount applied: ${cadCents(payroll.basicPersonal)}`,
+        `Newfoundland and Labrador basic personal amount applied: ${cadCents(NL_BASIC_PERSONAL_CENTS)}`,
+        `Newfoundland and Labrador credit at 8.7% for the basic amount, CPP base, and EI: ${cadCents(nlCredit)}`,
+        'Newfoundland and Labrador rates used: 8.7% to $44,678, 14.5% to $89,354, 15.8% to $159,528, 17.8% to $223,340, 19.8% to $285,319, 20.8% to $570,638, 21.3% to $1,141,275, and 21.8% above that. The annual basic personal amount is $13,094. The July withholding tables use a prorated $15,000 for the second half of the year, and that catch-up is not used here. The low-income tax reduction is not applied.'
+      ]
+    };
+  }
+  if (slug === 'south-australia-stamp-duty-calculator') {
+    const price = nonNegativeCents(v.price, 'dutiable value');
+    const buyer = Number(v.buyer);
+    const foreign = Number(v.foreign);
+    if (buyer !== 1 && buyer !== 2) throw new Error('Choose a buyer');
+    if (foreign !== 1 && foreign !== 2) throw new Error('Choose whether the foreign ownership surcharge applies');
+    const general = bracketTaxCents(price, SA_DUTY_BANDS);
+    const exemptionRefused = buyer === 2 && foreign === 2;
+    const duty = buyer === 2 && foreign === 1 ? 0 : general;
+    const surcharge = foreign === 2 ? Math.round(price * 700 / 10000) : 0;
+    const total = duty + surcharge;
+    const buyerNote = buyer === 2 && foreign === 1
+      ? 'Buyer: eligible first home buyer of a new home or vacant land. Transfer duty is $0.00. There is no price cap on that exemption. An established home does not qualify, and this form does not check the other eligibility tests.'
+      : exemptionRefused
+        ? 'Buyer: the new-home exemption was not applied because a foreign person was selected. Section 72 surcharge and the first-home exemption do not combine on this page. Transfer duty is the general scale.'
+        : 'Buyer: general scale, including a first home buyer of an established home. South Australia does not concede duty on an established home.';
+    return {
+      headline: audCents(total),
+      details: [
+        `Transfer duty: ${audCents(duty)}`,
+        `Foreign ownership surcharge: ${audCents(surcharge)}`,
+        `Dutiable value: ${audCents(price)}`,
+        buyerNote,
+        foreign === 2
+          ? 'Foreign ownership surcharge: 7% of the dutiable value, under section 72 of the Stamp Duties Act 1923, added to transfer duty. It is not a substitute for the general scale.'
+          : 'Foreign ownership surcharge: not applied.',
+        'General scale: 1% to $12,000, 2% to $30,000, 3% to $50,000, 3.5% to $100,000, 4% to $200,000, 4.25% to $250,000, 4.75% to $300,000, 5% to $500,000, and 5.5% above $500,000. The 5.5% applies only to the slice above $500,000.'
       ]
     };
   }

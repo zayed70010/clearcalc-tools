@@ -272,6 +272,44 @@ test('five november calculators are linked from the homepage and a related page'
   assert.equal(mortgage.faqs.length, 6);
 });
 
+test('five November calculators are linked from the homepage and a related page', () => {
+  const home = readFileSync('src/pages/index.astro', 'utf8');
+  const links = [
+    ['celsius-to-fahrenheit-calculator', 'length-converter'],
+    ['sales-tax-calculator', 'percentage-calculator'],
+    ['new-jersey-paycheck-calculator', 'virginia-paycheck-calculator'],
+    ['newfoundland-and-labrador-take-home-pay-calculator', 'prince-edward-island-take-home-pay-calculator'],
+    ['south-australia-stamp-duty-calculator', 'western-australia-stamp-duty-calculator']
+  ];
+  for (const [slug, related] of links) {
+    assert.match(home, new RegExp(`calculators/${slug}/`));
+    assert.ok(calculatorContent[slug], slug);
+    assert.equal(
+      calculatorContent[related].relatedLinks.some((link) => link.slug === slug),
+      true,
+      related
+    );
+  }
+  assert.match(calculatorContent['celsius-to-fahrenheit-calculator'].description, /356°F/);
+  assert.match(calculatorContent['celsius-to-fahrenheit-calculator'].table.rows[3][1], /356°F/);
+  assert.match(calculatorContent['sales-tax-calculator'].description, /8\.25%/);
+  assert.match(calculatorContent['sales-tax-calculator'].table.rows[0][3], /\$108\.25/);
+  assert.match(calculatorContent['new-jersey-paycheck-calculator'].description, /\$2,043\.50/);
+  assert.match(calculatorContent['new-jersey-paycheck-calculator'].table.rows[0][4], /\$2,014\.00/);
+  assert.match(calculatorContent['newfoundland-and-labrador-take-home-pay-calculator'].description, /\$13,094/);
+  assert.match(calculatorContent['newfoundland-and-labrador-take-home-pay-calculator'].table.rows[2][4], /\$4,308\.58/);
+  assert.match(calculatorContent['south-australia-stamp-duty-calculator'].table.rows[0][1], /\$26,830\.00/);
+  assert.match(calculatorContent['south-australia-stamp-duty-calculator'].table.rows[2][3], /\$68,830\.00/);
+  const percentage = calculatorContent['percentage-calculator'];
+  assert.match(percentage.intro[2], /7\.62%/);
+  assert.match(percentage.howItWorks.at(-1), /6\.62%/);
+  assert.equal(percentage.faqs.length, 6);
+  assert.equal(
+    percentage.relatedLinks.some((link) => link.slug === 'sales-tax-calculator'),
+    true
+  );
+});
+
 test('length converter slug matches the page title', () => {
   const length = calculators.find((item) => item.slug === 'length-converter');
   assert.equal(length.title, 'Length Converter');
