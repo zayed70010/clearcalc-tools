@@ -1188,6 +1188,122 @@ test('South Australia duty uses the general scale and the 7% surcharge', () => {
   );
 });
 
+test('debt-to-income ratios keep housing separate from other debts', () => {
+  const sample = calculate('debt-to-income-ratio-calculator', { income: 8000, housing: 2200, debts: 400 });
+  assert.equal(sample.headline, '32.50% back-end');
+  assert.equal(sample.details[0], 'Front-end DTI, housing only: 27.50%');
+  assert.equal(sample.details[4], 'Total monthly debt payments: $2,600.00');
+  assert.equal(sample.details[6], 'Housing is $40.00 under the $2,240.00 line for 28% of gross income.');
+  assert.equal(sample.details[7], 'The total of housing and other debts is $280.00 under the $2,880.00 line for 36% of gross income.');
+  const house = calculate('debt-to-income-ratio-calculator', { income: 10000, housing: 2800, debts: 400 });
+  assert.equal(house.headline, '32.00% back-end');
+  assert.equal(house.details[0], 'Front-end DTI, housing only: 28.00%');
+  assert.match(house.details[6], /equals the \$2,800\.00 line/);
+  const high = calculate('debt-to-income-ratio-calculator', { income: 5000, housing: 1800, debts: 700 });
+  assert.equal(high.headline, '50.00% back-end');
+  assert.equal(high.details[0], 'Front-end DTI, housing only: 36.00%');
+  assert.throws(() => calculate('debt-to-income-ratio-calculator', { income: 0, housing: 0, debts: 0 }), /income/);
+});
+
+test('ideal weight uses Devine, Robinson, and Miller', () => {
+  const male = calculate('ideal-weight-calculator', { sex: 1, height: 175 });
+  assert.equal(male.headline, '70.5 kg');
+  assert.equal(male.details[1], 'Devine: 70.46 kg (155.3 lb)');
+  assert.equal(male.details[2], 'Robinson: 68.91 kg (151.9 lb)');
+  assert.equal(male.details[3], 'Miller: 68.75 kg (151.6 lb)');
+  const exact = calculate('ideal-weight-calculator', { sex: 1, height: 177.8 });
+  assert.equal(exact.headline, '73 kg');
+  assert.equal(exact.details[1], 'Devine: 73 kg (160.9 lb)');
+  assert.equal(exact.details[2], 'Robinson: 71 kg (156.5 lb)');
+  const female = calculate('ideal-weight-calculator', { sex: 2, height: 162.56 });
+  assert.equal(female.headline, '54.7 kg');
+  assert.equal(female.details[3], 'Miller: 58.54 kg (129.1 lb)');
+  const base = calculate('ideal-weight-calculator', { sex: 1, height: 152.4 });
+  assert.equal(base.details[1], 'Devine: 50 kg (110.2 lb)');
+  assert.throws(() => calculate('ideal-weight-calculator', { sex: 1, height: 100 }), /122/);
+});
+
+test('2026 Arizona paycheck uses the flat 2.5% rate', () => {
+  const sample = calculate('arizona-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0 });
+  assert.equal(sample.headline, '$2,045.24 / two weeks');
+  assert.equal(sample.details[4], 'Arizona income tax: $1,231.25');
+  assert.equal(sample.details[5], 'Arizona standard deduction applied: $15,750.00');
+  assert.equal(sample.details[7], 'Annual take-home: $53,176.25');
+  const deferred = calculate('arizona-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 6500 });
+  assert.equal(deferred.details[4], 'Arizona income tax: $1,068.75');
+  assert.equal(deferred.headline, '$1,831.49 / two weeks');
+  const joint = calculate('arizona-paycheck-calculator', { salary: 65000, status: 2, periods: 26, deferral: 0 });
+  assert.equal(joint.details[4], 'Arizona income tax: $837.50');
+  assert.equal(joint.details[5], 'Arizona standard deduction applied: $31,500.00');
+  const low = calculate('arizona-paycheck-calculator', { salary: 15000, status: 1, periods: 26, deferral: 0 });
+  assert.equal(low.details[4], 'Arizona income tax: $0.00');
+  assert.equal(low.details[5], 'Arizona standard deduction applied: $15,000.00');
+  assert.throws(() => calculate('arizona-paycheck-calculator', { salary: -1, status: 1, periods: 26, deferral: 0 }), /salary/);
+});
+
+test('Tasmania duty uses the general scale, the 30 June 2026 exemption, and 8%', () => {
+  assert.equal(
+    calculate('tasmania-stamp-duty-calculator', { price: 550000, buyer: 1, foreign: 1 }).headline,
+    '$20,372.50'
+  );
+  assert.equal(
+    calculate('tasmania-stamp-duty-calculator', { price: 550000, buyer: 2, foreign: 1 }).headline,
+    '$0.00'
+  );
+  assert.equal(
+    calculate('tasmania-stamp-duty-calculator', { price: 550000, buyer: 3, foreign: 1 }).headline,
+    '$20,372.50'
+  );
+  assert.equal(
+    calculate('tasmania-stamp-duty-calculator', { price: 725000, buyer: 1, foreign: 1 }).headline,
+    '$27,810.00'
+  );
+  assert.equal(
+    calculate('tasmania-stamp-duty-calculator', { price: 750000, buyer: 2, foreign: 1 }).headline,
+    '$0.00'
+  );
+  const overCap = calculate('tasmania-stamp-duty-calculator', { price: 750000.01, buyer: 2, foreign: 1 });
+  assert.equal(overCap.headline, '$28,939.50');
+  assert.match(overCap.details[3], /over \$750,000/);
+  const foreign = calculate('tasmania-stamp-duty-calculator', { price: 550000, buyer: 1, foreign: 2 });
+  assert.equal(foreign.headline, '$64,372.50');
+  assert.equal(foreign.details[0], 'Transfer duty: $20,372.50');
+  assert.equal(foreign.details[1], 'Foreign investor duty surcharge: $44,000.00');
+  const refused = calculate('tasmania-stamp-duty-calculator', { price: 550000, buyer: 2, foreign: 2 });
+  assert.equal(refused.headline, '$64,372.50');
+  assert.match(refused.details[3], /not applied/);
+  assert.equal(
+    calculate('tasmania-stamp-duty-calculator', { price: 3000.01, buyer: 1, foreign: 1 }).headline,
+    '$51.75'
+  );
+});
+
+test('2026 Northwest Territories take-home pay uses the $18,198 amount', () => {
+  const sample = calculate('northwest-territories-take-home-pay-calculator', { salary: 70000 });
+  assert.equal(sample.headline, '$4,537.04 / month');
+  assert.equal(sample.details[0], 'Federal income tax: $7,278.19');
+  assert.equal(sample.details[1], 'Northwest Territories income tax: $3,197.57');
+  assert.equal(sample.details[4], 'Annual take-home: $54,444.42');
+  assert.equal(sample.details[7], 'Northwest Territories basic personal amount applied: $18,198.00');
+  assert.match(sample.details.at(-1), /14\.05%/);
+  assert.match(sample.details.at(-1), /not applied/);
+  const lower = calculate('northwest-territories-take-home-pay-calculator', { salary: 30000 });
+  assert.equal(lower.headline, '$2,163.54 / month');
+  assert.equal(lower.details[1], 'Northwest Territories income tax: $574.44');
+  const high = calculate('northwest-territories-take-home-pay-calculator', { salary: 200000 });
+  assert.equal(high.details[1], 'Northwest Territories income tax: $18,158.26');
+  assert.equal(high.details[6], 'Federal basic personal amount applied: $16,084.75');
+});
+
+test('sales tax rounding on $14.99 is not the percentage of the rounded cent', () => {
+  const texas = calculate('sales-tax-calculator', { amount: 14.99, mode: 1, preset: 'TX', rate: 8.25 });
+  assert.equal(texas.headline, '$15.93 total');
+  assert.equal(texas.details[0], 'Sales tax: $0.94');
+  assert.equal(texas.details[3], 'Tax as a share of the price: 6.27%');
+  assert.equal(texas.details[4], 'Tax as a share of the total: 5.90%');
+  assert.equal(calculate('percentage-calculator', { part: 0.94, whole: 14.99 }).headline, '6.27%');
+});
+
 test('drywall sheets round up after the waste allowance', () => {
   const sample = calculate('drywall-calculator', {
     length: 12, width: 10, height: 8, openings: 36, ceiling: 1, sheet: 32, waste: 10

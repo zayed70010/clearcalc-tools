@@ -204,7 +204,8 @@ export const novemberCalculatorContent = {
       { slug: 'mortgage-calculator', label: 'Fixed-rate mortgage payment calculator', note: 'The $371,795.43 loan at 6.5% for 30 years is $2,350.00 a month there, with $474,204.58 of interest. This page solved that loan from the payment.' },
       { slug: 'rent-affordability-calculator', label: 'Rent affordability calculator', note: 'Compares rent with 30% of gross income. It does not amortize a mortgage or add property tax.' },
       { slug: 'england-stamp-duty-calculator', label: 'England stamp duty calculator', note: 'SDLT in pounds. It is not a US housing payment and it is not added to this dollar price.' },
-      { slug: 'virginia-paycheck-calculator', label: 'Virginia paycheck calculator for 2026', note: 'The same $120,000 wage does not mean the same cash in every state. This price uses gross income, before that tax.' }
+      { slug: 'virginia-paycheck-calculator', label: 'Virginia paycheck calculator for 2026', note: 'The same $120,000 wage does not mean the same cash in every state. This price uses gross income, before that tax.' },
+      { slug: 'debt-to-income-ratio-calculator', label: 'Debt-to-income ratio calculator', note: 'The $2,800 housing payment on $10,000 of monthly income, plus $400 of other debts, is 28.00% front-end and 32.00% back-end. This page solved the price. That page only divides.' }
     ]
   },
   'virginia-paycheck-calculator': {
