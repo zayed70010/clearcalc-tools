@@ -151,6 +151,13 @@ export const nov3CalculatorContent = {
           'Texas on $100 shows $6.25 of tax and a $106.25 total. The tax is 5.88% of that total. California on $100 shows $7.25 of tax and a $107.25 total, and the note says the 7.25% includes the 1.25% mandatory statewide local add-on. District taxes can still be higher. Selecting California does not type 8.25 for you.',
           'Oregon on $100 shows $0.00 of tax and a $100.00 total. Delaware, Montana, and New Hampshire do the same. Alaska’s statewide rate is also 0%, with a different note: local sales taxes still exist in many boroughs and cities. A zero from the menu is the state row. It is not a promise that the shop charged nothing.'
         ]
+      },
+      {
+        title: '$14.99 at 6.25%, where the rounded cent is not the rate',
+        paragraphs: [
+          'Amount 14.99, price before tax, preset Texas, and any number left in the percent box. The calculator shows $15.93 total and sales tax of $0.94. The rate used is 6.25%. The unrounded tax is $0.936875. The tax as a share of the price displays as 6.27%, and the tax as a share of the total displays as 5.90%. The source line says the typed percent was not used.',
+          'The percentage calculator answers the ratio the cents already have. Part 0.94 and whole 14.99 is 6.27%. Part 0.94 and whole 15.93 is 5.9% on that page, which is the same 5.90% this page prints with a trailing zero. Typing 6.27 back into this form would be the wrong rate. The rate that built the $0.94 was 6.25%. Arizona’s statewide 5.6% on $100 is a cleaner case, $5.60 of tax and a $105.60 total, and that 5.6% is still not the 2.5% Arizona income tax on a wage.'
+        ]
       }
     ],
     table: {
@@ -170,13 +177,14 @@ export const nov3CalculatorContent = {
       'Groceries, clothing, prescription drugs, and prepared food are exempt or taxed at a different rate in many states. A basket with both taxable and exempt goods is not one rate on the whole receipt. Split the receipt, or the headline taxes the exempt part. A use tax on something bought out of state is the same arithmetic only when the rate you type is the rate your state actually wants.',
       'The menu is the statewide rate, not the rate at a particular address. Louisiana’s statewide 5% plus a local rate near 5% is a different bill from selecting Louisiana. New Jersey’s average local adjustment in the Tax Foundation table is slightly negative because some areas collect less than 6.625%, not because the state rate is 6.63%. Type 3.3125 only if that is the rate your location actually charges. This form will apply whatever allowed percent you type.',
       'The New Jersey paycheck calculator estimates wage tax, Social Security, and Medicare. It does not add 6.625% to a purchase, and this page does not withhold New Jersey gross income tax from a salary. A $65,000 New Jersey wage and a $49.99 purchase are different taxes. The discount page reduces a price before any tax. Apply the discount first, then run the sale price through this form if the tax is charged on the discounted amount.',
-      'A tip is not sales tax. The tip calculator will add 18% to whatever bill you type and split it. If the bill already includes sales tax, tipping on that total is your choice of base, and this page is how you would have built the tax. Currency display is US dollars. The percent math is the same in another currency, and the symbols will still say $.'
+      'A tip is not sales tax. The tip calculator will add 18% to whatever bill you type and split it. If the bill already includes sales tax, tipping on that total is your choice of base, and this page is how you would have built the tax. Currency display is US dollars. The percent math is the same in another currency, and the symbols will still say $.',
+      'Small prices make the rounding visible against the percentage calculator. A $14.99 price at Texas’s 6.25% statewide rate is $14.99 × 0.0625 = $0.936875, which rounds to $0.94. The total is $15.93. This page says the tax is 6.27% of the $14.99 price and 5.90% of the $15.93 total. The percentage calculator, given part 0.94 and whole 14.99, shows 6.27%. Given part 0.94 and whole 15.93, it shows 5.9%, because that page does not force a trailing zero. Neither of those ratios is the 6.25% rate. The rate was applied to the price, and the cent came from rounding $0.936875.'
     ],
     disclaimer: 'This sales tax figure is a rate applied to one amount. It is not a register total from a particular shop, and a statewide rate is not the combined rate on your street.',
     faqs: [
       {
         q: 'How much is 8.25% sales tax on $100?',
-        a: '$8.25 of tax and a $108.25 total. The tax is 8.25% of the price and 7.62% of the total. Removing tax from $108.25 at the same rate returns $100.00. The 7.62% figure is not a rate you should type back in.'
+        a: '$8.25 of tax and a $108.25 total. The tax is 8.25% of the price and 7.62% of the total. Removing tax from $108.25 at the same rate returns $100.00. The 7.62% figure is not a rate you should type back in. A price that does not divide evenly shows the same trap in fewer dollars. $14.99 at 6.25% is $0.936875 of tax, which rounds to $0.94 and a $15.93 total. The percentage calculator says $0.94 is 6.27% of $14.99 and 5.9% of $15.93. This page prints that second share as 5.90%. The rate you type, or the Texas menu rate, remains 6.25%.'
       },
       {
         q: 'Why is New Jersey’s statewide sales tax 6.625% and not 6.63%?',
@@ -203,7 +211,10 @@ export const nov3CalculatorContent = {
       { slug: 'percentage-calculator', label: 'Percentage calculator', note: '$8.25 is 8.25% of $100 and 7.62% of $108.25. That page does not add the tax or look up a state.' },
       { slug: 'discount-calculator', label: 'Discount calculator', note: 'Takes a percent off a price. Run the sale price through this sales tax page if tax is charged on the discounted amount.' },
       { slug: 'tip-calculator', label: 'Tip calculator', note: 'Adds a tip percent to a bill and splits it. A tip is not sales tax, and that page does not remove tax from a total.' },
-      { slug: 'new-jersey-paycheck-calculator', label: 'New Jersey paycheck calculator for 2026', note: 'Wage tax from 1.4% to 10.75%. It is not the 6.625% sales tax on a purchase, and a $65,000 wage is not a $49.99 receipt.' }
+      { slug: 'new-jersey-paycheck-calculator', label: 'New Jersey paycheck calculator for 2026', note: 'Wage tax from 1.4% to 10.75%. It is not the 6.625% sales tax on a purchase, and a $65,000 wage is not a $49.99 receipt.' },
+      { slug: 'arizona-paycheck-calculator', label: 'Arizona paycheck calculator for 2026', note: 'A flat 2.5% wage tax. At $65,000 single the two-week headline is $2,045.24. Arizona’s 5.6% transaction privilege tax, $5.60 on $100, is this page, not that withholding.' },
+      { slug: 'texas-paycheck-calculator', label: 'Texas paycheck calculator for 2026', note: 'No state wage income tax. The 6.25% statewide sales tax is separate: $14.99 becomes $15.93, and the rounded $0.94 is 6.27% of the price on the percentage page.' },
+      { slug: 'florida-paycheck-calculator', label: 'Florida paycheck calculator for 2026', note: 'No state wage income tax. Florida’s statewide sales tax on this page is 6%, which is not a line on that paycheck.' }
     ]
   },
   'new-jersey-paycheck-calculator': {
@@ -308,7 +319,8 @@ export const nov3CalculatorContent = {
       { slug: 'new-york-paycheck-calculator', label: 'New York paycheck calculator for 2026', note: 'New York State brackets, plus optional New York City resident tax. A wage taxed only in New Jersey should not use that city line.' },
       { slug: 'texas-paycheck-calculator', label: 'Texas paycheck calculator for 2026', note: 'The same federal and FICA structure with a state income tax of $0. Texas still has a 6.25% statewide sales tax, which is not a wage tax.' },
       { slug: 'sales-tax-calculator', label: 'Sales tax calculator', note: 'New Jersey’s statewide sales tax is 6.625%, or $3.31 on a $49.99 purchase. That is not withheld from the $2,014.00 paycheque.' },
-      { slug: '401k-contribution-calculator', label: '2026 401(k) contribution calculator', note: 'Check a deferral against the $24,500 limit. On this page the deferral reduces federal income tax only.' }
+      { slug: '401k-contribution-calculator', label: '2026 401(k) contribution calculator', note: 'Check a deferral against the $24,500 limit. On this page the deferral reduces federal income tax only.' },
+      { slug: 'arizona-paycheck-calculator', label: 'Arizona paycheck calculator for 2026', note: 'At $65,000 single, Arizona tax is $1,231.25 and the two-week headline is $2,045.24. A $6,500 401(k) cuts Arizona tax by $162.50. It does not cut New Jersey tax.' }
     ]
   },
   'newfoundland-and-labrador-take-home-pay-calculator': {
@@ -411,7 +423,8 @@ export const nov3CalculatorContent = {
       { slug: 'prince-edward-island-take-home-pay-calculator', label: 'Prince Edward Island take-home pay calculator for 2026', note: 'Same federal tax, CPP, and EI at $70,000. PEI tax is $6,258.09 rather than $5,938.98, and the monthly headline is $4,281.99.' },
       { slug: 'nova-scotia-take-home-pay-calculator', label: 'Nova Scotia take-home pay calculator for 2026', note: 'Same CPP and EI. Nova Scotia’s monthly headline at $70,000 is $4,208.02, below both this page and Prince Edward Island.' },
       { slug: 'new-brunswick-take-home-pay-calculator', label: 'New Brunswick take-home pay calculator for 2026', note: 'Same federal pieces. New Brunswick’s monthly headline at $70,000 is $4,336.82, which is above this $4,308.58.' },
-      { slug: 'quebec-take-home-pay-calculator', label: 'Quebec take-home pay calculator for 2026', note: 'QPP, QPIP, the 1.30% EI rate, and the 16.5% abatement. At $70,000 the monthly headline is $4,253.73, and the payroll system is not the one used here.' }
+      { slug: 'quebec-take-home-pay-calculator', label: 'Quebec take-home pay calculator for 2026', note: 'QPP, QPIP, the 1.30% EI rate, and the 16.5% abatement. At $70,000 the monthly headline is $4,253.73, and the payroll system is not the one used here.' },
+      { slug: 'northwest-territories-take-home-pay-calculator', label: 'Northwest Territories take-home pay calculator for 2026', note: 'Same federal tax, CPP, and EI at $70,000. Territorial tax is $3,197.57 rather than $5,938.98, and the monthly headline is $4,537.04.' }
     ]
   },
   'south-australia-stamp-duty-calculator': {
@@ -516,7 +529,8 @@ export const nov3CalculatorContent = {
       { slug: 'western-australia-stamp-duty-calculator', label: 'Western Australia stamp duty calculator', note: 'A $650,000 first home on or after 7 May 2026 is $8,075.00 there. South Australia’s general duty at that price is $29,580.00, and an eligible new-home first buyer pays $0.00.' },
       { slug: 'queensland-stamp-duty-calculator', label: 'Queensland stamp duty calculator', note: 'An established first home at $730,000 is $6,555.00 there. South Australia’s general duty at $730,000 is $33,980.00.' },
       { slug: 'nsw-stamp-duty-calculator', label: 'NSW stamp duty calculator', note: 'New South Wales transfer duty and a 9% foreign surcharge. A first home concession there can apply to an established home, which the South Australian exemption does not.' },
-      { slug: 'australia-take-home-pay-calculator', label: 'Australia take-home pay calculator for 2026–27', note: 'Resident income tax and the Medicare levy on a salary. It is not the duty on a house in Adelaide.' }
+      { slug: 'australia-take-home-pay-calculator', label: 'Australia take-home pay calculator for 2026–27', note: 'Resident income tax and the Medicare levy on a salary. It is not the duty on a house in Adelaide.' },
+      { slug: 'tasmania-stamp-duty-calculator', label: 'Tasmania stamp duty calculator', note: 'General duty at $600,000 is $22,497.50 there, against $26,830.00 on this South Australian scale. The Tasmanian established-home exemption does not apply to a settlement after 30 June 2026.' }
     ]
   }
 };

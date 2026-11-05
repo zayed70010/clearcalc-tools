@@ -8,6 +8,7 @@ import { waveCalculatorContent } from './wave-calculator-content.js';
 import { batchCalculatorContent } from './batch-calculator-content.js';
 import { novemberCalculatorContent } from './november-calculator-content.js';
 import { nov3CalculatorContent } from './nov3-calculator-content.js';
+import { nov5CalculatorContent } from './nov5-calculator-content.js';
 
 export const calculatorContent = {
   'mortgage-calculator': {
@@ -431,6 +432,10 @@ export const calculatorContent = {
         q: 'Does age or sex change the formula here?',
         a: 'No. The same division is used for every entry. Age and sex matter in how a result is interpreted, especially for children, but this form does not collect them and does not switch formulas.'
       }
+    ],
+    relatedLinks: [
+      { slug: 'ideal-weight-calculator', label: 'Ideal weight calculator', note: 'Devine, Robinson, and Miller from height and sex. A man at 175 cm has a Devine headline of 70.5 kg. Typing 70.5 kg and 175 cm here shows BMI 23. This page does not run those formulas.' },
+      { slug: 'calorie-calculator', label: 'Daily calorie calculator', note: 'Mifflin–St Jeor from a weight you already have. BMI does not estimate calories, and a category is not a maintenance target.' }
     ]
   },
   'calorie-calculator': {
@@ -531,6 +536,7 @@ export const calculatorContent = {
     ],
     relatedLinks: [
       { slug: 'bmi-calculator', label: 'Adult BMI calculator', note: 'Weight in kilograms and height in centimeters, as a screening category. It does not estimate calories.' },
+      { slug: 'ideal-weight-calculator', label: 'Ideal weight calculator', note: 'Devine, Robinson, and Miller from height. A man at 175 cm is 70.5 kg on the Devine headline. That page does not estimate calories, and it does not use this activity multiplier.' },
       { slug: '5k-pace-calculator', label: '5K pace calculator', note: 'Minutes per kilometre and per mile from a finish time. A 25:00 5K is 5:00 per kilometre. It does not estimate calories.' },
       { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'Useful if you want a percent difference between two calorie figures you already have. It does not run Mifflin–St Jeor.' }
     ]
@@ -1371,7 +1377,8 @@ export const calculatorContent = {
   ...waveCalculatorContent,
   ...batchCalculatorContent,
   ...novemberCalculatorContent,
-  ...nov3CalculatorContent
+  ...nov3CalculatorContent,
+  ...nov5CalculatorContent
 };
 
 export function contentWordCount(entry) {

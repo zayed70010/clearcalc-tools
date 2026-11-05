@@ -310,6 +310,45 @@ test('five November calculators are linked from the homepage and a related page'
   );
 });
 
+test('five November 5 calculators are linked from the homepage and a related page', () => {
+  const home = readFileSync('src/pages/index.astro', 'utf8');
+  const links = [
+    ['debt-to-income-ratio-calculator', 'house-affordability-calculator'],
+    ['ideal-weight-calculator', 'calorie-calculator'],
+    ['arizona-paycheck-calculator', 'new-jersey-paycheck-calculator'],
+    ['tasmania-stamp-duty-calculator', 'south-australia-stamp-duty-calculator'],
+    ['northwest-territories-take-home-pay-calculator', 'newfoundland-and-labrador-take-home-pay-calculator']
+  ];
+  for (const [slug, related] of links) {
+    assert.match(home, new RegExp(`calculators/${slug}/`));
+    assert.ok(calculatorContent[slug], slug);
+    assert.equal(
+      calculatorContent[related].relatedLinks.some((link) => link.slug === slug),
+      true,
+      related
+    );
+  }
+  assert.match(calculatorContent['debt-to-income-ratio-calculator'].description, /32\.50%/);
+  assert.match(calculatorContent['debt-to-income-ratio-calculator'].table.rows[0][4], /32\.50%/);
+  assert.match(calculatorContent['ideal-weight-calculator'].description, /70\.5 kg/);
+  assert.match(calculatorContent['ideal-weight-calculator'].table.rows[0][2], /70\.46 kg/);
+  assert.match(calculatorContent['arizona-paycheck-calculator'].description, /2\.5%/);
+  assert.match(calculatorContent['arizona-paycheck-calculator'].table.rows[0][4], /\$2,045\.24/);
+  assert.match(calculatorContent['tasmania-stamp-duty-calculator'].table.rows[0][2], /\$20,372\.50/);
+  assert.match(calculatorContent['tasmania-stamp-duty-calculator'].table.rows[3][4], /\$64,372\.50/);
+  assert.match(calculatorContent['northwest-territories-take-home-pay-calculator'].description, /\$18,198/);
+  assert.match(calculatorContent['northwest-territories-take-home-pay-calculator'].table.rows[2][4], /\$4,537\.04/);
+  const sales = calculatorContent['sales-tax-calculator'];
+  assert.match(sales.examples.at(-1).paragraphs[0], /14\.99/);
+  assert.match(sales.examples.at(-1).paragraphs[0], /6\.27%/);
+  assert.match(sales.limits.at(-1), /\$0\.936875/);
+  assert.match(sales.faqs[0].a, /6\.25%/);
+  assert.equal(sales.faqs.length, 6);
+  assert.equal(sales.relatedLinks.some((link) => link.slug === 'arizona-paycheck-calculator'), true);
+  assert.equal(sales.relatedLinks.some((link) => link.slug === 'texas-paycheck-calculator'), true);
+  assert.equal(sales.relatedLinks.some((link) => link.slug === 'percentage-calculator'), true);
+});
+
 test('length converter slug matches the page title', () => {
   const length = calculators.find((item) => item.slug === 'length-converter');
   assert.equal(length.title, 'Length Converter');

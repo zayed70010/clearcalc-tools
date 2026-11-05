@@ -1286,6 +1286,61 @@ const SA_DUTY_BANDS = [
   [Number.POSITIVE_INFINITY, 550]
 ];
 
+// Tax year 2026 Arizona. A.R.S. § 43-1011 taxes Arizona taxable income at a flat
+// 2.5% for taxable years beginning after 31 December 2022, and that rate is
+// unchanged for 2026. The standard deduction used here is $15,750 single and
+// $31,500 married filing jointly: the dollar amounts in A.R.S. § 43-1041 and
+// the amounts the Department of Revenue printed for 2025, which the 2026
+// estimated-tax instructions still tell filers to use. A later inflation
+// revision, the 2026 charitable increase (capped at $1,000 single or $2,000
+// joint), itemized deductions, and the dependent tax credit are not applied.
+// A traditional 401(k) is removed because Arizona starts from federal AGI.
+const AZ_RATE_BASIS_POINTS = 250;
+const AZ_STANDARD_DEDUCTION = { 1: 1_575_000, 2: 3_150_000 };
+
+// 2026 Northwest Territories. Brackets and the $18,198 basic personal amount
+// are CRA T4032-NT for January 2026 and the Canada.ca 2026 territorial rate
+// table. The indexing factor is 2.0%. The credit uses the 5.9% lowest rate.
+// The cost of living tax credit is not applied.
+const NWT_BRACKETS = [
+  [5_300_300, 590],
+  [10_600_900, 860],
+  [17_234_600, 1220],
+  [Number.POSITIVE_INFINITY, 1405]
+];
+const NWT_BASIC_PERSONAL_CENTS = 1_819_800;
+
+// Duties Act 2001 (Tasmania). The general scale is the State Revenue Office
+// table that has applied since 21 October 2013 and is still the rate card in
+// 2026. "Per $100, or part" rounds the excess up to the next $100. A dutiable
+// value of zero is treated as no duty. Any greater value up to $3,000 is the
+// $50 minimum. The established-home first-buyer exemption (Duties Act s. 57G)
+// is a full exemption for an eligible buyer when the dutiable value is
+// $750,000 or less and the transfer settles on or before 30 June 2026. It is
+// not available for a settlement after that date. Foreign investor duty
+// surcharge on residential property is 8% for a transaction entered into from
+// 1 April 2020. Primary-production surcharge, the pensioner concession, the
+// off-the-plan concession, and the First Home Owner Grant are not applied.
+const TAS_FHB_CAP_CENTS = 75_000_000;
+
+function tasPartsOfHundred(excessCents) {
+  if (excessCents <= 0) return 0;
+  return Math.ceil(excessCents / 10000);
+}
+
+function tasmaniaDutyCents(priceCents) {
+  if (priceCents <= 0) return 0;
+  if (priceCents <= 300_000) return 5_000;
+  if (priceCents <= 2_500_000) return 5_000 + tasPartsOfHundred(priceCents - 300_000) * 175;
+  if (priceCents <= 7_500_000) return 43_500 + tasPartsOfHundred(priceCents - 2_500_000) * 225;
+  if (priceCents <= 20_000_000) return 156_000 + tasPartsOfHundred(priceCents - 7_500_000) * 350;
+  if (priceCents <= 37_500_000) return 593_500 + tasPartsOfHundred(priceCents - 20_000_000) * 400;
+  if (priceCents <= 72_500_000) return 1_293_500 + tasPartsOfHundred(priceCents - 37_500_000) * 425;
+  return 2_781_000 + tasPartsOfHundred(priceCents - 72_500_000) * 450;
+}
+
+const POUND_KG = 0.45359237;
+
 function salesTaxRate(preset, typedRate) {
   const chosen = SALES_TAX_BY_CODE[preset];
   if (!chosen) throw new Error('Choose a statewide rate or type your own');
@@ -3294,6 +3349,170 @@ export function calculate(slug, values) {
           ? 'Foreign ownership surcharge: 7% of the dutiable value, under section 72 of the Stamp Duties Act 1923, added to transfer duty. It is not a substitute for the general scale.'
           : 'Foreign ownership surcharge: not applied.',
         'General scale: 1% to $12,000, 2% to $30,000, 3% to $50,000, 3.5% to $100,000, 4% to $200,000, 4.25% to $250,000, 4.75% to $300,000, 5% to $500,000, and 5.5% above $500,000. The 5.5% applies only to the slice above $500,000.'
+      ]
+    };
+  }
+  if (slug === 'debt-to-income-ratio-calculator') {
+    const income = nonNegativeCents(v.income, 'gross monthly income');
+    const housing = nonNegativeCents(v.housing, 'housing payment');
+    const debts = nonNegativeCents(v.debts, 'other monthly debt');
+    if (income <= 0) throw new Error('Enter a gross monthly income above zero');
+    const total = housing + debts;
+    const front = housing / income * 100;
+    const back = total / income * 100;
+    const cap = (rate) => Math.round(income * rate / 100);
+    const cap28 = cap(28);
+    const cap36 = cap(36);
+    const cap31 = cap(31);
+    const cap43 = cap(43);
+    const place = (limit, used) => used === limit
+      ? `equals the ${usdCents(limit)} line`
+      : used < limit
+        ? `is ${usdCents(limit - used)} under the ${usdCents(limit)} line`
+        : `is ${usdCents(used - limit)} over the ${usdCents(limit)} line`;
+    return {
+      headline: `${percent(back)}% back-end`,
+      details: [
+        `Front-end DTI, housing only: ${percent(front)}%`,
+        `Back-end DTI, housing plus other debts: ${percent(back)}%`,
+        `Monthly housing payment: ${usdCents(housing)}`,
+        `Other monthly debt payments: ${usdCents(debts)}`,
+        `Total monthly debt payments: ${usdCents(total)}`,
+        `Gross monthly income: ${usdCents(income)}`,
+        `Housing ${place(cap28, housing)} for 28% of gross income.`,
+        `The total of housing and other debts ${place(cap36, total)} for 36% of gross income.`,
+        `Housing ${place(cap31, housing)} for 31% of gross income.`,
+        `The total of housing and other debts ${place(cap43, total)} for 43% of gross income.`,
+        'The 28/36 and 31/43 pairs are planning lines. They are not a 2026 Fannie Mae maximum and they are not an approval. Housing should be the full monthly housing cost. Do not type that same housing cost again in the other-debt field.'
+      ]
+    };
+  }
+  if (slug === 'ideal-weight-calculator') {
+    const sex = Number(v.sex);
+    const cm = v.height;
+    if (sex !== 1 && sex !== 2) throw new Error('Choose male or female');
+    if (!Number.isFinite(cm) || cm < 122 || cm > 244) throw new Error('Enter a height from 122 to 244 centimeters');
+    const inches = cm / 2.54;
+    const over = inches - 60;
+    const male = sex === 1;
+    const devine = (male ? 50 : 45.5) + 2.3 * over;
+    const robinson = (male ? 52 : 49) + (male ? 1.9 : 1.7) * over;
+    const miller = (male ? 56.2 : 53.1) + (male ? 1.41 : 1.36) * over;
+    const pounds = (kg) => kg / POUND_KG;
+    const bmiAt = (kg) => kg / ((cm / 100) ** 2);
+    return {
+      headline: `${number(devine, 1)} kg`,
+      details: [
+        male
+          ? 'Formula set: Devine, Robinson, and Miller for an adult male. The headline is Devine, rounded to one decimal kilogram.'
+          : 'Formula set: Devine, Robinson, and Miller for an adult female. The headline is Devine, rounded to one decimal kilogram.',
+        `Devine: ${number(devine, 2)} kg (${number(pounds(devine), 1)} lb)`,
+        `Robinson: ${number(robinson, 2)} kg (${number(pounds(robinson), 1)} lb)`,
+        `Miller: ${number(miller, 2)} kg (${number(pounds(miller), 1)} lb)`,
+        `Height used: ${number(cm, 2)} cm, which is ${number(inches, 2)} inches. Inches over 5 feet: ${number(over, 2)}.`,
+        `BMI if weight equalled the unrounded Devine figure: ${number(bmiAt(devine), 1)}. That label is not chosen here. The BMI page uses the weight you type.`,
+        over < 0
+          ? 'This height is under 5 feet. The formulas still run, and they were built around adult heights near and above 5 feet.'
+          : 'Each formula is a straight line in kilograms from a 5-foot base, using height in inches. It is not a body-fat measurement and it is not a dose.',
+        'Devine (1974): men 50 + 2.3 × (inches − 60), women 45.5 + 2.3 × (inches − 60). Robinson (1983): men 52 + 1.9 × (inches − 60), women 49 + 1.7 × (inches − 60). Miller (1983): men 56.2 + 1.41 × (inches − 60), women 53.1 + 1.36 × (inches − 60). One inch is 2.54 cm.'
+      ]
+    };
+  }
+  if (slug === 'arizona-paycheck-calculator') {
+    const status = filingStatusCode(v.status);
+    const periods = payPeriodCount(v.periods);
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const requestedDeferral = nonNegativeCents(v.deferral, '401(k) deferral');
+    const deferral = Math.min(requestedDeferral, salary, US_401K_DEFERRAL_CENTS);
+    const agi = Math.max(0, salary - deferral);
+    const standard = Math.min(AZ_STANDARD_DEDUCTION[status], agi);
+    const arizonaBase = Math.max(0, agi - standard);
+    const stateTax = Math.round(arizonaBase * AZ_RATE_BASIS_POINTS / 10000);
+    const federalTaxable = Math.max(0, agi - US_STANDARD_DEDUCTION[status]);
+    const federal = bracketTaxCents(federalTaxable, status === 1 ? US_SINGLE_BRACKETS : US_JOINT_BRACKETS);
+    const socialSecurity = Math.round(Math.min(salary, US_SS_WAGE_BASE_CENTS) * 620 / 10000);
+    const medicare = Math.round(salary * 145 / 10000);
+    const additionalMedicare = Math.round(Math.max(0, salary - US_ADDL_MEDICARE_CENTS) * 90 / 10000);
+    const takeHome = salary - federal - socialSecurity - medicare - additionalMedicare - stateTax - deferral;
+    const details = [
+      `Federal income tax: ${usdCents(federal)}`,
+      `Social Security: ${usdCents(socialSecurity)}`,
+      `Medicare: ${usdCents(medicare)}`,
+      `Additional Medicare Tax: ${usdCents(additionalMedicare)}`,
+      `Arizona income tax: ${usdCents(stateTax)}`,
+      `Arizona standard deduction applied: ${usdCents(standard)}`,
+      `401(k) deferred: ${usdCents(deferral)}`,
+      `Annual take-home: ${usdCents(takeHome)}`,
+      status === 1
+        ? 'Filing status: single. Arizona tax is 2.5% of taxable income. The standard deduction used is $15,750.'
+        : 'Filing status: married filing jointly, with this salary as the only wage on the return. Arizona tax is 2.5% of taxable income. The $31,500 standard deduction belongs to the return, not to each spouse.',
+      `Arizona taxable income after the 401(k) and the standard deduction: ${usdCents(arizonaBase)}.`,
+      'The 2.5% rate is the flat individual rate for 2026. The charitable addition to the standard deduction, itemized deductions, and the dependent tax credit are not applied. Arizona has no local wage tax on this page.'
+    ];
+    if (requestedDeferral > deferral) {
+      details.push(`401(k) entered above the 2026 elective deferral limit or above wages was reduced to ${usdCents(deferral)}`);
+    }
+    return {
+      headline: `${usdCents(Math.round(takeHome / periods))} ${PAY_PERIOD_LABEL[periods]}`,
+      details
+    };
+  }
+  if (slug === 'tasmania-stamp-duty-calculator') {
+    const price = nonNegativeCents(v.price, 'dutiable value');
+    const buyer = Number(v.buyer);
+    const foreign = Number(v.foreign);
+    if (buyer !== 1 && buyer !== 2 && buyer !== 3) throw new Error('Choose a buyer');
+    if (foreign !== 1 && foreign !== 2) throw new Error('Choose whether the foreign investor duty surcharge applies');
+    const general = tasmaniaDutyCents(price);
+    const withinCap = price > 0 && price <= TAS_FHB_CAP_CENTS;
+    const exemptionApplied = buyer === 2 && foreign === 1 && withinCap;
+    const duty = exemptionApplied ? 0 : general;
+    const surcharge = foreign === 2 ? Math.round(price * 800 / 10000) : 0;
+    const total = duty + surcharge;
+    const buyerNote = exemptionApplied
+      ? 'Buyer: eligible first home buyer of an established home, settlement on or before 30 June 2026, dutiable value at or under $750,000. Transfer duty is $0.00. Citizenship, age, prior ownership, and the six-month residence test are not checked.'
+      : buyer === 2 && foreign === 2
+        ? 'Buyer: the established-home exemption was not applied because a foreign person was selected. The exemption requires an Australian citizen or permanent resident, and this page does not combine it with the surcharge.'
+        : buyer === 2 && price === 0
+          ? 'Buyer: a dutiable value of zero has no transfer duty. The first-home exemption is not what zeroed the result.'
+          : buyer === 2 && !withinCap
+            ? 'Buyer: the established-home exemption was not applied because the dutiable value is over $750,000. The cap for a settlement on or before 30 June 2026 is $750,000. Transfer duty is the general scale.'
+            : buyer === 3
+              ? 'Buyer: first home buyer of an established home with a settlement after 30 June 2026. The 100% exemption is not available after that date, so transfer duty is the general scale.'
+              : 'Buyer: general residential scale. No first-home exemption was claimed.';
+    return {
+      headline: audCents(total),
+      details: [
+        `Transfer duty: ${audCents(duty)}`,
+        `Foreign investor duty surcharge: ${audCents(surcharge)}`,
+        `Dutiable value: ${audCents(price)}`,
+        buyerNote,
+        foreign === 2
+          ? 'Foreign investor duty surcharge: 8% of the dutiable value on residential property, for a transaction entered into from 1 April 2020, added to transfer duty. The 1.5% primary-production rate is not used.'
+          : 'Foreign investor duty surcharge: not applied.',
+        'General scale, in force since 21 October 2013 and still the 2026 card: $50 up to $3,000, then $1.75, $2.25, $3.50, $4.00, $4.25, and $4.50 per $100 or part of the excess in each higher band. A value of $725,000 is $27,810.00. The First Home Owner Grant, the pensioner concession, and the off-the-plan concession are not subtracted.'
+      ]
+    };
+  }
+  if (slug === 'northwest-territories-take-home-pay-calculator') {
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const payroll = canadaEmployeePayroll(salary);
+    const nwtCredit = Math.round((NWT_BASIC_PERSONAL_CENTS + payroll.cppBase + payroll.ei) * 590 / 10000);
+    const nwtTax = Math.max(0, bracketTaxCents(payroll.taxable, NWT_BRACKETS) - nwtCredit);
+    const takeHome = salary - payroll.cpp - payroll.cpp2 - payroll.ei - payroll.federalTax - nwtTax;
+    return {
+      headline: `${cadCents(Math.round(takeHome / 12))} / month`,
+      details: [
+        `Federal income tax: ${cadCents(payroll.federalTax)}`,
+        `Northwest Territories income tax: ${cadCents(nwtTax)}`,
+        `Employee CPP, including CPP2: ${cadCents(payroll.cpp + payroll.cpp2)}`,
+        `Employee EI: ${cadCents(payroll.ei)}`,
+        `Annual take-home: ${cadCents(takeHome)}`,
+        `Every two weeks: ${cadCents(Math.round(takeHome / 26))}`,
+        `Federal basic personal amount applied: ${cadCents(payroll.basicPersonal)}`,
+        `Northwest Territories basic personal amount applied: ${cadCents(NWT_BASIC_PERSONAL_CENTS)}`,
+        `Northwest Territories credit at 5.9% for the basic amount, CPP base, and EI: ${cadCents(nwtCredit)}`,
+        'Northwest Territories rates used: 5.9% to $53,003, 8.6% to $106,009, 12.2% to $172,346, and 14.05% above that. The basic personal amount is $18,198, indexed by 2.0% for 2026. The cost of living tax credit is not applied.'
       ]
     };
   }
