@@ -9,6 +9,7 @@ import { batchCalculatorContent } from './batch-calculator-content.js';
 import { novemberCalculatorContent } from './november-calculator-content.js';
 import { nov3CalculatorContent } from './nov3-calculator-content.js';
 import { nov5CalculatorContent } from './nov5-calculator-content.js';
+import { nov6CalculatorContent } from './nov6-calculator-content.js';
 
 export const calculatorContent = {
   'mortgage-calculator': {
@@ -342,6 +343,9 @@ export const calculatorContent = {
         q: 'What does estimated growth mean?',
         a: 'It is the ending balance minus every dollar you contributed. Contributions are the starting amount plus the monthly deposit times the number of months. Growth is not cash you can spend without selling or withdrawing, and it has not been reduced for taxes.'
       }
+    ],
+    relatedLinks: [
+      { slug: 'simple-interest-calculator', label: 'Simple interest calculator', note: '$10,000 at 5% for 3 years is $11,500.00 there, with $1,500.00 of interest. This page, with a $0 monthly deposit, compounds the same inputs to $11,614.72. The $114.72 gap is monthly compounding.' }
     ]
   },
   'bmi-calculator': {
@@ -548,7 +552,8 @@ export const calculatorContent = {
     intro: [
       'This percentage calculator answers one question: what percent is the part of the whole? Divide the part by the whole and multiply by 100. Enter 25 as the part and 200 as the whole, and the result is 12.5%.',
       'People use the words "percentage calculator" for three different jobs: this ratio, "what is X percent of Y," and percent change from an old number to a new one. This form does only the first. The other two formulas are written out below so you can do them by hand without pretending the button did them. The whole must not be zero, because division by zero is undefined.',
-      'A sales tax rate is the second job, not this one. Eight and a quarter percent of $100 is $8.25, which the sales tax page adds to the price and turns into a $108.25 total. If you already have those two dollar amounts, this page will tell you the ratio: part 8.25 and whole 100 is 8.25%, and part 8.25 and whole 108.25 is 7.62%. The 7.62% figure is the tax as a share of the tax-inclusive total. It is not a rate to type back into the sales tax form. Typing 7.62 there would charge too little.'
+      'A sales tax rate is the second job, not this one. Eight and a quarter percent of $100 is $8.25, which the sales tax page adds to the price and turns into a $108.25 total. If you already have those two dollar amounts, this page will tell you the ratio: part 8.25 and whole 100 is 8.25%, and part 8.25 and whole 108.25 is 7.62%. The 7.62% figure is the tax as a share of the tax-inclusive total. It is not a rate to type back into the sales tax form. Typing 7.62 there would charge too little.',
+      'Three everyday sentences use those two formulas, and only one of them belongs in these boxes. "What percent is 25 of 200?" and "25 is what percent of 200?" are both part 25 and whole 200, and both are 12.5%. "What is 12.5% of 200?" is the reverse, and the answer is 25, which you get by multiplying, not by swapping the boxes. A discount, a tip, and a debt-to-income ratio all start from one of those sentences. The discount page takes 20% off $100 and shows an $80.00 sale price. This page, given part 20 and whole 100, shows 20%, and given part 80 and whole 100 shows 80%. The tip page turns 18% of $85 into a $15.30 tip. Part 15.30 and whole 85 shows 18% here. The debt-to-income page turns $2,200 of housing and $8,000 of income into 27.50% front-end. Part 2200 and whole 8000 on this page is 27.5%, the same ratio without the housing label.'
     ],
     steps: [
       'Enter the part, the number you are measuring.',
@@ -561,6 +566,7 @@ export const calculatorContent = {
       'A percent is a ratio scaled to 100. If the part equals the whole, the result is 100%. If the part is half the whole, the result is 50%. If the part is larger than the whole, the result is above 100%, which is allowed and often correct. 150 out of 80 is more than the whole, so the percent is above 100.',
       'The calculator does not know which number is a price, a score, or a count. It will happily report a percent for any pair except a zero whole. Negative inputs are passed through the same division, which can produce a negative percent. That is rarely what a shopping or grading question wants.',
       'Displayed percents use at most two decimal places. Two divided by three, times 100, is 66.666…%, and the calculator shows 66.67%. The repeating value is not stored as a fraction.',
+      'The same two fields answer both "what percent is X of Y" and "X is what percent of Y." Those sentences are one division. Part 18 and whole 85 is 21.18%, so 18 is 21.18% of 85. The reverse job, "what is Y percent of X," is multiplication. Eighteen percent of 85 is 85 × 18 / 100 = 15.3, and this form will not do that multiplication. Bring 15.3 back as the part and 85 as the whole and the headline is 18%, which is the check that the hand multiplication and this division describe one ratio. A debt-to-income ratio is that same division on monthly dollars. Part 2200 and whole 8000 is 27.5%, the front-end ratio on the debt-to-income sample. Part 2600 and whole 8000 is 32.5%, the back-end ratio once $400 of other debts is added to the $2,200 housing payment. This page does not subtract a housing cap or label a loan.',
       'Cent rounding can pull a ratio off the rate that produced it. New Jersey’s statewide sales tax is 6.625%. On a $49.99 price the tax rounds to $3.31 and the total is $53.30. Part 3.31 and whole 49.99 on this page is 6.62%, not 6.625%, because the cent was already rounded before the division. Part 3.31 and whole 53.30 is 6.21%, which is the share of the total. The sales tax page prints both shares next to the rate so the three numbers stay distinct. This page only does the division you type.'
     ],
     formula: 'Percentage = (part ÷ whole) × 100\nThe whole must not be 0.\nRelated, not what this form computes:\nX percent of Y = Y × X / 100\nPercent change = (new − old) / old × 100',
@@ -593,6 +599,13 @@ export const calculatorContent = {
         ]
       },
       {
+        title: 'What percent is 18 of 85, and what is 18% of 85?',
+        paragraphs: [
+          'What percent is 18 of 85? Put 18 in Part and 85 in Whole. 18 / 85 × 100 = 21.176…, and the calculator shows 21.18%. "18 is what percent of 85?" is the same entry and the same 21.18%. The two English questions are one division. They are not the question "what is 18% of 85?"',
+          'What is 18% of 85? Multiply: 85 × 18 / 100 = 15.3. This form has no percent field, so typing 18 and 85 will not produce 15.3. Type part 15.3 and whole 85 and the headline is 18%, which checks the multiplication. The tip page says an 18% tip on $85 is $15.30. Part 15.30 and whole 85 shows 18% here. Part 2200 and whole 8000 shows 27.5%, which is the 27.50% front-end ratio on the debt-to-income sample of $2,200 housing and $8,000 income. Part 2600 and whole 8000 shows 32.5%, the 32.50% back-end ratio once the $400 of other debts is included. The discount page takes 20% off $100 and leaves $80.00. Part 20 and whole 100 is 20% here, and part 80 and whole 100 is 80%.'
+        ]
+      },
+      {
         title: 'A sales tax rate, and the two ratios it leaves behind',
         paragraphs: [
           'The sales tax page turns $100 at 8.25% into $8.25 of tax and a $108.25 total. Bring those dollars here. Part 8.25 and whole 100 shows 8.25%. Part 8.25 and whole 108.25 shows 7.62%. The first match is the rate, because the tax on $100 came out in even cents. The second is the share of the total, and it is smaller because the whole now includes the tax.',
@@ -602,7 +615,7 @@ export const calculatorContent = {
     ],
     table: {
       heading: 'Common percents of 200',
-      caption: 'Each row is a part you can type, with 200 as the whole, and the percent this calculator shows. The last column is the same fact written as "percent of."',
+      caption: 'The first rows use 200 as the whole. The later rows use 85 and 8,000. Each percent is what this calculator shows. The last column writes the same fact as "percent of," which is the multiplication this form does not perform.',
       headers: ['Part', 'Whole', 'This calculator shows', 'Same fact, other wording'],
       rows: [
         ['20', '200', '10%', '10% of 200 is 20'],
@@ -610,7 +623,11 @@ export const calculatorContent = {
         ['50', '200', '25%', '25% of 200 is 50'],
         ['100', '200', '50%', '50% of 200 is 100'],
         ['150', '200', '75%', '75% of 200 is 150'],
-        ['200', '200', '100%', '100% of 200 is 200']
+        ['200', '200', '100%', '100% of 200 is 200'],
+        ['18', '85', '21.18%', '18 is 21.18% of 85; 18% of 85 is 15.3'],
+        ['15.3', '85', '18%', '18% of 85 is 15.3'],
+        ['2,200', '8,000', '27.5%', '27.5% of 8,000 is 2,200'],
+        ['2,600', '8,000', '32.5%', '32.5% of 8,000 is 2,600']
       ]
     },
     limitsHeading: 'Where a two-number percent stops',
@@ -640,7 +657,7 @@ export const calculatorContent = {
       },
       {
         q: 'How do I calculate a percent of a number instead?',
-        a: 'Multiply the number by the percent and divide by 100. Eighteen percent of 85 is 85 × 18 / 100 = 15.3. Entering 18 and 85 here answers a different question: 18 is about 21.18% of 85.'
+        a: 'Multiply the number by the percent and divide by 100. Eighteen percent of 85 is 85 × 18 / 100 = 15.3. Entering 18 and 85 here answers a different question: 18 is 21.18% of 85. Type 15.3 back in as the part, with 85 as the whole, and this page shows 18%. That round trip is the check. Twenty percent of 100 is 20, which the discount page removes from a $100 price to leave $80.00. Part 20 and whole 100 is 20% here, and part 80 and whole 100 is 80%. Part 2200 and whole 8000 is 27.5%, the front-end debt-to-income ratio on $2,200 of housing and $8,000 of income.'
       },
       {
         q: 'Why is $3.31 of tax on $49.99 shown as 6.62% rather than 6.625%?',
@@ -650,7 +667,8 @@ export const calculatorContent = {
     relatedLinks: [
       { slug: 'sales-tax-calculator', label: 'Sales tax calculator', note: '$100 at 8.25% is $8.25 of tax and a $108.25 total. $8.25 is 8.25% of $100 and 7.62% of $108.25 on this page. The 7.62% is not the rate.' },
       { slug: 'discount-calculator', label: 'Discount calculator', note: 'Takes 20% off a price. This page can then say what percent the dollars saved are of the original price. It does not compute the sale price.' },
-      { slug: 'tip-calculator', label: 'Tip calculator', note: 'An 18% tip on $85 is $15.30. Part 15.30 and whole 85 on this page is 18%. The tip page also splits the bill.' }
+      { slug: 'tip-calculator', label: 'Tip calculator', note: 'An 18% tip on $85 is $15.30. Part 15.30 and whole 85 on this page is 18%. The tip page also splits the bill.' },
+      { slug: 'debt-to-income-ratio-calculator', label: 'Debt-to-income ratio calculator', note: 'On $8,000 of income, $2,200 of housing is 27.50% front-end and $2,600 of total debt is 32.50% back-end. Part 2200 and whole 8000 is 27.5% here, and part 2600 and whole 8000 is 32.5%.' }
     ]
   },
   'tip-calculator': {
@@ -1378,7 +1396,8 @@ export const calculatorContent = {
   ...batchCalculatorContent,
   ...novemberCalculatorContent,
   ...nov3CalculatorContent,
-  ...nov5CalculatorContent
+  ...nov5CalculatorContent,
+  ...nov6CalculatorContent
 };
 
 export function contentWordCount(entry) {

@@ -1339,6 +1339,102 @@ function tasmaniaDutyCents(priceCents) {
   return 2_781_000 + tasPartsOfHundred(priceCents - 72_500_000) * 450;
 }
 
+// Tax year 2026 Colorado. DR 1098 (21 October 2025) tells employers to withhold
+// 4.40% of Colorado taxable wages. The January 2026 Individual Income Tax Guide
+// lists 4.40% for 2025 after a one-year 4.25% TABOR reduction in 2024. This
+// estimate applies 4.40% to federal taxable income from the wage alone: wages
+// minus a traditional 401(k) minus the 2026 federal standard deduction. That is
+// the Colorado return starting point when there are no additions or
+// subtractions. DR 1098 instead subtracts $5,500 single or $11,000 joint, so a
+// stub can be higher than this annual figure. The overtime add-back and other
+// Colorado modifications are not applied.
+const CO_RATE_BASIS_POINTS = 440;
+
+// Tax year 2026 Massachusetts. Part B income, including wages, is taxed at 5%.
+// Mass.gov sets the 4% surtax threshold for tax year 2026 at $1,107,750 of
+// taxable income. Personal exemptions are the statutory ceilings Mass.gov still
+// published on 6 January 2026: $4,400 single and $8,800 married filing jointly.
+// No Tax Status, from the Form 1 instructions, zeroes the tax when Massachusetts
+// AGI is $8,000 or less for a single filer or $16,400 or less for a joint
+// return. The $1,000-per-dependent addition to that joint threshold, the
+// Limited Income Credit, dependent exemptions, and the age and blindness
+// exemptions are not applied.
+const MA_EXEMPTION_CENTS = { 1: 440_000, 2: 880_000 };
+const MA_NO_TAX_CENTS = { 1: 800_000, 2: 1_640_000 };
+const MA_SURTAX_THRESHOLD_CENTS = 110_775_000;
+
+// Duties Act 1999 (ACT), non-commercial conveyance duty for a transaction on or
+// after 1 July 2025. The 2026–27 disallowable instrument keeps the same marginal
+// rates. "Per $100, or part" rounds any remainder up to the next $100. Above
+// $1,455,000 the duty is a flat $4.54 per $100 of the whole dutiable value, not
+// a marginal slice. An eligible Home Buyer Concession Scheme transaction dated
+// on or after 1 July 2026 pays no duty, with no price cap and no income test.
+// Age, prior ownership, and the residence test are not checked. The concession
+// that applied before 1 July 2026, capped at $1,020,000 with a $35,238 maximum
+// reduction, is not used.
+const ACT_FLAT_THRESHOLD_CENTS = 145_500_000;
+
+function actPartsOfHundred(cents) {
+  if (cents <= 0) return 0;
+  return Math.ceil(cents / 10000);
+}
+
+function actOwnerDutyCents(priceCents) {
+  if (priceCents <= 0) return 0;
+  if (priceCents <= 26_000_000) return actPartsOfHundred(priceCents) * 28;
+  if (priceCents <= 30_000_000) return 72_800 + actPartsOfHundred(priceCents - 26_000_000) * 220;
+  if (priceCents <= 50_000_000) return 160_800 + actPartsOfHundred(priceCents - 30_000_000) * 340;
+  if (priceCents <= 75_000_000) return 840_800 + actPartsOfHundred(priceCents - 50_000_000) * 432;
+  if (priceCents <= 100_000_000) return 1_920_800 + actPartsOfHundred(priceCents - 75_000_000) * 590;
+  if (priceCents <= ACT_FLAT_THRESHOLD_CENTS) return 3_395_800 + actPartsOfHundred(priceCents - 100_000_000) * 640;
+  return actPartsOfHundred(priceCents) * 454;
+}
+
+function actInvestorDutyCents(priceCents) {
+  if (priceCents <= 0) return 0;
+  if (priceCents <= 20_000_000) return actPartsOfHundred(priceCents) * 120;
+  if (priceCents <= 30_000_000) return 240_000 + actPartsOfHundred(priceCents - 20_000_000) * 220;
+  if (priceCents <= 50_000_000) return 460_000 + actPartsOfHundred(priceCents - 30_000_000) * 340;
+  if (priceCents <= 75_000_000) return 1_140_000 + actPartsOfHundred(priceCents - 50_000_000) * 432;
+  if (priceCents <= 100_000_000) return 2_220_000 + actPartsOfHundred(priceCents - 75_000_000) * 590;
+  if (priceCents <= ACT_FLAT_THRESHOLD_CENTS) return 3_695_000 + actPartsOfHundred(priceCents - 100_000_000) * 640;
+  return actPartsOfHundred(priceCents) * 454;
+}
+
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+function parseCalendarDate(value, label) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error(`Enter a ${label}`);
+  const year = Number(value.slice(0, 4));
+  const month = Number(value.slice(5, 7));
+  const day = Number(value.slice(8, 10));
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    throw new Error(`Enter a real ${label}`);
+  }
+  return date;
+}
+
+function formatCalendarDate(date) {
+  return `${date.getDate()} ${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+function addCalendarDays(date, days) {
+  const next = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function calendarDaysBetween(start, end) {
+  const utcStart = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
+  const utcEnd = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
+  return Math.round((utcEnd - utcStart) / 86400000);
+}
+
+function countPhrase(value, singular) {
+  return `${value} ${singular}${value === 1 ? '' : 's'}`;
+}
+
 const POUND_KG = 0.45359237;
 
 function salesTaxRate(preset, typedRate) {
@@ -3513,6 +3609,183 @@ export function calculate(slug, values) {
         `Northwest Territories basic personal amount applied: ${cadCents(NWT_BASIC_PERSONAL_CENTS)}`,
         `Northwest Territories credit at 5.9% for the basic amount, CPP base, and EI: ${cadCents(nwtCredit)}`,
         'Northwest Territories rates used: 5.9% to $53,003, 8.6% to $106,009, 12.2% to $172,346, and 14.05% above that. The basic personal amount is $18,198, indexed by 2.0% for 2026. The cost of living tax credit is not applied.'
+      ]
+    };
+  }
+  if (slug === 'pregnancy-due-date-calculator') {
+    const lmp = parseCalendarDate(v.lmpdate, 'last menstrual period date');
+    const cycle = v.cycle;
+    if (!Number.isInteger(cycle) || cycle < 21 || cycle > 45) throw new Error('Enter a cycle length from 21 to 45 days');
+    const asof = v.asofdate
+      ? parseCalendarDate(v.asofdate, 'gestational age date')
+      : new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+    const ageDays = calendarDaysBetween(lmp, asof);
+    if (ageDays < 0) throw new Error('The gestational age date is before the last menstrual period');
+    const adjustment = cycle - 28;
+    const due = addCalendarDays(lmp, 280 + adjustment);
+    const weeks = Math.floor(ageDays / 7);
+    const remDays = ageDays % 7;
+    const conception = addCalendarDays(lmp, cycle - 14);
+    const windowStart = addCalendarDays(conception, -4);
+    const firstEnd = addCalendarDays(lmp, 13 * 7 + 6);
+    const secondStart = addCalendarDays(lmp, 14 * 7);
+    const secondEnd = addCalendarDays(lmp, 27 * 7 + 6);
+    const thirdStart = addCalendarDays(lmp, 28 * 7);
+    const until = calendarDaysBetween(asof, due);
+    const untilLine = until > 0
+      ? `Days until the estimated due date: ${until}`
+      : until === 0
+        ? 'The gestational age date is the estimated due date.'
+        : `Days past the estimated due date: ${-until}`;
+    const adjustmentText = adjustment === 0 ? '0 days' : adjustment > 0 ? `+${adjustment} days` : `${adjustment} days`;
+    return {
+      headline: `Due ${formatCalendarDate(due)}`,
+      details: [
+        `Estimated due date: ${formatCalendarDate(due)}`,
+        `Gestational age on ${formatCalendarDate(asof)}: ${countPhrase(weeks, 'week')} and ${countPhrase(remDays, 'day')} (${countPhrase(ageDays, 'day')} from the LMP)`,
+        untilLine,
+        `Cycle length: ${cycle} days. Naegele adjustment from a 28-day cycle: ${adjustmentText}.`,
+        `Estimated conception day: ${formatCalendarDate(conception)}`,
+        `Conception window: ${formatCalendarDate(windowStart)} through ${formatCalendarDate(conception)}`,
+        `First trimester: ${formatCalendarDate(lmp)} through ${formatCalendarDate(firstEnd)}`,
+        `Second trimester: ${formatCalendarDate(secondStart)} through ${formatCalendarDate(secondEnd)}`,
+        `Third trimester: ${formatCalendarDate(thirdStart)} through ${formatCalendarDate(due)}`,
+        'Due date = LMP + 280 days + (cycle length − 28). That is 40 weeks for a 28-day cycle. Gestational age, and the start of each trimester, are counted from the LMP and do not move when the cycle length changes. The third trimester ends on the estimated due date. The conception day is LMP + (cycle length − 14), and the window runs from four days before that day through that day. This is an estimate, not an ultrasound date and not a diagnosis.'
+      ]
+    };
+  }
+  if (slug === 'simple-interest-calculator') {
+    if (!Number.isFinite(v.principal) || v.principal < 0) throw new Error('Enter a principal of zero or more');
+    if (!Number.isFinite(v.rate) || v.rate < 0) throw new Error('Enter an annual rate of zero or more');
+    if (!Number.isFinite(v.years) || v.years < 0) throw new Error('Enter a time of zero or more');
+    const interest = v.principal * (v.rate / 100) * v.years;
+    const total = v.principal + interest;
+    return {
+      headline: money(total),
+      details: [
+        `Simple interest: ${money(interest)}`,
+        `Principal: ${money(v.principal)}`,
+        `Annual rate: ${rateText(v.rate)}%`,
+        `Time: ${number(v.years, 4)} ${v.years === 1 ? 'year' : 'years'}`,
+        'Interest = principal × annual rate × time. The rate is the percent divided by 100. Time may be a fraction of a year. Interest is not compounded, and nothing is added for a monthly deposit.'
+      ]
+    };
+  }
+  if (slug === 'colorado-paycheck-calculator') {
+    const status = filingStatusCode(v.status);
+    const periods = payPeriodCount(v.periods);
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const requestedDeferral = nonNegativeCents(v.deferral, '401(k) deferral');
+    const deferral = Math.min(requestedDeferral, salary, US_401K_DEFERRAL_CENTS);
+    const agi = Math.max(0, salary - deferral);
+    const standard = US_STANDARD_DEDUCTION[status];
+    const coloradoBase = Math.max(0, agi - standard);
+    const stateTax = Math.round(coloradoBase * CO_RATE_BASIS_POINTS / 10000);
+    const federal = bracketTaxCents(coloradoBase, status === 1 ? US_SINGLE_BRACKETS : US_JOINT_BRACKETS);
+    const socialSecurity = Math.round(Math.min(salary, US_SS_WAGE_BASE_CENTS) * 620 / 10000);
+    const medicare = Math.round(salary * 145 / 10000);
+    const additionalMedicare = Math.round(Math.max(0, salary - US_ADDL_MEDICARE_CENTS) * 90 / 10000);
+    const takeHome = salary - federal - socialSecurity - medicare - additionalMedicare - stateTax - deferral;
+    const details = [
+      `Federal income tax: ${usdCents(federal)}`,
+      `Social Security: ${usdCents(socialSecurity)}`,
+      `Medicare: ${usdCents(medicare)}`,
+      `Additional Medicare Tax: ${usdCents(additionalMedicare)}`,
+      `Colorado income tax: ${usdCents(stateTax)}`,
+      `Colorado taxable income: ${usdCents(coloradoBase)}`,
+      `Federal standard deduction applied: ${usdCents(Math.min(standard, agi))}`,
+      `401(k) deferred: ${usdCents(deferral)}`,
+      `Annual take-home: ${usdCents(takeHome)}`,
+      status === 1
+        ? 'Filing status: single. Colorado tax is 4.40% of federal taxable income from this wage. The federal standard deduction used is $16,100.'
+        : 'Filing status: married filing jointly, with this salary as the only wage on the return. Colorado tax is 4.40% of federal taxable income from this wage. The $32,200 federal standard deduction belongs to the return, not to each spouse.',
+      'The 4.40% rate is the rate in the 2026 DR 1098 withholding worksheet. This page applies it to federal taxable income, which is the return starting point. DR 1098 itself subtracts $5,500 single or $11,000 joint instead of the federal standard deduction, so employer withholding can be higher. Colorado additions, including the 2026 overtime add-back, are not applied. There is no local wage tax on this page.'
+    ];
+    if (requestedDeferral > deferral) {
+      details.push(`401(k) entered above the 2026 elective deferral limit or above wages was reduced to ${usdCents(deferral)}`);
+    }
+    return {
+      headline: `${usdCents(Math.round(takeHome / periods))} ${PAY_PERIOD_LABEL[periods]}`,
+      details
+    };
+  }
+  if (slug === 'massachusetts-paycheck-calculator') {
+    const status = filingStatusCode(v.status);
+    const periods = payPeriodCount(v.periods);
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const requestedDeferral = nonNegativeCents(v.deferral, '401(k) deferral');
+    const deferral = Math.min(requestedDeferral, salary, US_401K_DEFERRAL_CENTS);
+    const agi = Math.max(0, salary - deferral);
+    const exemption = Math.min(MA_EXEMPTION_CENTS[status], agi);
+    const maTaxable = Math.max(0, agi - exemption);
+    const noTax = agi <= MA_NO_TAX_CENTS[status];
+    const baseTax = noTax ? 0 : Math.round(maTaxable * 500 / 10000);
+    const surtax = noTax ? 0 : Math.round(Math.max(0, maTaxable - MA_SURTAX_THRESHOLD_CENTS) * 400 / 10000);
+    const stateTax = baseTax + surtax;
+    const federalTaxable = Math.max(0, agi - US_STANDARD_DEDUCTION[status]);
+    const federal = bracketTaxCents(federalTaxable, status === 1 ? US_SINGLE_BRACKETS : US_JOINT_BRACKETS);
+    const socialSecurity = Math.round(Math.min(salary, US_SS_WAGE_BASE_CENTS) * 620 / 10000);
+    const medicare = Math.round(salary * 145 / 10000);
+    const additionalMedicare = Math.round(Math.max(0, salary - US_ADDL_MEDICARE_CENTS) * 90 / 10000);
+    const takeHome = salary - federal - socialSecurity - medicare - additionalMedicare - stateTax - deferral;
+    const details = [
+      `Federal income tax: ${usdCents(federal)}`,
+      `Social Security: ${usdCents(socialSecurity)}`,
+      `Medicare: ${usdCents(medicare)}`,
+      `Additional Medicare Tax: ${usdCents(additionalMedicare)}`,
+      `Massachusetts income tax: ${usdCents(stateTax)}`,
+      `Massachusetts 5% tax: ${usdCents(baseTax)}`,
+      `Massachusetts 4% surtax: ${usdCents(surtax)}`,
+      `Massachusetts personal exemption applied: ${usdCents(exemption)}`,
+      `Massachusetts taxable income: ${usdCents(maTaxable)}`,
+      `401(k) deferred: ${usdCents(deferral)}`,
+      `Annual take-home: ${usdCents(takeHome)}`,
+      status === 1
+        ? 'Filing status: single. The personal exemption is $4,400. No Tax Status applies when Massachusetts AGI from this wage is $8,000 or less.'
+        : 'Filing status: married filing jointly, with this salary as the only wage on the return. The personal exemption is $8,800. No Tax Status applies when Massachusetts AGI from this wage is $16,400 or less. The extra $1,000 per dependent is not added to that threshold.',
+      noTax
+        ? `No Tax Status applies, so Massachusetts tax is $0.00. The 5% figure on taxable income of ${usdCents(maTaxable)} was not charged.`
+        : `Massachusetts taxable income after the 401(k) and the personal exemption: ${usdCents(maTaxable)}.`,
+      surtax > 0
+        ? `The 4% surtax applies to ${usdCents(maTaxable - MA_SURTAX_THRESHOLD_CENTS)} of taxable income above the 2026 threshold of $1,107,750.`
+        : 'The 4% surtax is $0.00 because taxable income is not above the 2026 threshold of $1,107,750.',
+      'Massachusetts has no standard deduction. The Limited Income Credit, the $1,000 dependent exemption, the age-65 exemption, the blindness exemption, and the rent deduction are not applied. A traditional 401(k) is removed from both federal and Massachusetts income. A Roth contribution should not be entered.'
+    ];
+    if (requestedDeferral > deferral) {
+      details.push(`401(k) entered above the 2026 elective deferral limit or above wages was reduced to ${usdCents(deferral)}`);
+    }
+    return {
+      headline: `${usdCents(Math.round(takeHome / periods))} ${PAY_PERIOD_LABEL[periods]}`,
+      details
+    };
+  }
+  if (slug === 'act-stamp-duty-calculator') {
+    const price = nonNegativeCents(v.price, 'dutiable value');
+    const buyer = Number(v.buyer);
+    if (buyer !== 1 && buyer !== 2 && buyer !== 3) throw new Error('Choose a buyer');
+    const owner = actOwnerDutyCents(price);
+    const investor = actInvestorDutyCents(price);
+    const duty = buyer === 3 ? 0 : buyer === 2 ? investor : owner;
+    const buyerNote = price === 0
+      ? 'A dutiable value of zero has no conveyance duty. The buyer choice is not what zeroed the result.'
+      : buyer === 3
+        ? 'Buyer: Home Buyer Concession Scheme, contract on or after 1 July 2026. Duty is $0.00 at any price. Age, the five-year prior-ownership test, and the one-year residence test are not checked. A contract before 1 July 2026 used a $1,020,000 cap and is not this result.'
+        : buyer === 2
+          ? 'Buyer: not an eligible owner-occupier. Duty uses the higher non-owner-occupier scale. The Home Buyer Concession was not applied.'
+          : 'Buyer: eligible owner-occupier scale, not the Home Buyer Concession. At least one buyer must live in the home for a year. That residence test is not checked. Duty is lower than the investor scale only up to $1,455,000.';
+    const flatNote = price > ACT_FLAT_THRESHOLD_CENTS
+      ? 'The value is over $1,455,000, so duty is $4.54 per $100, or part of $100, of the whole dutiable value. The owner-occupier and investor scales use the same flat rate above that line.'
+      : 'The value is not over $1,455,000, so the flat $4.54 rate on the whole price was not used.';
+    return {
+      headline: audCents(duty),
+      details: [
+        `Conveyance duty: ${audCents(duty)}`,
+        `Owner-occupier duty at this value: ${audCents(owner)}`,
+        `Investor duty at this value: ${audCents(investor)}`,
+        `Dutiable value: ${audCents(price)}`,
+        buyerNote,
+        flatNote,
+        'Owner-occupier scale, in force from 1 July 2025 and unchanged for 2026–27: $0.28 per $100 up to $260,000, then $728 plus $2.20 per $100 over $260,000, $1,608 plus $3.40 over $300,000, $8,408 plus $4.32 over $500,000, $19,208 plus $5.90 over $750,000, and $33,958 plus $6.40 over $1,000,000, each per $100 or part. Above $1,455,000 the duty is $4.54 per $100 of the whole value. The investor scale starts at $1.20 per $100 up to $200,000, then $2,400 plus $2.20, $4,600 plus $3.40, $11,400 plus $4.32, $22,200 plus $5.90, and $36,950 plus $6.40 on the same thresholds.'
       ]
     };
   }

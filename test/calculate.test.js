@@ -1324,3 +1324,124 @@ test('drywall sheets round up after the waste allowance', () => {
     length: 12, width: 10, height: 8, openings: 400, ceiling: 1, sheet: 32, waste: 10
   }), /Openings/);
 });
+
+test('pregnancy due date uses Naegele and a cycle adjustment', () => {
+  const sample = calculate('pregnancy-due-date-calculator', { lmpdate: '2026-01-01', cycle: 28, asofdate: '2026-04-01' });
+  assert.equal(sample.headline, 'Due 8 October 2026');
+  assert.equal(sample.details[1], 'Gestational age on 1 April 2026: 12 weeks and 6 days (90 days from the LMP)');
+  assert.equal(sample.details[2], 'Days until the estimated due date: 190');
+  assert.equal(sample.details[4], 'Estimated conception day: 15 January 2026');
+  assert.equal(sample.details[6], 'First trimester: 1 January 2026 through 8 April 2026');
+  assert.equal(sample.details[8], 'Third trimester: 16 July 2026 through 8 October 2026');
+  const longer = calculate('pregnancy-due-date-calculator', { lmpdate: '2026-01-01', cycle: 35, asofdate: '2026-04-01' });
+  assert.equal(longer.headline, 'Due 15 October 2026');
+  assert.equal(longer.details[1], 'Gestational age on 1 April 2026: 12 weeks and 6 days (90 days from the LMP)');
+  assert.match(longer.details[3], /\+7 days/);
+  const leap = calculate('pregnancy-due-date-calculator', { lmpdate: '2024-01-01', cycle: 28, asofdate: '2024-10-07' });
+  assert.equal(leap.headline, 'Due 7 October 2024');
+  assert.match(leap.details[1], /40 weeks and 0 days/);
+  const past = calculate('pregnancy-due-date-calculator', { lmpdate: '2026-01-01', cycle: 28, asofdate: '2026-10-15' });
+  assert.equal(past.details[2], 'Days past the estimated due date: 7');
+  assert.throws(() => calculate('pregnancy-due-date-calculator', { lmpdate: '2026-01-01', cycle: 20, asofdate: '2026-04-01' }), /21 to 45/);
+  assert.throws(() => calculate('pregnancy-due-date-calculator', { lmpdate: '2026-02-31', cycle: 28, asofdate: '2026-04-01' }), /real/);
+  assert.throws(() => calculate('pregnancy-due-date-calculator', { lmpdate: '2026-01-01', cycle: 28, asofdate: '2025-12-01' }), /before/);
+});
+
+test('simple interest is linear and does not compound', () => {
+  const sample = calculate('simple-interest-calculator', { principal: 10000, rate: 5, years: 3 });
+  assert.equal(sample.headline, '$11,500.00');
+  assert.equal(sample.details[0], 'Simple interest: $1,500.00');
+  const half = calculate('simple-interest-calculator', { principal: 10000, rate: 5, years: 1.5 });
+  assert.equal(half.headline, '$10,750.00');
+  assert.equal(half.details[0], 'Simple interest: $750.00');
+  const long = calculate('simple-interest-calculator', { principal: 10000, rate: 7, years: 10 });
+  assert.equal(long.headline, '$17,000.00');
+  assert.equal(long.details[0], 'Simple interest: $7,000.00');
+  const zero = calculate('simple-interest-calculator', { principal: 10000, rate: 0, years: 3 });
+  assert.equal(zero.headline, '$10,000.00');
+  assert.equal(zero.details[0], 'Simple interest: $0.00');
+  const loanShape = calculate('simple-interest-calculator', { principal: 25000, rate: 7.5, years: 5 });
+  assert.equal(loanShape.details[0], 'Simple interest: $9,375.00');
+  assert.throws(() => calculate('simple-interest-calculator', { principal: -1, rate: 5, years: 3 }), /principal/);
+  assert.throws(() => calculate('simple-interest-calculator', { principal: 10000, rate: -1, years: 3 }), /rate/);
+});
+
+test('2026 Colorado paycheck uses the flat 4.40% rate', () => {
+  const sample = calculate('colorado-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0 });
+  assert.equal(sample.headline, '$2,009.84 / two weeks');
+  assert.equal(sample.details[4], 'Colorado income tax: $2,151.60');
+  assert.equal(sample.details[5], 'Colorado taxable income: $48,900.00');
+  assert.equal(sample.details[8], 'Annual take-home: $52,255.90');
+  const deferred = calculate('colorado-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 6500 });
+  assert.equal(deferred.details[4], 'Colorado income tax: $1,865.60');
+  assert.equal(deferred.headline, '$1,800.84 / two weeks');
+  const joint = calculate('colorado-paycheck-calculator', { salary: 65000, status: 2, periods: 26, deferral: 0 });
+  assert.equal(joint.details[4], 'Colorado income tax: $1,443.20');
+  assert.equal(joint.headline, '$2,120.93 / two weeks');
+  const low = calculate('colorado-paycheck-calculator', { salary: 15000, status: 1, periods: 26, deferral: 0 });
+  assert.equal(low.details[4], 'Colorado income tax: $0.00');
+  assert.equal(low.details[6], 'Federal standard deduction applied: $15,000.00');
+  const high = calculate('colorado-paycheck-calculator', { salary: 210000, status: 1, periods: 12, deferral: 0 });
+  assert.equal(high.details[4], 'Colorado income tax: $8,531.60');
+  assert.equal(high.details[3], 'Additional Medicare Tax: $90.00');
+  assert.throws(() => calculate('colorado-paycheck-calculator', { salary: -1, status: 1, periods: 26, deferral: 0 }), /salary/);
+});
+
+test('2026 Massachusetts paycheck uses 5% and the $1,107,750 surtax', () => {
+  const sample = calculate('massachusetts-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0 });
+  assert.equal(sample.headline, '$1,976.06 / two weeks');
+  assert.equal(sample.details[4], 'Massachusetts income tax: $3,030.00');
+  assert.equal(sample.details[6], 'Massachusetts 4% surtax: $0.00');
+  assert.equal(sample.details[8], 'Massachusetts taxable income: $60,600.00');
+  assert.equal(sample.details[10], 'Annual take-home: $51,377.50');
+  const deferred = calculate('massachusetts-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 6500 });
+  assert.equal(deferred.details[4], 'Massachusetts income tax: $2,705.00');
+  assert.equal(deferred.headline, '$1,768.56 / two weeks');
+  const noTax = calculate('massachusetts-paycheck-calculator', { salary: 8000, status: 1, periods: 26, deferral: 0 });
+  assert.equal(noTax.details[4], 'Massachusetts income tax: $0.00');
+  assert.match(noTax.details[12], /No Tax Status applies/);
+  const over = calculate('massachusetts-paycheck-calculator', { salary: 8000.01, status: 1, periods: 26, deferral: 0 });
+  assert.equal(over.details[4], 'Massachusetts income tax: $180.00');
+  assert.equal(over.headline, '$277.23 / two weeks');
+  const surtax = calculate('massachusetts-paycheck-calculator', { salary: 1200000, status: 1, periods: 12, deferral: 0 });
+  assert.equal(surtax.details[5], 'Massachusetts 5% tax: $59,780.00');
+  assert.equal(surtax.details[6], 'Massachusetts 4% surtax: $3,514.00');
+  assert.equal(surtax.headline, '$58,738.90 / month');
+  assert.throws(() => calculate('massachusetts-paycheck-calculator', { salary: 65000, status: 3, periods: 26, deferral: 0 }), /filing status/);
+});
+
+test('ACT conveyance duty uses the 2026-27 scales and the home buyer concession', () => {
+  assert.equal(
+    calculate('act-stamp-duty-calculator', { price: 800000, buyer: 1 }).headline,
+    '$22,158.00'
+  );
+  const investor = calculate('act-stamp-duty-calculator', { price: 800000, buyer: 2 });
+  assert.equal(investor.headline, '$25,150.00');
+  assert.equal(investor.details[1], 'Owner-occupier duty at this value: $22,158.00');
+  const concession = calculate('act-stamp-duty-calculator', { price: 800000, buyer: 3 });
+  assert.equal(concession.headline, '$0.00');
+  assert.match(concession.details[4], /1 July 2026/);
+  assert.equal(
+    calculate('act-stamp-duty-calculator', { price: 580000, buyer: 1 }).headline,
+    '$11,864.00'
+  );
+  assert.equal(
+    calculate('act-stamp-duty-calculator', { price: 580000, buyer: 2 }).details[0],
+    'Conveyance duty: $14,856.00'
+  );
+  assert.equal(
+    calculate('act-stamp-duty-calculator', { price: 500000.01, buyer: 1 }).headline,
+    '$8,412.32'
+  );
+  assert.equal(
+    calculate('act-stamp-duty-calculator', { price: 1455000, buyer: 1 }).headline,
+    '$63,078.00'
+  );
+  const flat = calculate('act-stamp-duty-calculator', { price: 1455000.01, buyer: 2 });
+  assert.equal(flat.headline, '$66,061.54');
+  assert.match(flat.details[5], /over \$1,455,000/);
+  const stillFree = calculate('act-stamp-duty-calculator', { price: 1455000.01, buyer: 3 });
+  assert.equal(stillFree.headline, '$0.00');
+  assert.throws(() => calculate('act-stamp-duty-calculator', { price: -1, buyer: 1 }), /dutiable value/);
+  assert.throws(() => calculate('act-stamp-duty-calculator', { price: 800000, buyer: 4 }), /buyer/);
+});
