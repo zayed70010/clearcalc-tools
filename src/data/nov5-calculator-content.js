@@ -204,7 +204,8 @@ export const nov5CalculatorContent = {
     relatedLinks: [
       { slug: 'bmi-calculator', label: 'Adult BMI calculator', note: '70.5 kg at 175 cm is BMI 23, Healthy range. That page needs a weight. This one starts from height and does not use the WHO cutoffs to choose Devine.' },
       { slug: 'calorie-calculator', label: 'Daily calorie calculator', note: 'Mifflin–St Jeor for a weight, height, age, and activity multiplier. The sample man at 75 kg is 2,633 calories/day. A Devine weight is not that estimate.' },
-      { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'If you already have two weights, this page will say what percent one is of the other. It does not run Devine, Robinson, or Miller.' }
+      { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'If you already have two weights, this page will say what percent one is of the other. It does not run Devine, Robinson, or Miller.' },
+      { slug: 'pregnancy-due-date-calculator', label: 'Pregnancy due date calculator', note: 'An LMP of 1 January 2026 and a 28-day cycle is due 8 October 2026. Gestational age on 1 April 2026 is 12 weeks and 6 days. Devine is not a due date.' }
     ]
   },
   'arizona-paycheck-calculator': {
@@ -309,7 +310,9 @@ export const nov5CalculatorContent = {
       { slug: 'virginia-paycheck-calculator', label: 'Virginia paycheck calculator for 2026', note: 'The same wage is $2,923.40 of Virginia tax and $1,980.16 every two weeks. Virginia’s brackets top out at 5.75%. Arizona’s rate stays 2.5%.' },
       { slug: 'texas-paycheck-calculator', label: 'Texas paycheck calculator for 2026', note: 'The same federal and FICA structure with a state income tax of $0. Texas still has a statewide sales tax. Arizona’s wage tax is the 2.5% line.' },
       { slug: 'sales-tax-calculator', label: 'Sales tax calculator', note: 'Arizona’s statewide transaction privilege tax is 5.6%, or $5.60 on $100. That is not withheld from the $2,045.24 paycheck.' },
-      { slug: '401k-contribution-calculator', label: '2026 401(k) contribution calculator', note: 'Check a deferral against the $24,500 limit. On this page the deferral reduces both federal income tax and the 2.5% Arizona tax.' }
+      { slug: '401k-contribution-calculator', label: '2026 401(k) contribution calculator', note: 'Check a deferral against the $24,500 limit. On this page the deferral reduces both federal income tax and the 2.5% Arizona tax.' },
+      { slug: 'colorado-paycheck-calculator', label: 'Colorado paycheck calculator for 2026', note: 'The same $65,000 single wage is $2,151.60 of Colorado tax at 4.40% and $2,009.84 every two weeks. Arizona’s 2.5% result is $1,231.25 and $2,045.24.' },
+      { slug: 'massachusetts-paycheck-calculator', label: 'Massachusetts paycheck calculator for 2026', note: 'The same wage is $3,030.00 of Massachusetts tax at 5% and $1,976.06 every two weeks. The 4% surtax starts above $1,107,750 of taxable income.' }
     ]
   },
   'tasmania-stamp-duty-calculator': {
@@ -415,7 +418,8 @@ export const nov5CalculatorContent = {
       { slug: 'south-australia-stamp-duty-calculator', label: 'South Australia stamp duty calculator', note: 'General duty at $600,000 is $26,830.00 there, against $22,497.50 on this Tasmanian scale. An eligible South Australian first buyer of a new home pays $0.00 with no price cap.' },
       { slug: 'western-australia-stamp-duty-calculator', label: 'Western Australia stamp duty calculator', note: 'A $650,000 first home on or after 7 May 2026 is $8,075.00 there. That concession is not the Tasmanian scale, and Tasmania’s established-home exemption does not survive a settlement after 30 June 2026.' },
       { slug: 'victoria-stamp-duty-calculator', label: 'Victoria stamp duty calculator', note: 'Victorian land transfer duty, including a first-home concession and an 8% foreign purchaser additional duty. The 8% is a different statute from Tasmania’s residential surcharge.' },
-      { slug: 'australia-take-home-pay-calculator', label: 'Australia take-home pay calculator for 2026–27', note: 'Resident income tax and the Medicare levy on a salary. It is not the duty on a house in Hobart.' }
+      { slug: 'australia-take-home-pay-calculator', label: 'Australia take-home pay calculator for 2026–27', note: 'Resident income tax and the Medicare levy on a salary. It is not the duty on a house in Hobart.' },
+      { slug: 'act-stamp-duty-calculator', label: 'ACT stamp duty calculator', note: 'Owner-occupier duty at $800,000 is $22,158.00. An investor pays $25,150.00. An eligible home buyer with a contract on or after 1 July 2026 pays $0.00. Tasmania’s $20,372.50 on $550,000 is a different scale.' }
     ]
   },
   'northwest-territories-take-home-pay-calculator': {

@@ -349,6 +349,45 @@ test('five November 5 calculators are linked from the homepage and a related pag
   assert.equal(sales.relatedLinks.some((link) => link.slug === 'percentage-calculator'), true);
 });
 
+test('five November 6 calculators are linked from the homepage and a related page', () => {
+  const home = readFileSync('src/pages/index.astro', 'utf8');
+  const links = [
+    ['pregnancy-due-date-calculator', 'ideal-weight-calculator'],
+    ['simple-interest-calculator', 'compound-interest-calculator'],
+    ['colorado-paycheck-calculator', 'arizona-paycheck-calculator'],
+    ['massachusetts-paycheck-calculator', 'arizona-paycheck-calculator'],
+    ['act-stamp-duty-calculator', 'tasmania-stamp-duty-calculator']
+  ];
+  for (const [slug, related] of links) {
+    assert.match(home, new RegExp(`calculators/${slug}/`));
+    assert.ok(calculatorContent[slug], slug);
+    assert.equal(
+      calculatorContent[related].relatedLinks.some((link) => link.slug === slug),
+      true,
+      related
+    );
+  }
+  assert.match(calculatorContent['pregnancy-due-date-calculator'].description, /8 October 2026/);
+  assert.match(calculatorContent['pregnancy-due-date-calculator'].table.rows[0][2], /8 October 2026/);
+  assert.match(calculatorContent['simple-interest-calculator'].description, /\$1,500\.00/);
+  assert.match(calculatorContent['simple-interest-calculator'].table.rows[0][3], /\$1,500\.00/);
+  assert.match(calculatorContent['simple-interest-calculator'].intro[1], /\$11,614\.72/);
+  assert.match(calculatorContent['colorado-paycheck-calculator'].description, /4\.40%/);
+  assert.match(calculatorContent['colorado-paycheck-calculator'].table.rows[0][4], /\$2,009\.84/);
+  assert.match(calculatorContent['massachusetts-paycheck-calculator'].description, /\$1,107,750/);
+  assert.match(calculatorContent['massachusetts-paycheck-calculator'].table.rows[0][4], /\$1,976\.06/);
+  assert.match(calculatorContent['act-stamp-duty-calculator'].table.rows[0][2], /\$22,158\.00/);
+  assert.match(calculatorContent['act-stamp-duty-calculator'].table.rows[2][2], /\$0\.00/);
+  const percentage = calculatorContent['percentage-calculator'];
+  assert.equal(percentage.faqs.length, 6);
+  assert.match(percentage.intro[2], /7\.62%/);
+  assert.match(percentage.howItWorks.at(-1), /6\.62%/);
+  assert.match(percentage.examples.at(-2).paragraphs[0], /21\.18%/);
+  for (const slug of ['discount-calculator', 'tip-calculator', 'sales-tax-calculator', 'debt-to-income-ratio-calculator']) {
+    assert.equal(percentage.relatedLinks.some((link) => link.slug === slug), true, slug);
+  }
+});
+
 test('length converter slug matches the page title', () => {
   const length = calculators.find((item) => item.slug === 'length-converter');
   assert.equal(length.title, 'Length Converter');
