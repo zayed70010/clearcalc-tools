@@ -388,6 +388,59 @@ test('five November 6 calculators are linked from the homepage and a related pag
   }
 });
 
+test('ten November 7 calculators are linked from the homepage and a related page', () => {
+  const home = readFileSync('src/pages/index.astro', 'utf8');
+  const links = [
+    ['car-payment-calculator', 'loan-calculator'],
+    ['roi-calculator', 'simple-interest-calculator'],
+    ['percentage-change-calculator', 'percentage-calculator'],
+    ['fahrenheit-to-celsius-calculator', 'celsius-to-fahrenheit-calculator'],
+    ['oregon-paycheck-calculator', 'colorado-paycheck-calculator'],
+    ['minnesota-paycheck-calculator', 'massachusetts-paycheck-calculator'],
+    ['yukon-take-home-pay-calculator', 'northwest-territories-take-home-pay-calculator'],
+    ['northern-territory-stamp-duty-calculator', 'act-stamp-duty-calculator'],
+    ['wallpaper-calculator', 'room-paint-calculator'],
+    ['time-card-hours-calculator', 'overtime-pay-calculator']
+  ];
+  for (const [slug, related] of links) {
+    assert.match(home, new RegExp(`calculators/${slug}/`));
+    assert.ok(calculatorContent[slug], slug);
+    assert.equal(
+      calculatorContent[related].relatedLinks.some((link) => link.slug === slug),
+      true,
+      related
+    );
+  }
+  assert.match(calculatorContent['car-payment-calculator'].description, /\$483\.32/);
+  assert.match(calculatorContent['car-payment-calculator'].table.rows[0][3], /\$483\.32/);
+  assert.match(calculatorContent['roi-calculator'].description, /25\.00%/);
+  assert.match(calculatorContent['roi-calculator'].table.rows[0][3], /25\.00%/);
+  assert.match(calculatorContent['percentage-change-calculator'].description, /25\.00% increase/);
+  assert.match(calculatorContent['percentage-change-calculator'].table.rows[1][2], /20\.00%/);
+  assert.match(calculatorContent['fahrenheit-to-celsius-calculator'].description, /98\.6°F is 37°C/);
+  assert.match(calculatorContent['fahrenheit-to-celsius-calculator'].table.rows[2][1], /37°C/);
+  assert.match(calculatorContent['oregon-paycheck-calculator'].description, /\$5,113\.38/);
+  assert.match(calculatorContent['oregon-paycheck-calculator'].table.rows[0][4], /\$1,895\.93/);
+  assert.match(calculatorContent['minnesota-paycheck-calculator'].description, /\$2,896\.61/);
+  assert.match(calculatorContent['minnesota-paycheck-calculator'].table.rows[0][4], /\$1,981\.19/);
+  assert.match(calculatorContent['yukon-take-home-pay-calculator'].description, /\$4,521\.58/);
+  assert.match(calculatorContent['yukon-take-home-pay-calculator'].table.rows[1][4], /\$4,521\.58/);
+  assert.match(calculatorContent['northern-territory-stamp-duty-calculator'].description, /\$23,928\.60/);
+  assert.match(calculatorContent['northern-territory-stamp-duty-calculator'].table.rows[3][2], /\$37,125\.00/);
+  assert.match(calculatorContent['wallpaper-calculator'].table.rows[0][5], /7/);
+  assert.match(calculatorContent['time-card-hours-calculator'].description, /8\.0000 hours/);
+  assert.match(calculatorContent['time-card-hours-calculator'].table.rows[0][3], /8\.0000 hours/);
+  const tip = calculatorContent['tip-calculator'];
+  assert.equal(tip.relatedLinks.some((link) => link.slug === 'discount-calculator'), true);
+  assert.equal(tip.relatedLinks.some((link) => link.slug === 'percentage-calculator'), true);
+  assert.match(tip.examples.at(-1).paragraphs[0], /\$47\.63/);
+  assert.match(calculatorContent['celsius-to-fahrenheit-calculator'].description, /356°F/);
+  assert.equal(
+    calculatorContent['celsius-to-fahrenheit-calculator'].relatedLinks.some((link) => link.slug === 'fahrenheit-to-celsius-calculator'),
+    true
+  );
+});
+
 test('length converter slug matches the page title', () => {
   const length = calculators.find((item) => item.slug === 'length-converter');
   assert.equal(length.title, 'Length Converter');

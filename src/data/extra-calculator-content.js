@@ -882,7 +882,8 @@ export const extraCalculatorContent = {
     relatedLinks: [
       { slug: 'hourly-to-salary-calculator', label: 'Hourly to salary calculator', note: 'Straight time only, for a weekly schedule repeated across the paid weeks you choose.' },
       { slug: 'california-paycheck-calculator', label: 'California paycheck calculator for 2026', note: 'Annual California wages after tax and SDI. It does not compute daily overtime.' },
-      { slug: 'florida-paycheck-calculator', label: 'Florida paycheck calculator for 2026', note: 'Put a full year of gross wages, including overtime you expect, into the wage field.' }
+      { slug: 'florida-paycheck-calculator', label: 'Florida paycheck calculator for 2026', note: 'Put a full year of gross wages, including overtime you expect, into the wage field.' },
+      { slug: 'time-card-hours-calculator', label: 'Time card hours calculator', note: '9:00 to 17:30 with a 30-minute unpaid break is 8.0000 decimal hours, or 8:00. This overtime page prices a weekly total. It does not read a clock.' }
     ]
   },
   '401k-contribution-calculator': {

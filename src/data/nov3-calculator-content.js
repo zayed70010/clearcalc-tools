@@ -6,7 +6,8 @@ export const nov3CalculatorContent = {
     intro: [
       'This Celsius to Fahrenheit calculator converts a temperature either way with the exact scale definition. Enter 180 and leave the direction on Celsius to Fahrenheit. The headline is 356°F. Kelvin is 453.15 K. The same 180°C typed as Fahrenheit the other way, 356, comes back as 180°C. A printed oven chart that pairs 180°C with 350°F is six degrees low. The gap is the chart, not a second formula.',
       'The length converter on this site multiplies metres by a rounded foot factor. It does not touch temperature. The fuel economy converter divides by a gallon. Neither page can turn a weather forecast or an oven dial into the other scale. This one does only that. Water freezes at 0°C, which is 32°F, and boils at 100°C, which is 212°F. Those two points are what the 9/5 slope is fitted to.',
-      'A body-temperature reading of 37°C is 98.6°F, and 98.6°F converts back to 37°C. A room at 20°C is 68°F. Minus 40 is the one temperature that has the same number on both scales: −40°C is −40°F, and Kelvin there is 233.15 K. The form rejects a temperature below absolute zero, −273.15°C or −459.67°F, because a lower number is not a temperature on this scale.'
+      'A body-temperature reading of 37°C is 98.6°F, and 98.6°F converts back to 37°C. A room at 20°C is 68°F. Minus 40 is the one temperature that has the same number on both scales: −40°C is −40°F, and Kelvin there is 233.15 K. The form rejects a temperature below absolute zero, −273.15°C or −459.67°F, because a lower number is not a temperature on this scale.',
+      'The Fahrenheit to Celsius page is the one-direction companion. It accepts only a Fahrenheit number, so a weather forecast or a thermometer can be typed without a direction menu that might still be sitting on Celsius. This page keeps both directions because the oven check needs them: 180°C out, and 350°F or 356°F back. The companion does not reprint the oven chart. Use it when the number in your hand is already Fahrenheit. Use this page when the number is Celsius, or when you want to prove the round trip.'
     ],
     steps: [
       'Enter the temperature as a number. The sample, 180, is a common baking temperature in Celsius. Negative numbers are allowed. Absolute zero is the floor.',
@@ -90,7 +91,7 @@ export const nov3CalculatorContent = {
       },
       {
         q: 'Is 98.6°F exactly 37°C?',
-        a: 'Yes. 37 × 9/5 + 32 = 98.6, and (98.6 − 32) × 5/9 = 37. Kelvin is 310.15 K. A thermometer that reads 98.4 or 98.7 is a different measurement, not a different formula. This page converts the number you type.'
+        a: 'Yes. 37 × 9/5 + 32 = 98.6, and (98.6 − 32) × 5/9 = 37. Kelvin is 310.15 K. A thermometer that reads 98.4 or 98.7 is a different measurement, not a different formula. This page converts the number you type. The Fahrenheit to Celsius page starts from 98.6 with no direction field and shows the same 37°C.'
       },
       {
         q: 'Can this Celsius calculator convert metres or miles per gallon?',
@@ -99,7 +100,8 @@ export const nov3CalculatorContent = {
     ],
     relatedLinks: [
       { slug: 'length-converter', label: 'Length converter from metres', note: 'Metres to feet, inches, yards, or kilometres. It does not convert a temperature, and its foot factor is a rounded 3.28084.' },
-      { slug: 'fuel-economy-converter', label: 'Fuel economy converter', note: '30 US mpg is 7.84 L/100 km. A gallon is not a degree, and this temperature page does not use the mile of 1.609344 kilometres.' }
+      { slug: 'fuel-economy-converter', label: 'Fuel economy converter', note: '30 US mpg is 7.84 L/100 km. A gallon is not a degree, and this temperature page does not use the mile of 1.609344 kilometres.' },
+      { slug: 'fahrenheit-to-celsius-calculator', label: 'Fahrenheit to Celsius calculator', note: '32°F is 0°C, 212°F is 100°C, and 98.6°F is 37°C. That page does not convert 180°C, and it does not print the oven chart that pairs 180°C with 350°F. The exact Fahrenheit for 180°C stays on this page: 356°F.' }
     ]
   },
   'sales-tax-calculator': {
