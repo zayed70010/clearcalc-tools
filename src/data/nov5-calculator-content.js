@@ -523,7 +523,8 @@ export const nov5CalculatorContent = {
       { slug: 'newfoundland-and-labrador-take-home-pay-calculator', label: 'Newfoundland and Labrador take-home pay calculator for 2026', note: 'Same federal tax, CPP, and EI at $70,000. Provincial tax is $5,938.98 rather than $3,197.57, and the monthly headline is $4,308.58.' },
       { slug: 'prince-edward-island-take-home-pay-calculator', label: 'Prince Edward Island take-home pay calculator for 2026', note: 'Same federal pieces. PEI tax at $70,000 is $6,258.09 and the monthly headline is $4,281.99, below both this page and Newfoundland and Labrador.' },
       { slug: 'nova-scotia-take-home-pay-calculator', label: 'Nova Scotia take-home pay calculator for 2026', note: 'Same CPP and EI. Nova Scotia’s monthly headline at $70,000 is $4,208.02. The territorial brackets here are not those provincial brackets.' },
-      { slug: 'quebec-take-home-pay-calculator', label: 'Quebec take-home pay calculator for 2026', note: 'QPP, QPIP, the 1.30% EI rate, and the 16.5% abatement. At $70,000 the monthly headline is $4,253.73, and the payroll system is not the one used here.' }
+      { slug: 'quebec-take-home-pay-calculator', label: 'Quebec take-home pay calculator for 2026', note: 'QPP, QPIP, the 1.30% EI rate, and the 16.5% abatement. At $70,000 the monthly headline is $4,253.73, and the payroll system is not the one used here.' },
+      { slug: 'yukon-take-home-pay-calculator', label: 'Yukon take-home pay calculator for 2026', note: 'Same federal tax, CPP, and EI at $70,000. Yukon tax is $3,383.07 rather than $3,197.57, and the monthly headline is $4,521.58.' }
     ]
   }
 };

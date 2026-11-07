@@ -1363,6 +1363,98 @@ const MA_EXEMPTION_CENTS = { 1: 440_000, 2: 880_000 };
 const MA_NO_TAX_CENTS = { 1: 800_000, 2: 1_640_000 };
 const MA_SURTAX_THRESHOLD_CENTS = 110_775_000;
 
+// Tax year 2026 Oregon. Bracket thresholds and the rounded dollar bases are the
+// figures in Publication OR-ESTIMATE: 4.75% to $4,550, then $216 plus 6.75% to
+// $11,400, $678 plus 8.75% to $125,000, and $10,618 plus 9.9% above that for a
+// single return. Joint thresholds are $9,100, $22,800, and $250,000, with bases
+// of $432, $1,357, and $21,237. The standard deduction used here is the 2026
+// withholding amount, $2,910 single (fewer than three allowances) and $5,820
+// joint. Taxable income is wages minus a traditional 401(k) minus that
+// deduction. The federal income-tax subtraction, the $263-per-exemption credit,
+// the statewide transit tax, and local transit or Portland-area taxes are not
+// applied. The published bases are rounded dollars, so tax can step by less
+// than a dollar at a threshold.
+const OR_STANDARD_DEDUCTION = { 1: 291_000, 2: 582_000 };
+
+function oregonIncomeTaxCents(taxableCents, status) {
+  if (taxableCents <= 0) return 0;
+  if (status === 1) {
+    if (taxableCents <= 455_000) return Math.round(taxableCents * 475 / 10000);
+    if (taxableCents <= 1_140_000) return 21_600 + Math.round((taxableCents - 455_000) * 675 / 10000);
+    if (taxableCents <= 12_500_000) return 67_800 + Math.round((taxableCents - 1_140_000) * 875 / 10000);
+    return 1_061_800 + Math.round((taxableCents - 12_500_000) * 990 / 10000);
+  }
+  if (taxableCents <= 910_000) return Math.round(taxableCents * 475 / 10000);
+  if (taxableCents <= 2_280_000) return 43_200 + Math.round((taxableCents - 910_000) * 675 / 10000);
+  if (taxableCents <= 25_000_000) return 135_700 + Math.round((taxableCents - 2_280_000) * 875 / 10000);
+  return 2_123_700 + Math.round((taxableCents - 25_000_000) * 990 / 10000);
+}
+
+// Tax year 2026 Minnesota. Brackets are the Department of Revenue 2026 rate
+// schedule. The standard deduction is Minnesota’s own amount, $15,300 single
+// and $30,600 married filing jointly, not the federal standard deduction.
+// Minnesota tax is applied to wages minus a traditional 401(k) minus that
+// deduction. Credits are not applied.
+const MN_SINGLE_BRACKETS = [
+  [3_331_000, 535],
+  [10_943_000, 680],
+  [20_315_000, 785],
+  [Number.POSITIVE_INFINITY, 985]
+];
+const MN_JOINT_BRACKETS = [
+  [4_870_000, 535],
+  [19_348_000, 680],
+  [33_793_000, 785],
+  [Number.POSITIVE_INFINITY, 985]
+];
+const MN_STANDARD_DEDUCTION = { 1: 1_530_000, 2: 3_060_000 };
+
+// 2026 Yukon. Rates and thresholds are the Canada.ca 2026 territorial table and
+// CRA Chart 2 for T4032-YT: 6.4% to $58,523, 9% to $117,045, 10.9% to $181,440,
+// 12.8% to $500,000, and 15% above that. The basic personal amount matches the
+// federal maximum of $16,452 and minimum of $14,829, including the phase-out
+// above $181,440, so the federal helper is reused. The credit rate is 6.4%.
+const YT_BRACKETS = [
+  [5_852_300, 640],
+  [11_704_500, 900],
+  [18_144_000, 1090],
+  [50_000_000, 1280],
+  [Number.POSITIVE_INFINITY, 1500]
+];
+
+// Stamp Duty Act 1978 (NT), Schedule 1, conveyance duty still in force for a
+// 2026 residential purchase. Up to $525,000, D = (0.06571441 × V²) + 15V where
+// V is the dutiable value divided by 1,000. Above $525,000 and under $3,000,000
+// the duty is 4.95% of the whole value. From $3,000,000 and under $5,000,000 it
+// is 5.75%. From $5,000,000 it is 5.95%. There is no first-home duty concession
+// and no foreign surcharge on this scale. The formula result is rounded to the
+// nearest cent. A grant is not subtracted.
+function northernTerritoryDutyCents(priceCents) {
+  if (priceCents <= 0) return 0;
+  if (priceCents <= 52_500_000) {
+    const dollars = priceCents / 100;
+    const v = dollars / 1000;
+    const dutyDollars = 0.06571441 * v * v + 15 * v;
+    return Math.round(dutyDollars * 100);
+  }
+  if (priceCents < 300_000_000) return Math.round(priceCents * 495 / 10000);
+  if (priceCents < 500_000_000) return Math.round(priceCents * 575 / 10000);
+  return Math.round(priceCents * 595 / 10000);
+}
+
+function clockPart(value, max, label) {
+  if (!Number.isInteger(value) || value < 0 || value > max) {
+    throw new Error(`Enter a whole ${label} from 0 to ${max}`);
+  }
+  return value;
+}
+
+function hhmm(totalMinutes) {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours}:${String(minutes).padStart(2, '0')}`;
+}
+
 // Duties Act 1999 (ACT), non-commercial conveyance duty for a transaction on or
 // after 1 July 2025. The 2026–27 disallowable instrument keeps the same marginal
 // rates. "Per $100, or part" rounds any remainder up to the next $100. Above
@@ -1520,8 +1612,31 @@ export function calculate(slug, values) {
   }
   if (slug === 'percentage-calculator') return { headline: `${number(v.part / v.whole * 100)}%`, details: [`${number(v.part)} is ${number(v.part / v.whole * 100)}% of ${number(v.whole)}.`] };
   if (slug === 'tip-calculator') {
-    const tipAmount = v.bill * v.tip / 100, total = v.bill + tipAmount;
-    return { headline: `${money(total / v.people)} per person`, details: [`Tip: ${money(tipAmount)}`, `Total bill: ${money(total)}`] };
+    if (!Number.isFinite(v.bill) || v.bill < 0) throw new Error('Enter a bill of zero or more');
+    if (!Number.isFinite(v.tip) || v.tip < 0) throw new Error('Enter a tip percent of zero or more');
+    if (!Number.isInteger(v.people) || v.people < 1) throw new Error('Enter a whole number of people, at least 1');
+    const tipAmount = v.bill * v.tip / 100;
+    const total = v.bill + tipAmount;
+    const share = total / v.people;
+    const roundedShareCents = Math.round(share * 100);
+    const roundedTotalCents = Math.round(total * 100);
+    const summedShares = roundedShareCents * v.people;
+    const gap = summedShares - roundedTotalCents;
+    const gapNote = gap === 0
+      ? `The displayed shares add back to the displayed total. ${v.people} × ${usdCents(roundedShareCents)} = ${usdCents(summedShares)}.`
+      : `The displayed shares miss the displayed total by ${usdCents(Math.abs(gap))}. ${v.people} × ${usdCents(roundedShareCents)} = ${usdCents(summedShares)}, and the total displays as ${usdCents(roundedTotalCents)}. Each line was rounded on its own.`;
+    return {
+      headline: `${money(share)} per person`,
+      details: [
+        `Tip: ${money(tipAmount)}`,
+        `Total bill: ${money(total)}`,
+        `Unrounded tip: ${number(tipAmount, 4)}`,
+        `Unrounded total: ${number(total, 4)}`,
+        `Unrounded share: ${number(share, 4)}`,
+        gapNote,
+        'Tip = bill × tip percent / 100. The total is the bill plus that tip. The share is the total divided by the number of people. Tax is not added. A service charge already on the bill is not detected.'
+      ]
+    };
   }
   if (slug === 'age-calculator') {
     const birth = new Date(`${v.birthdate}T00:00:00`), target = v.targetdate ? new Date(`${v.targetdate}T00:00:00`) : new Date();
@@ -3804,6 +3919,269 @@ export function calculate(slug, values) {
         `Annual take-home: ${gbp(takeHome)}`,
         `Weekly take-home: ${gbp(Math.round(takeHome / 52))}`,
         `Personal allowance applied: ${gbp(allowance)}`
+      ]
+    };
+  }
+  if (slug === 'car-payment-calculator') {
+    if (!Number.isFinite(v.principal) || v.principal < 0) throw new Error('Enter a principal of zero or more');
+    if (!Number.isFinite(v.rate) || v.rate < 0) throw new Error('Enter an APR of zero or more');
+    if (!Number.isInteger(v.months) || v.months < 1 || v.months > 600) throw new Error('Enter a whole number of months from 1 to 600');
+    const r = v.rate / 1200;
+    const payment = r === 0 ? v.principal / v.months : v.principal * r * (1 + r) ** v.months / ((1 + r) ** v.months - 1);
+    const total = payment * v.months;
+    const interest = total - v.principal;
+    return {
+      headline: `${money(payment)} / month`,
+      details: [
+        `Monthly principal and interest: ${money(payment)}`,
+        `Number of payments: ${v.months}`,
+        `Total paid: ${money(total)}`,
+        `Total interest: ${money(interest)}`,
+        `Amount financed: ${money(v.principal)}`,
+        `APR: ${rateText(v.rate)}%`,
+        r === 0
+          ? 'The APR is 0%, so the payment is the amount financed divided by the number of months and total interest is zero.'
+          : 'Payment = principal × r × (1 + r)^n / ((1 + r)^n − 1), where r is the APR divided by 100 and then by 12, and n is the term in months. Total paid uses the unrounded payment. The headline is that payment rounded to the cent on its own.',
+        'This is principal and interest only. Sales tax, title, registration, and insurance are included only when they are already inside the amount financed. A down payment should be subtracted before you type the principal.'
+      ]
+    };
+  }
+  if (slug === 'roi-calculator') {
+    if (!Number.isFinite(v.cost) || v.cost <= 0) throw new Error('Enter a cost above zero. ROI divides by the cost, so zero and negative costs are rejected.');
+    if (!Number.isFinite(v.gain)) throw new Error('Enter a final value');
+    const profit = v.gain - v.cost;
+    const roi = profit / v.cost * 100;
+    const direction = profit > 0 ? 'a gain' : profit < 0 ? 'a loss' : 'no profit and no loss';
+    return {
+      headline: `${percent(roi)}%`,
+      details: [
+        `Net profit: ${money(profit)}`,
+        `Cost: ${money(v.cost)}`,
+        `Final value: ${money(v.gain)}`,
+        `The result is ${direction}.`,
+        'ROI = (final value − cost) / cost × 100. Net profit is final value minus cost. This is not an internal rate of return, and it does not discount cash flows over time.',
+        profit < 0
+          ? 'A negative ROI means the final value is below the cost. The percent is that shortfall divided by the cost.'
+          : 'A positive ROI means the final value is above the cost. A zero ROI means they are equal.'
+      ]
+    };
+  }
+  if (slug === 'percentage-change-calculator') {
+    if (!Number.isFinite(v.old) || !Number.isFinite(v.next)) throw new Error('Enter a starting value and a new value');
+    if (v.old === 0) throw new Error('Percent change from zero is undefined. Enter a starting value other than zero.');
+    const change = (v.next - v.old) / v.old * 100;
+    const direction = v.next > v.old ? 'increase' : v.next < v.old ? 'decrease' : 'no change';
+    return {
+      headline: `${percent(change)}% ${direction}`,
+      details: [
+        `Starting value: ${number(v.old, 4)}`,
+        `New value: ${number(v.next, 4)}`,
+        `Difference: ${number(v.next - v.old, 4)}`,
+        `Direction: ${direction}. The new value is ${v.next === v.old ? 'equal to' : v.next > v.old ? 'greater than' : 'less than'} the starting value.`,
+        'Percent change = (new − old) / old × 100. The sign follows that division. When the starting value is negative, a rise in the value can still produce a negative percent, because the base is negative. The direction word follows the comparison of the two values, not the sign of the percent.',
+        v.old < 0
+          ? 'The starting value is negative. Read the direction word together with the percent.'
+          : 'The starting value is positive, so a positive percent is an increase and a negative percent is a decrease.'
+      ]
+    };
+  }
+  if (slug === 'fahrenheit-to-celsius-calculator') {
+    const fahrenheit = v.temperature;
+    if (!Number.isFinite(fahrenheit)) throw new Error('Enter a Fahrenheit temperature');
+    const celsius = (fahrenheit - 32) * 5 / 9;
+    if (celsius < -273.15 - 1e-6) throw new Error('Enter a temperature at or above absolute zero, −459.67°F');
+    const kelvin = celsius + 273.15;
+    return {
+      headline: `${number(celsius, 2)}°C`,
+      details: [
+        `${number(fahrenheit, 2)}°F is ${number(celsius, 4)}°C before the headline is rounded.`,
+        `Kelvin: ${number(kelvin, 2)} K`,
+        'Formula used: °C = (°F − 32) × 5/9. The headline keeps at most two decimal places.',
+        'Checks: 32°F is 0°C, 212°F is 100°C, and 98.6°F is 37°C. −40°F is −40°C. This page does not convert a Celsius input, and it does not apply an oven-chart rounding such as 350°F for 180°C.'
+      ]
+    };
+  }
+  if (slug === 'oregon-paycheck-calculator') {
+    const status = filingStatusCode(v.status);
+    const periods = payPeriodCount(v.periods);
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const requestedDeferral = nonNegativeCents(v.deferral, '401(k) deferral');
+    const deferral = Math.min(requestedDeferral, salary, US_401K_DEFERRAL_CENTS);
+    const agi = Math.max(0, salary - deferral);
+    const standard = Math.min(OR_STANDARD_DEDUCTION[status], agi);
+    const oregonBase = Math.max(0, agi - standard);
+    const stateTax = oregonIncomeTaxCents(oregonBase, status);
+    const federalTaxable = Math.max(0, agi - US_STANDARD_DEDUCTION[status]);
+    const federal = bracketTaxCents(federalTaxable, status === 1 ? US_SINGLE_BRACKETS : US_JOINT_BRACKETS);
+    const socialSecurity = Math.round(Math.min(salary, US_SS_WAGE_BASE_CENTS) * 620 / 10000);
+    const medicare = Math.round(salary * 145 / 10000);
+    const additionalMedicare = Math.round(Math.max(0, salary - US_ADDL_MEDICARE_CENTS) * 90 / 10000);
+    const takeHome = salary - federal - socialSecurity - medicare - additionalMedicare - stateTax - deferral;
+    const details = [
+      `Federal income tax: ${usdCents(federal)}`,
+      `Social Security: ${usdCents(socialSecurity)}`,
+      `Medicare: ${usdCents(medicare)}`,
+      `Additional Medicare Tax: ${usdCents(additionalMedicare)}`,
+      `Oregon income tax: ${usdCents(stateTax)}`,
+      `Oregon taxable income: ${usdCents(oregonBase)}`,
+      `Oregon standard deduction applied: ${usdCents(standard)}`,
+      `401(k) deferred: ${usdCents(deferral)}`,
+      `Annual take-home: ${usdCents(takeHome)}`,
+      status === 1
+        ? 'Filing status: single. Oregon taxable income is the wage after the 401(k), minus the $2,910 standard deduction. That deduction is the 2026 withholding amount for a single filer claiming fewer than three allowances.'
+        : 'Filing status: married filing jointly, with this salary as the only wage on the return. Oregon taxable income is the wage after the 401(k), minus the $5,820 standard deduction. That deduction belongs to the return, not to each spouse.',
+      'Oregon brackets for 2026, from Publication OR-ESTIMATE: single 4.75% to $4,550, $216 plus 6.75% to $11,400, $678 plus 8.75% to $125,000, and $10,618 plus 9.9% above $125,000. Joint bases are $432, $1,357, and $21,237 at $9,100, $22,800, and $250,000. The federal income-tax subtraction is not applied, so this Oregon tax is higher than a return or a withholding formula that subtracts federal tax, up to the $8,750 cap in the 2026 federal payroll withholding bulletin before that cap phases out. The $263-per-exemption credit is not applied. The 0.1% statewide transit tax, TriMet and other employer transit-district taxes, and Portland-area local income taxes are not subtracted.'
+    ];
+    if (requestedDeferral > deferral) {
+      details.push(`401(k) entered above the 2026 elective deferral limit or above wages was reduced to ${usdCents(deferral)}`);
+    }
+    return {
+      headline: `${usdCents(Math.round(takeHome / periods))} ${PAY_PERIOD_LABEL[periods]}`,
+      details
+    };
+  }
+  if (slug === 'minnesota-paycheck-calculator') {
+    const status = filingStatusCode(v.status);
+    const periods = payPeriodCount(v.periods);
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const requestedDeferral = nonNegativeCents(v.deferral, '401(k) deferral');
+    const deferral = Math.min(requestedDeferral, salary, US_401K_DEFERRAL_CENTS);
+    const agi = Math.max(0, salary - deferral);
+    const standard = Math.min(MN_STANDARD_DEDUCTION[status], agi);
+    const minnesotaBase = Math.max(0, agi - standard);
+    const stateTax = bracketTaxCents(minnesotaBase, status === 1 ? MN_SINGLE_BRACKETS : MN_JOINT_BRACKETS);
+    const federalTaxable = Math.max(0, agi - US_STANDARD_DEDUCTION[status]);
+    const federal = bracketTaxCents(federalTaxable, status === 1 ? US_SINGLE_BRACKETS : US_JOINT_BRACKETS);
+    const socialSecurity = Math.round(Math.min(salary, US_SS_WAGE_BASE_CENTS) * 620 / 10000);
+    const medicare = Math.round(salary * 145 / 10000);
+    const additionalMedicare = Math.round(Math.max(0, salary - US_ADDL_MEDICARE_CENTS) * 90 / 10000);
+    const takeHome = salary - federal - socialSecurity - medicare - additionalMedicare - stateTax - deferral;
+    const details = [
+      `Federal income tax: ${usdCents(federal)}`,
+      `Social Security: ${usdCents(socialSecurity)}`,
+      `Medicare: ${usdCents(medicare)}`,
+      `Additional Medicare Tax: ${usdCents(additionalMedicare)}`,
+      `Minnesota income tax: ${usdCents(stateTax)}`,
+      `Minnesota taxable income: ${usdCents(minnesotaBase)}`,
+      `Minnesota standard deduction applied: ${usdCents(standard)}`,
+      `401(k) deferred: ${usdCents(deferral)}`,
+      `Annual take-home: ${usdCents(takeHome)}`,
+      status === 1
+        ? 'Filing status: single. Minnesota tax uses the 2026 single brackets on wages after the 401(k) and the $15,300 Minnesota standard deduction. The federal $16,100 deduction is used only for federal tax.'
+        : 'Filing status: married filing jointly, with this salary as the only wage on the return. Minnesota tax uses the 2026 joint brackets on wages after the 401(k) and the $30,600 Minnesota standard deduction. That deduction belongs to the return, not to each spouse.',
+      'Minnesota 2026 brackets: single 5.35% to $33,310, 6.80% to $109,430, 7.85% to $203,150, and 9.85% above that. Joint 5.35% to $48,700, 6.80% to $193,480, 7.85% to $337,930, and 9.85% above that. The working family credit, marriage credit, child and dependent care credit, and other credits are not applied. Minnesota has no general local wage tax on this page.'
+    ];
+    if (requestedDeferral > deferral) {
+      details.push(`401(k) entered above the 2026 elective deferral limit or above wages was reduced to ${usdCents(deferral)}`);
+    }
+    return {
+      headline: `${usdCents(Math.round(takeHome / periods))} ${PAY_PERIOD_LABEL[periods]}`,
+      details
+    };
+  }
+  if (slug === 'yukon-take-home-pay-calculator') {
+    const salary = nonNegativeCents(v.salary, 'salary');
+    const payroll = canadaEmployeePayroll(salary);
+    const yukonBasic = federalBasicPersonalAmountCents(payroll.taxable);
+    const yukonCredit = Math.round((yukonBasic + payroll.cppBase + payroll.ei) * 640 / 10000);
+    const yukonTax = Math.max(0, bracketTaxCents(payroll.taxable, YT_BRACKETS) - yukonCredit);
+    const takeHome = salary - payroll.cpp - payroll.cpp2 - payroll.ei - payroll.federalTax - yukonTax;
+    return {
+      headline: `${cadCents(Math.round(takeHome / 12))} / month`,
+      details: [
+        `Federal income tax: ${cadCents(payroll.federalTax)}`,
+        `Yukon income tax: ${cadCents(yukonTax)}`,
+        `Employee CPP, including CPP2: ${cadCents(payroll.cpp + payroll.cpp2)}`,
+        `Employee EI: ${cadCents(payroll.ei)}`,
+        `Annual take-home: ${cadCents(takeHome)}`,
+        `Every two weeks: ${cadCents(Math.round(takeHome / 26))}`,
+        `Federal basic personal amount applied: ${cadCents(payroll.basicPersonal)}`,
+        `Yukon basic personal amount applied: ${cadCents(yukonBasic)}`,
+        `Yukon credit at 6.4% for the basic amount, CPP base, and EI: ${cadCents(yukonCredit)}`,
+        'Yukon rates used for 2026: 6.4% to $58,523, 9% to $117,045, 10.9% to $181,440, 12.8% to $500,000, and 15% above that. The basic personal amount is the federal amount, $16,452 before the phase-out that starts above $181,440 and $14,829 at the bottom. The Canada employment amount is inside the federal credit only. The Yukon first-time home buyers’ tax credit and other territorial credits are not applied.'
+      ]
+    };
+  }
+  if (slug === 'northern-territory-stamp-duty-calculator') {
+    const price = nonNegativeCents(v.price, 'dutiable value');
+    const duty = northernTerritoryDutyCents(price);
+    const dollars = price / 100;
+    const vThousands = dollars / 1000;
+    const unrounded = price <= 52_500_000 ? 0.06571441 * vThousands * vThousands + 15 * vThousands : null;
+    const band = price <= 0
+      ? 'A dutiable value of zero has no conveyance duty.'
+      : price <= 52_500_000
+        ? `Band: up to $525,000. D = (0.06571441 × V²) + 15V, with V = ${number(vThousands, 4)}. The unrounded duty is $${number(unrounded, 4)}, and the headline rounds that to the nearest cent.`
+        : price < 300_000_000
+          ? 'Band: over $525,000 and under $3,000,000. Duty is 4.95% of the whole dutiable value.'
+          : price < 500_000_000
+            ? 'Band: $3,000,000 up to, but not including, $5,000,000. Duty is 5.75% of the whole dutiable value.'
+            : 'Band: $5,000,000 and above. Duty is 5.95% of the whole dutiable value.';
+    return {
+      headline: audCents(duty),
+      details: [
+        `Conveyance duty: ${audCents(duty)}`,
+        `Dutiable value: ${audCents(price)}`,
+        band,
+        'Northern Territory conveyance duty for 2026 follows Schedule 1 of the Stamp Duty Act 1978. There is no first-home duty concession on this scale, so a first-home buyer pays the same duty as any other buyer. A first-home owner grant, if one is available, is a separate payment and is not subtracted. There is no foreign purchaser surcharge.',
+        'The result is duty on the dutiable value you type. It is not an assessment by the Territory Revenue Office, and it does not add a mortgage or a lease.'
+      ]
+    };
+  }
+  if (slug === 'wallpaper-calculator') {
+    const length = v.length;
+    const width = v.width;
+    const height = v.height;
+    const openings = v.openings;
+    const waste = v.waste;
+    const coverage = v.coverage;
+    if (!Number.isFinite(length) || length <= 0) throw new Error('Enter a length above zero');
+    if (!Number.isFinite(width) || width <= 0) throw new Error('Enter a width above zero');
+    if (!Number.isFinite(height) || height <= 0) throw new Error('Enter a height above zero');
+    if (!Number.isFinite(openings) || openings < 0) throw new Error('Enter openings of zero or more');
+    if (!Number.isFinite(waste) || waste < 0 || waste > 100) throw new Error('Enter a pattern and waste allowance from 0 to 100 percent');
+    if (!Number.isFinite(coverage) || coverage <= 0) throw new Error('Enter a roll coverage above zero');
+    const wallArea = 2 * (length + width) * height;
+    if (openings > wallArea) throw new Error('Openings are larger than the wall area');
+    const net = wallArea - openings;
+    const withWaste = net * (1 + waste / 100);
+    const exactRolls = withWaste / coverage;
+    const rolls = Math.ceil(exactRolls - 1e-9);
+    return {
+      headline: `${number(rolls, 0)} ${rolls === 1 ? 'roll' : 'rolls'}`,
+      details: [
+        `Wall area before openings: ${number(wallArea, 2)} sq ft`,
+        `Openings subtracted: ${number(openings, 2)} sq ft`,
+        `Net wall area: ${number(net, 2)} sq ft`,
+        `Area with ${number(waste, 2)}% pattern and waste: ${number(withWaste, 2)} sq ft`,
+        `Exact rolls at ${number(coverage, 2)} sq ft each: ${number(exactRolls, 2)}`,
+        `Rolls to buy, rounded up: ${number(rolls, 0)}`,
+        'Wall area is 2 × (length + width) × height, in feet, which is the perimeter times the height. The ceiling is not papered. Pattern repeat, matching, and cutting waste are one percent you type, not a separate drop-length calculation. Coverage is the usable square feet printed on the roll.'
+      ]
+    };
+  }
+  if (slug === 'time-card-hours-calculator') {
+    const startHour = clockPart(v.starthour, 23, 'start hour');
+    const startMinute = clockPart(v.startminute, 59, 'start minute');
+    const endHour = clockPart(v.endhour, 23, 'end hour');
+    const endMinute = clockPart(v.endminute, 59, 'end minute');
+    if (!Number.isInteger(v.breakminutes) || v.breakminutes < 0) throw new Error('Enter unpaid break minutes as a whole number of zero or more');
+    const start = startHour * 60 + startMinute;
+    const end = endHour * 60 + endMinute;
+    if (end < start) throw new Error('End time is before the start time. Overnight shifts are not rolled into the next day.');
+    const gross = end - start;
+    if (v.breakminutes > gross) throw new Error('The unpaid break is longer than the shift');
+    const net = gross - v.breakminutes;
+    const decimal = (net / 60).toFixed(4);
+    return {
+      headline: `${decimal} hours`,
+      details: [
+        `Paid time: ${hhmm(net)} (${decimal} decimal hours)`,
+        `Clock time before the break: ${hhmm(gross)} (${(gross / 60).toFixed(4)} decimal hours)`,
+        `Unpaid break: ${v.breakminutes} ${v.breakminutes === 1 ? 'minute' : 'minutes'}`,
+        `Start: ${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}`,
+        `End: ${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`,
+        'Hours and minutes are a 24-hour clock on the same calendar day. Decimal hours are paid minutes divided by 60, shown to four decimal places. The HH:MM line is the exact minute count. An end time before the start is rejected rather than treated as the next day.'
       ]
     };
   }

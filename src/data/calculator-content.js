@@ -10,6 +10,7 @@ import { novemberCalculatorContent } from './november-calculator-content.js';
 import { nov3CalculatorContent } from './nov3-calculator-content.js';
 import { nov5CalculatorContent } from './nov5-calculator-content.js';
 import { nov6CalculatorContent } from './nov6-calculator-content.js';
+import { nov7CalculatorContent } from './nov7-calculator-content.js';
 
 export const calculatorContent = {
   'mortgage-calculator': {
@@ -213,7 +214,7 @@ export const calculatorContent = {
     faqs: [
       {
         q: 'Can I use this calculator for a car loan?',
-        a: 'Yes, if the car loan is a fixed-rate installment loan with a monthly payment. Enter the amount financed after the down payment, the annual rate, and the term in years. Taxes and add-on products count only when they are part of that amount financed.'
+        a: 'Yes, if the car loan is a fixed-rate installment loan with a monthly payment. Enter the amount financed after the down payment, the annual rate, and the term in years. Taxes and add-on products count only when they are part of that amount financed. The car payment calculator takes that same term in months: $25,000 at 6% for 60 months is $483.32 a month there, which is a different rate and a different term from the $500.95 sample on this page.'
       },
       {
         q: 'Does a shorter loan term always reduce the interest?',
@@ -251,6 +252,11 @@ export const calculatorContent = {
         slug: 'credit-card-payoff-calculator',
         label: 'Credit card payoff calculator',
         note: 'A $5,000 balance at 21.99% with a fixed $200 payment takes 34 months and $1,748.71 of interest. This loan page solves a payment from a term instead.'
+      },
+      {
+        slug: 'car-payment-calculator',
+        label: 'Car payment calculator',
+        note: 'The same amortizing formula with the term in months. $25,000 at 6% for 60 months is $483.32 a month and $3,999.20 of interest. This page takes the term in years.'
       }
     ]
   },
@@ -668,7 +674,8 @@ export const calculatorContent = {
       { slug: 'sales-tax-calculator', label: 'Sales tax calculator', note: '$100 at 8.25% is $8.25 of tax and a $108.25 total. $8.25 is 8.25% of $100 and 7.62% of $108.25 on this page. The 7.62% is not the rate.' },
       { slug: 'discount-calculator', label: 'Discount calculator', note: 'Takes 20% off a price. This page can then say what percent the dollars saved are of the original price. It does not compute the sale price.' },
       { slug: 'tip-calculator', label: 'Tip calculator', note: 'An 18% tip on $85 is $15.30. Part 15.30 and whole 85 on this page is 18%. The tip page also splits the bill.' },
-      { slug: 'debt-to-income-ratio-calculator', label: 'Debt-to-income ratio calculator', note: 'On $8,000 of income, $2,200 of housing is 27.50% front-end and $2,600 of total debt is 32.50% back-end. Part 2200 and whole 8000 is 27.5% here, and part 2600 and whole 8000 is 32.5%.' }
+      { slug: 'debt-to-income-ratio-calculator', label: 'Debt-to-income ratio calculator', note: 'On $8,000 of income, $2,200 of housing is 27.50% front-end and $2,600 of total debt is 32.50% back-end. Part 2200 and whole 8000 is 27.5% here, and part 2600 and whole 8000 is 32.5%.' },
+      { slug: 'percentage-change-calculator', label: 'Percentage change calculator', note: 'From 80 to 100 is a 25.00% increase. This page has no old and new fields. Part 25 and whole 80 is 31.25%, which is a different question.' }
     ]
   },
   'tip-calculator': {
@@ -677,7 +684,8 @@ export const calculatorContent = {
     description: 'Calculate a tip, the total bill, and an equal share per person. Includes a tip-rate table for a sample check and a note on cent rounding.',
     intro: [
       'This tip calculator takes a bill amount, a tip percent, and a number of people. It multiplies the bill by the tip rate, adds that tip to the bill, and divides the total by the number of people. The headline is one person\'s equal share of bill plus tip.',
-      'The form does not know whether your bill is pre-tax or post-tax, and it does not know the local custom. In the United States a restaurant tip of 15% to 20% of the pre-tax or post-tax bill is a common range, and some bills already include a service charge. Other countries expect little or no extra tip. Type the percent you intend to leave. The calculator will not pick one.'
+      'The form does not know whether your bill is pre-tax or post-tax, and it does not know the local custom. In the United States a restaurant tip of 15% to 20% of the pre-tax or post-tax bill is a common range, and some bills already include a service charge. Other countries expect little or no extra tip. Type the percent you intend to leave. The calculator will not pick one.',
+      'Fifteen, eighteen, and twenty percent are three different bills, not three names for the same tip. On $85 split two ways they are $12.75, $15.30, and $17.00 of tip, and the equal shares are $48.88, $50.15, and $51.00. On an uneven check, $47.63, the same three rates do not all split cleanly. At 15% the two displayed shares are a cent above the displayed total. At 18% they add back exactly. At 20% split three ways the three displayed shares are a cent under the displayed total. The discount calculator removes a percent from a price. The percentage calculator says what percent one number is of another. Neither one splits a tip.'
     ],
     steps: [
       'Enter the bill amount in US dollars, before the tip.',
@@ -693,8 +701,8 @@ export const calculatorContent = {
     ],
     formula: 'Tip = bill × tip percent / 100\nTotal = bill + tip\nShare per person = total / number of people\nEach dollar amount is rounded to the cent for display.',
     formulaNotes: [
-      'The number of people must be at least 1. Dividing by zero people is undefined. Fractions of a person are not a meaningful split even though a numeric field will accept them.',
-      'A tip percent above 100 is mathematically allowed and is rarely what a diner means. A tip of 0 is a real choice and calculates cleanly.'
+      'The number of people must be a whole number of at least 1. A blank or a fraction is rejected, because half a person is not a seat at the table. Dividing by zero people is undefined.',
+      'A tip percent above 100 is mathematically allowed and is rarely what a diner means. A tip of 0 is a real choice and calculates cleanly. The unrounded tip, total, and share are listed so a cent that appears only after display rounding can be traced. On $64.27 at 20% the unrounded tip is 12.854 and the unrounded share for three people is 25.708.'
     ],
     examplesHeading: 'Worked tip and split examples',
     examples: [
@@ -718,6 +726,13 @@ export const calculatorContent = {
           'Bill $120, tip 15%, four people. Tip = 18, total = 138, share = 34.50. The calculator shows $34.50 per person, a tip of $18.00, and a total bill of $138.00. Four times $34.50 is $138.00 exactly.',
           'Bill $42, tip 0%, one person. The calculator shows $42.00 per person, a tip of $0.00, and a total bill of $42.00. Use a zero when you mean no tip. Leaving the percent at the sample 18 would add a tip you did not intend.'
         ]
+      },
+      {
+        title: 'Fifteen, eighteen, and twenty percent on $47.63',
+        paragraphs: [
+          'Bill $47.63 and two people. At 15% the unrounded tip is 7.1445, which displays as $7.14. The unrounded total is 54.7745, which displays as $54.77. The unrounded share is 27.3873, which displays as $27.39. Two times $27.39 is $54.78, one cent more than the displayed total. At 18% the tip displays as $8.57, the total as $56.20, and each person as $28.10. Two times $28.10 is $56.20, so that rate happens to add back.',
+          'The same $47.63 at 20% with three people is a tip of $9.53 and a total of $57.16. Each share displays as $19.05. Three times $19.05 is $57.15, one cent under the total. Someone paying cash has to decide which person takes the extra cent. The percent did not change between the lines. Display rounding did. A 20% discount on a $47.63 price is a different subtraction, on the discount page, and it is not this tip.'
+        ]
       }
     ],
     table: {
@@ -735,7 +750,8 @@ export const calculatorContent = {
     limits: [
       'Service charges, auto-gratuities, and couvert fees that are already on the bill should not be tipped again unless you mean to. The calculator cannot see the printed check. If a 18% service charge is already included, entering 18 again doubles that idea.',
       'Unequal splits, itemized shares, and "I only had a salad" are not supported. Compute those shares outside the form, or enter one person\'s own subtotal as the bill and set people to 1.',
-      'Currency display is US dollars. The percent math is the same in another currency, but the symbols will still say $. Rounding to the cent matches US coinage and may not match a currency with a different minor unit.'
+      'Currency display is US dollars. The percent math is the same in another currency, but the symbols will still say $. Rounding to the cent matches US coinage and may not match a currency with a different minor unit.',
+      'Fifteen, eighteen, and twenty are rates you type. They are not a recommendation, and they are not sales tax. If the bill already includes tax, tipping on that larger number is a choice of base. The sales tax page is where a rate is added to a price or removed from a total. This page will not remove tax, and it will not tell you that $15.30 is 18% of $85. That ratio is the percentage calculator, with part 15.30 and whole 85.'
     ],
     disclaimer: 'This tip calculator is general arithmetic for splitting a bill. It does not set the customary tip where you are eating.',
     faqs: [
@@ -759,6 +775,12 @@ export const calculatorContent = {
         q: 'Can each person pay a different amount?',
         a: 'No. The total of bill plus tip is divided into equal shares. For an unequal split, run the calculator with one person on that person\'s own portion of the bill, or split the dollars outside this form.'
       }
+    ],
+    relatedLinks: [
+      { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'Part 15.30 and whole 85 is 18%. That page does not add the tip or split the bill. From 80 to 100 is a percent change, which is a third question.' },
+      { slug: 'discount-calculator', label: 'Discount calculator', note: 'Twenty percent off $100 leaves $80.00. A 20% tip on $85 adds $17.00. One percent comes off a price. The other is added to a bill.' },
+      { slug: 'sales-tax-calculator', label: 'Sales tax calculator', note: '$100 at 8.25% is $8.25 of tax and a $108.25 total. A tip is not sales tax, and this tip page does not remove tax from a receipt.' },
+      { slug: 'percentage-change-calculator', label: 'Percentage change calculator', note: 'From 80 to 100 is a 25.00% increase. A tip percent is not a change from an old bill to a new bill.' }
     ]
   },
   'age-calculator': {
@@ -1397,7 +1419,8 @@ export const calculatorContent = {
   ...novemberCalculatorContent,
   ...nov3CalculatorContent,
   ...nov5CalculatorContent,
-  ...nov6CalculatorContent
+  ...nov6CalculatorContent,
+  ...nov7CalculatorContent
 };
 
 export function contentWordCount(entry) {

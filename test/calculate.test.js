@@ -1445,3 +1445,202 @@ test('ACT conveyance duty uses the 2026-27 scales and the home buyer concession'
   assert.throws(() => calculate('act-stamp-duty-calculator', { price: -1, buyer: 1 }), /dutiable value/);
   assert.throws(() => calculate('act-stamp-duty-calculator', { price: 800000, buyer: 4 }), /buyer/);
 });
+
+test('car payment uses a monthly term and cent-aware totals', () => {
+  const sample = calculate('car-payment-calculator', { principal: 25000, rate: 6, months: 60 });
+  assert.equal(sample.headline, '$483.32 / month');
+  assert.equal(sample.details[1], 'Number of payments: 60');
+  assert.equal(sample.details[2], 'Total paid: $28,999.20');
+  assert.equal(sample.details[3], 'Total interest: $3,999.20');
+  const gap = calculate('car-payment-calculator', { principal: 20000, rate: 7.5, months: 48 });
+  assert.equal(gap.headline, '$483.58 / month');
+  assert.equal(gap.details[2], 'Total paid: $23,211.75');
+  assert.equal(gap.details[3], 'Total interest: $3,211.75');
+  const zero = calculate('car-payment-calculator', { principal: 18000, rate: 0, months: 36 });
+  assert.equal(zero.headline, '$500.00 / month');
+  assert.equal(zero.details[3], 'Total interest: $0.00');
+  const long = calculate('car-payment-calculator', { principal: 15000, rate: 4.9, months: 72 });
+  assert.equal(long.headline, '$240.88 / month');
+  assert.equal(long.details[3], 'Total interest: $2,343.27');
+  assert.throws(() => calculate('car-payment-calculator', { principal: -1, rate: 6, months: 60 }), /principal/);
+  assert.throws(() => calculate('car-payment-calculator', { principal: 25000, rate: -1, months: 60 }), /APR/);
+  assert.throws(() => calculate('car-payment-calculator', { principal: 25000, rate: 6, months: 0 }), /months/);
+  assert.throws(() => calculate('car-payment-calculator', { principal: 25000, rate: 6, months: 60.5 }), /months/);
+});
+
+test('simple ROI divides profit by a positive cost', () => {
+  const gain = calculate('roi-calculator', { cost: 10000, gain: 12500 });
+  assert.equal(gain.headline, '25.00%');
+  assert.equal(gain.details[0], 'Net profit: $2,500.00');
+  const loss = calculate('roi-calculator', { cost: 8000, gain: 6000 });
+  assert.equal(loss.headline, '-25.00%');
+  assert.equal(loss.details[0], 'Net profit: -$2,000.00');
+  const flat = calculate('roi-calculator', { cost: 5000, gain: 5000 });
+  assert.equal(flat.headline, '0.00%');
+  assert.equal(flat.details[0], 'Net profit: $0.00');
+  const wiped = calculate('roi-calculator', { cost: 1000, gain: -200 });
+  assert.equal(wiped.headline, '-120.00%');
+  assert.equal(wiped.details[0], 'Net profit: -$1,200.00');
+  assert.throws(() => calculate('roi-calculator', { cost: 0, gain: 100 }), /cost above zero/);
+  assert.throws(() => calculate('roi-calculator', { cost: -5, gain: 100 }), /cost above zero/);
+});
+
+test('percent change rejects a zero base and names the direction', () => {
+  assert.equal(calculate('percentage-change-calculator', { old: 80, next: 100 }).headline, '25.00% increase');
+  assert.equal(calculate('percentage-change-calculator', { old: 100, next: 80 }).headline, '-20.00% decrease');
+  assert.equal(calculate('percentage-change-calculator', { old: 50, next: 50 }).headline, '0.00% no change');
+  assert.equal(calculate('percentage-change-calculator', { old: 40, next: 0 }).headline, '-100.00% decrease');
+  const negativeBase = calculate('percentage-change-calculator', { old: -100, next: -50 });
+  assert.equal(negativeBase.headline, '-50.00% increase');
+  assert.match(negativeBase.details[5], /negative/);
+  assert.throws(() => calculate('percentage-change-calculator', { old: 0, next: 10 }), /zero/);
+});
+
+test('Fahrenheit to Celsius uses the 5/9 formula', () => {
+  assert.equal(calculate('fahrenheit-to-celsius-calculator', { temperature: 32 }).headline, '0°C');
+  assert.equal(calculate('fahrenheit-to-celsius-calculator', { temperature: 212 }).headline, '100°C');
+  assert.equal(calculate('fahrenheit-to-celsius-calculator', { temperature: 98.6 }).headline, '37°C');
+  assert.equal(calculate('fahrenheit-to-celsius-calculator', { temperature: -40 }).headline, '-40°C');
+  const room = calculate('fahrenheit-to-celsius-calculator', { temperature: 72 });
+  assert.equal(room.headline, '22.22°C');
+  assert.match(room.details[0], /22\.2222°C/);
+  const chart = calculate('fahrenheit-to-celsius-calculator', { temperature: 350 });
+  assert.equal(chart.headline, '176.67°C');
+  assert.throws(() => calculate('fahrenheit-to-celsius-calculator', { temperature: -500 }), /absolute zero/);
+});
+
+test('2026 Oregon paycheck uses OR-ESTIMATE brackets without the federal subtraction', () => {
+  const sample = calculate('oregon-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0 });
+  assert.equal(sample.headline, '$1,895.93 / two weeks');
+  assert.equal(sample.details[4], 'Oregon income tax: $5,113.38');
+  assert.equal(sample.details[5], 'Oregon taxable income: $62,090.00');
+  assert.equal(sample.details[6], 'Oregon standard deduction applied: $2,910.00');
+  assert.equal(sample.details[8], 'Annual take-home: $49,294.12');
+  assert.match(sample.details[10], /not applied/);
+  const deferred = calculate('oregon-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 6500 });
+  assert.equal(deferred.details[4], 'Oregon income tax: $4,544.63');
+  assert.equal(deferred.headline, '$1,697.80 / two weeks');
+  const joint = calculate('oregon-paycheck-calculator', { salary: 65000, status: 2, periods: 26, deferral: 0 });
+  assert.equal(joint.details[4], 'Oregon income tax: $4,540.25');
+  assert.equal(joint.details[6], 'Oregon standard deduction applied: $5,820.00');
+  assert.equal(joint.headline, '$2,001.82 / two weeks');
+  const low = calculate('oregon-paycheck-calculator', { salary: 15000, status: 1, periods: 26, deferral: 0 });
+  assert.equal(low.details[4], 'Oregon income tax: $738.38');
+  const high = calculate('oregon-paycheck-calculator', { salary: 210000, status: 1, periods: 12, deferral: 0 });
+  assert.equal(high.details[4], 'Oregon income tax: $18,744.91');
+  assert.equal(high.details[3], 'Additional Medicare Tax: $90.00');
+  assert.throws(() => calculate('oregon-paycheck-calculator', { salary: -1, status: 1, periods: 26, deferral: 0 }), /salary/);
+  assert.throws(() => calculate('oregon-paycheck-calculator', { salary: 65000, status: 3, periods: 26, deferral: 0 }), /filing status/);
+});
+
+test('2026 Minnesota paycheck uses the state standard deduction and brackets', () => {
+  const sample = calculate('minnesota-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0 });
+  assert.equal(sample.headline, '$1,981.19 / two weeks');
+  assert.equal(sample.details[4], 'Minnesota income tax: $2,896.61');
+  assert.equal(sample.details[5], 'Minnesota taxable income: $49,700.00');
+  assert.equal(sample.details[6], 'Minnesota standard deduction applied: $15,300.00');
+  assert.equal(sample.details[8], 'Annual take-home: $51,510.89');
+  const deferred = calculate('minnesota-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 6500 });
+  assert.equal(deferred.details[4], 'Minnesota income tax: $2,454.61');
+  assert.equal(deferred.headline, '$1,778.19 / two weeks');
+  const joint = calculate('minnesota-paycheck-calculator', { salary: 65000, status: 2, periods: 26, deferral: 0 });
+  assert.equal(joint.details[4], 'Minnesota income tax: $1,840.40');
+  assert.equal(joint.details[6], 'Minnesota standard deduction applied: $30,600.00');
+  const low = calculate('minnesota-paycheck-calculator', { salary: 15000, status: 1, periods: 52, deferral: 0 });
+  assert.equal(low.details[4], 'Minnesota income tax: $0.00');
+  assert.equal(low.headline, '$266.39 / week');
+  const high = calculate('minnesota-paycheck-calculator', { salary: 250000, status: 1, periods: 12, deferral: 0 });
+  assert.equal(high.details[4], 'Minnesota income tax: $17,422.94');
+  assert.equal(high.details[3], 'Additional Medicare Tax: $450.00');
+  assert.throws(() => calculate('minnesota-paycheck-calculator', { salary: 65000, status: 1, periods: 13, deferral: 0 }), /pay frequency/);
+});
+
+test('2026 Yukon take-home reuses federal CPP and EI', () => {
+  const sample = calculate('yukon-take-home-pay-calculator', { salary: 70000 });
+  assert.equal(sample.headline, '$4,521.58 / month');
+  assert.equal(sample.details[0], 'Federal income tax: $7,278.19');
+  assert.equal(sample.details[1], 'Yukon income tax: $3,383.07');
+  assert.equal(sample.details[2], 'Employee CPP, including CPP2: $3,956.75');
+  assert.equal(sample.details[3], 'Employee EI: $1,123.07');
+  assert.equal(sample.details[4], 'Annual take-home: $54,258.92');
+  assert.equal(sample.details[7], 'Yukon basic personal amount applied: $16,452.00');
+  const territories = calculate('northwest-territories-take-home-pay-calculator', { salary: 70000 });
+  assert.equal(territories.details[0], sample.details[0]);
+  assert.equal(territories.details[2], sample.details[2]);
+  const low = calculate('yukon-take-home-pay-calculator', { salary: 30000 });
+  assert.equal(low.details[1], 'Yukon income tax: $734.86');
+  assert.equal(low.headline, '$2,150.17 / month');
+  const phased = calculate('yukon-take-home-pay-calculator', { salary: 600000 });
+  assert.equal(phased.details[7], 'Yukon basic personal amount applied: $14,829.00');
+  assert.equal(phased.details[1], 'Yukon income tax: $70,391.96');
+  assert.throws(() => calculate('yukon-take-home-pay-calculator', { salary: -1 }), /salary/);
+});
+
+test('Northern Territory conveyance duty follows Schedule 1 and has no first-home zero', () => {
+  const mid = calculate('northern-territory-stamp-duty-calculator', { price: 500000 });
+  assert.equal(mid.headline, '$23,928.60');
+  assert.match(mid.details[2], /23,928\.6025/);
+  assert.match(mid.details[3], /no first-home duty concession/);
+  assert.equal(calculate('northern-territory-stamp-duty-calculator', { price: 750000 }).headline, '$37,125.00');
+  assert.equal(calculate('northern-territory-stamp-duty-calculator', { price: 1000000 }).headline, '$49,500.00');
+  assert.equal(calculate('northern-territory-stamp-duty-calculator', { price: 525000 }).headline, '$25,987.53');
+  assert.equal(calculate('northern-territory-stamp-duty-calculator', { price: 525000.01 }).headline, '$25,987.50');
+  assert.equal(calculate('northern-territory-stamp-duty-calculator', { price: 3000000 }).headline, '$172,500.00');
+  assert.equal(calculate('northern-territory-stamp-duty-calculator', { price: 5000000 }).headline, '$297,500.00');
+  assert.equal(calculate('northern-territory-stamp-duty-calculator', { price: 0 }).headline, '$0.00');
+  assert.throws(() => calculate('northern-territory-stamp-duty-calculator', { price: -1 }), /dutiable value/);
+});
+
+test('wallpaper rolls round up after openings and waste', () => {
+  const sample = calculate('wallpaper-calculator', { length: 12, width: 10, height: 8, openings: 36, waste: 10, coverage: 56 });
+  assert.equal(sample.headline, '7 rolls');
+  assert.equal(sample.details[2], 'Net wall area: 316 sq ft');
+  assert.equal(sample.details[4], 'Exact rolls at 56 sq ft each: 6.21');
+  const exact = calculate('wallpaper-calculator', { length: 12, width: 12, height: 8, openings: 0, waste: 0, coverage: 48 });
+  assert.equal(exact.headline, '8 rolls');
+  assert.equal(exact.details[4], 'Exact rolls at 48 sq ft each: 8');
+  const pattern = calculate('wallpaper-calculator', { length: 15, width: 12, height: 9, openings: 42, waste: 20, coverage: 28 });
+  assert.equal(pattern.headline, '20 rolls');
+  assert.throws(() => calculate('wallpaper-calculator', { length: 12, width: 10, height: 8, openings: 400, waste: 10, coverage: 56 }), /Openings are larger/);
+  assert.throws(() => calculate('wallpaper-calculator', { length: 12, width: 10, height: 8, openings: 0, waste: 101, coverage: 56 }), /waste/);
+  assert.throws(() => calculate('wallpaper-calculator', { length: 0, width: 10, height: 8, openings: 0, waste: 10, coverage: 56 }), /length/);
+});
+
+test('time card hours stay on one day and keep HH:MM exact', () => {
+  const sample = calculate('time-card-hours-calculator', { starthour: 9, startminute: 0, endhour: 17, endminute: 30, breakminutes: 30 });
+  assert.equal(sample.headline, '8.0000 hours');
+  assert.equal(sample.details[0], 'Paid time: 8:00 (8.0000 decimal hours)');
+  assert.equal(sample.details[1], 'Clock time before the break: 8:30 (8.5000 decimal hours)');
+  const uneven = calculate('time-card-hours-calculator', { starthour: 8, startminute: 7, endhour: 16, endminute: 22, breakminutes: 30 });
+  assert.equal(uneven.headline, '7.7500 hours');
+  assert.equal(uneven.details[0], 'Paid time: 7:45 (7.7500 decimal hours)');
+  const repeating = calculate('time-card-hours-calculator', { starthour: 8, startminute: 0, endhour: 15, endminute: 20, breakminutes: 0 });
+  assert.equal(repeating.headline, '7.3333 hours');
+  assert.equal(repeating.details[0], 'Paid time: 7:20 (7.3333 decimal hours)');
+  const minute = calculate('time-card-hours-calculator', { starthour: 9, startminute: 0, endhour: 9, endminute: 1, breakminutes: 0 });
+  assert.equal(minute.headline, '0.0167 hours');
+  assert.equal(minute.details[0], 'Paid time: 0:01 (0.0167 decimal hours)');
+  assert.throws(() => calculate('time-card-hours-calculator', { starthour: 22, startminute: 0, endhour: 6, endminute: 0, breakminutes: 0 }), /Overnight/);
+  assert.throws(() => calculate('time-card-hours-calculator', { starthour: 9, startminute: 0, endhour: 12, endminute: 0, breakminutes: 200 }), /longer than the shift/);
+  assert.throws(() => calculate('time-card-hours-calculator', { starthour: 24, startminute: 0, endhour: 17, endminute: 0, breakminutes: 0 }), /start hour/);
+  assert.throws(() => calculate('time-card-hours-calculator', { starthour: 9, startminute: 60, endhour: 17, endminute: 0, breakminutes: 0 }), /start minute/);
+});
+
+test('tip split reports the cent gap and rejects a fractional party', () => {
+  const even = calculate('tip-calculator', { bill: 85, tip: 18, people: 2 });
+  assert.equal(even.headline, '$50.15 per person');
+  assert.equal(even.details[0], 'Tip: $15.30');
+  assert.equal(even.details[1], 'Total bill: $100.30');
+  const uneven = calculate('tip-calculator', { bill: 64.27, tip: 20, people: 3 });
+  assert.equal(uneven.headline, '$25.71 per person');
+  assert.match(uneven.details[5], /\$0\.01/);
+  const fifteen = calculate('tip-calculator', { bill: 47.63, tip: 15, people: 2 });
+  assert.equal(fifteen.headline, '$27.39 per person');
+  assert.equal(fifteen.details[0], 'Tip: $7.14');
+  const twenty = calculate('tip-calculator', { bill: 47.63, tip: 20, people: 3 });
+  assert.equal(twenty.headline, '$19.05 per person');
+  assert.equal(twenty.details[1], 'Total bill: $57.16');
+  assert.throws(() => calculate('tip-calculator', { bill: 85, tip: 18, people: 0 }), /people/);
+  assert.throws(() => calculate('tip-calculator', { bill: 85, tip: 18, people: 1.5 }), /people/);
+  assert.throws(() => calculate('tip-calculator', { bill: -1, tip: 18, people: 1 }), /bill/);
+});

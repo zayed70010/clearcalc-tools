@@ -204,7 +204,8 @@ export const nov6CalculatorContent = {
       { slug: 'compound-interest-calculator', label: 'Compound interest calculator', note: '$10,000 at 5% for 3 years with no monthly deposit grows to $11,614.72. Simple interest on this page is $1,500.00 and the total is $11,500.00. At 7% for 10 years the compound balance is $20,096.61 against a $17,000.00 simple total.' },
       { slug: 'loan-calculator', label: 'Personal and auto loan calculator', note: '$25,000 at 7.5% for 5 years is $500.95 a month and $5,056.92 of interest. Simple interest on those inputs is $9,375.00, because the principal is not paid down.' },
       { slug: 'mortgage-calculator', label: 'Fixed-rate mortgage calculator', note: 'A fully amortizing monthly payment. $300,000 at 6.5% for 30 years is $1,896.20 a month. That is not simple interest on the original balance.' },
-      { slug: 'credit-card-payoff-calculator', label: 'Credit card payoff calculator', note: 'A monthly rate and a fixed payment. Simple interest of 18% on an untouched $5,000 for 2 years is $1,800.00 here, and that is not a card payoff.' }
+      { slug: 'credit-card-payoff-calculator', label: 'Credit card payoff calculator', note: 'A monthly rate and a fixed payment. Simple interest of 18% on an untouched $5,000 for 2 years is $1,800.00 here, and that is not a card payoff.' },
+      { slug: 'roi-calculator', label: 'ROI calculator', note: 'A $10,000 cost that ends at $12,500 is a 25.00% simple return and $2,500.00 of profit. It does not multiply by years the way simple interest does.' }
     ]
   },
   'colorado-paycheck-calculator': {
@@ -309,7 +310,8 @@ export const nov6CalculatorContent = {
       { slug: 'massachusetts-paycheck-calculator', label: 'Massachusetts paycheck calculator for 2026', note: 'The same wage is $3,030.00 of Massachusetts tax and $1,976.06 every two weeks. Massachusetts uses a $4,400 exemption and a 5% rate, plus a 4% surtax above $1,107,750.' },
       { slug: 'texas-paycheck-calculator', label: 'Texas paycheck calculator for 2026', note: 'The same federal and FICA structure with a state income tax of $0. Texas still has a statewide sales tax. Colorado’s wage tax is the 4.40% line.' },
       { slug: 'sales-tax-calculator', label: 'Sales tax calculator', note: 'Colorado’s statewide sales tax is 2.90%, or $2.90 on $100. That is not withheld from the $2,009.84 paycheck.' },
-      { slug: '401k-contribution-calculator', label: '2026 401(k) contribution calculator', note: 'Check a deferral against the $24,500 limit. On this page the deferral reduces both federal income tax and the 4.40% Colorado tax.' }
+      { slug: '401k-contribution-calculator', label: '2026 401(k) contribution calculator', note: 'Check a deferral against the $24,500 limit. On this page the deferral reduces both federal income tax and the 4.40% Colorado tax.' },
+      { slug: 'oregon-paycheck-calculator', label: 'Oregon paycheck calculator for 2026', note: 'At $65,000 single, Oregon tax is $5,113.38 after a $2,910 deduction and the two-week headline is $1,895.93. Colorado is $2,151.60 and $2,009.84. Oregon’s estimate does not subtract federal tax.' }
     ]
   },
   'massachusetts-paycheck-calculator': {
@@ -414,7 +416,8 @@ export const nov6CalculatorContent = {
       { slug: 'arizona-paycheck-calculator', label: 'Arizona paycheck calculator for 2026', note: 'The same wage is $1,231.25 of Arizona tax at 2.5% and $2,045.24 every two weeks. Arizona’s deduction is $15,750. Massachusetts uses a $4,400 exemption and a 5% rate.' },
       { slug: 'new-york-paycheck-calculator', label: 'New York paycheck calculator for 2026', note: 'New York State tax, and optional New York City resident tax, on a different bracket table. It is not the Massachusetts 5% flat rate.' },
       { slug: 'sales-tax-calculator', label: 'Sales tax calculator', note: 'Massachusetts statewide sales tax is 6.25%, or $6.25 on $100. That is not withheld from the $1,976.06 paycheck.' },
-      { slug: '401k-contribution-calculator', label: '2026 401(k) contribution calculator', note: 'Check a deferral against the $24,500 limit. On this page the deferral reduces both federal income tax and the 5% Massachusetts tax.' }
+      { slug: '401k-contribution-calculator', label: '2026 401(k) contribution calculator', note: 'Check a deferral against the $24,500 limit. On this page the deferral reduces both federal income tax and the 5% Massachusetts tax.' },
+      { slug: 'minnesota-paycheck-calculator', label: 'Minnesota paycheck calculator for 2026', note: 'At $65,000 single, Minnesota tax is $2,896.61 after a $15,300 deduction and the two-week headline is $1,981.19. Massachusetts is $3,030.00 and $1,976.06.' }
     ]
   },
   'act-stamp-duty-calculator': {
@@ -520,7 +523,8 @@ export const nov6CalculatorContent = {
       { slug: 'tasmania-stamp-duty-calculator', label: 'Tasmania stamp duty calculator', note: 'General duty at $550,000 is $20,372.50, and at $600,000 it is $22,497.50. ACT owner-occupier duty at $600,000 is $12,728.00. The Tasmanian $0.00 exemption did not survive a settlement after 30 June 2026.' },
       { slug: 'south-australia-stamp-duty-calculator', label: 'South Australia stamp duty calculator', note: 'General duty at $600,000 is $26,830.00, against $12,728.00 on the ACT owner-occupier scale. An eligible South Australian first buyer of a new home pays $0.00 with no price cap, under that state’s rule.' },
       { slug: 'nsw-stamp-duty-calculator', label: 'NSW stamp duty calculator', note: 'New South Wales transfer duty, including first-home concessions and a foreign surcharge. It is not the ACT $0.28 owner-occupier rate or the $2,992.00 investor gap.' },
-      { slug: 'australia-take-home-pay-calculator', label: 'Australia take-home pay calculator for 2026–27', note: 'Resident income tax and the Medicare levy on a salary. It is not the conveyance duty on a home in Canberra.' }
+      { slug: 'australia-take-home-pay-calculator', label: 'Australia take-home pay calculator for 2026–27', note: 'Resident income tax and the Medicare levy on a salary. It is not the conveyance duty on a home in Canberra.' },
+      { slug: 'northern-territory-stamp-duty-calculator', label: 'Northern Territory stamp duty calculator', note: 'A $500,000 purchase is $23,928.60 under the Schedule 1 formula. A $750,000 purchase is $37,125.00 at 4.95%. There is no first-home duty exemption on that scale. The ACT home-buyer concession is a different statute.' }
     ]
   }
 };
