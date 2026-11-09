@@ -310,7 +310,8 @@ export const novemberCalculatorContent = {
       { slug: 'north-carolina-paycheck-calculator', label: 'North Carolina paycheck calculator for 2026', note: 'A 3.99% tax after a $12,750 standard deduction. At $65,000 single the North Carolina tax is $2,084.78 and the two-week headline is $2,012.41.' },
       { slug: 'california-paycheck-calculator', label: 'California paycheck calculator for 2026', note: 'At $90,000 single, California income tax is $3,980.86 plus $1,170.00 of SDI. Virginia tax on that wage is $4,360.90 and annual take-home is $67,784.10, against $66,994.14 in California.' },
       { slug: 'texas-paycheck-calculator', label: 'Texas paycheck calculator for 2026', note: 'The same federal and FICA lines at $65,000, with state income tax at $0 and annual take-home of $54,407.50.' },
-      { slug: '401k-contribution-calculator', label: '2026 401(k) contribution calculator', note: 'Check a deferral against the $24,500 limit before you type the dollar amount here. The deferral reduces Virginia tax and federal income tax.' }
+      { slug: '401k-contribution-calculator', label: '2026 401(k) contribution calculator', note: 'Check a deferral against the $24,500 limit before you type the dollar amount here. The deferral reduces Virginia tax and federal income tax.' },
+      { slug: 'maryland-paycheck-calculator', label: 'Maryland paycheck calculator for 2026', note: 'At $65,000 single, one exemption, and a 3.20% local rate, Maryland state tax is $2,721.50, local tax is $1,868.80, and the two-week headline is $1,916.05. Virginia on that wage is $2,923.40 and $1,980.16.' }
     ]
   },
   'prince-edward-island-take-home-pay-calculator': {

@@ -975,7 +975,8 @@ export const nov7CalculatorContent = {
     relatedLinks: [
       { slug: 'overtime-pay-calculator', label: 'Weekly overtime pay calculator', note: 'Prices hours over a threshold at 1.5 or another multiple. It does not read 09:00 and 17:30. The 8.0000 hours from a shift can be part of the weekly total you type there.' },
       { slug: 'hourly-to-salary-calculator', label: 'Hourly to salary calculator', note: 'Turns an hourly rate and a weekly schedule into a year. It is not one time card with a break.' },
-      { slug: 'date-difference-calculator', label: 'Date difference calculator', note: 'Counts calendar days between two dates. It does not convert 9:00 to 17:30 into decimal hours.' }
+      { slug: 'date-difference-calculator', label: 'Date difference calculator', note: 'Counts calendar days between two dates. It does not convert 9:00 to 17:30 into decimal hours.' },
+      { slug: 'sleep-calculator', label: 'Sleep calculator', note: 'A 06:30 wake time, 15 minutes to fall asleep, and 90-minute cycles suggests a 5-cycle bedtime of 22:45 the evening before. It does not total a shift.' }
     ]
   }
 };

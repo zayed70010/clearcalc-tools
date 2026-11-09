@@ -11,6 +11,7 @@ import { nov3CalculatorContent } from './nov3-calculator-content.js';
 import { nov5CalculatorContent } from './nov5-calculator-content.js';
 import { nov6CalculatorContent } from './nov6-calculator-content.js';
 import { nov7CalculatorContent } from './nov7-calculator-content.js';
+import { nov9CalculatorContent } from './nov9-calculator-content.js';
 
 export const calculatorContent = {
   'mortgage-calculator': {
@@ -278,11 +279,13 @@ export const calculatorContent = {
     howItWorks: [
       'The annual return is divided by 100 and then by 12 to produce a monthly rate. Ten years is 120 monthly periods. The starting balance grows by that monthly rate, compounded, which is the familiar principal times (1 + r) raised to the number of months.',
       'Contributions are handled separately as an ordinary annuity. The future value of a series of equal end-of-month deposits is the deposit times (((1 + r)^n − 1) / r). The calculator adds that to the future value of the starting balance. It does not multiply the contribution piece by an extra (1 + r), which is what a beginning-of-month deposit would require.',
-      'The detail lines split the ending balance into money contributed and estimated growth. Contributions equal the starting amount plus every monthly deposit. Growth is the ending balance minus that sum. Growth can be larger than the deposits, and it can also be zero when the return is zero.'
+      'The detail lines split the ending balance into money contributed and estimated growth. Contributions equal the starting amount plus every monthly deposit. Growth is the ending balance minus that sum. Growth can be larger than the deposits, and it can also be zero when the return is zero.',
+      'Monthly compounding of a 7% nominal rate is not a 7% effective annual rate. The effective rate is (1 + 0.07/12)^12 − 1, which this page shows as 7.23%. At 5% the effective rate is 5.12%. The page also prints simple interest on the starting balance alone. For $10,000 at 7% for 10 years that simple figure is $7,000.00, against $10,096.61 of compound growth on the same starting balance with no deposits.',
+      'The timing menu defaults to the end of each month, which is the ordinary annuity above. Beginning of each month multiplies the deposit future value by one extra month of growth. On $10,000 plus $250 at 7% for 10 years, the end-of-month balance stays $63,367.82 and the beginning-of-month balance is $63,620.23. The starting balance is unchanged, because timing applies only to the deposits. A negative rate, a term over 100 years, and a non-numeric entry are rejected.'
     ],
     formula: 'Monthly rate r = annual percent / 100 / 12\nMonths n = years × 12\nFuture value of principal = principal × (1 + r)^n\nIf r = 0: future value of deposits = monthly deposit × n\nOtherwise: future value of deposits = monthly deposit × (((1 + r)^n − 1) / r)\nEnding balance = those two future values added\nContributions = principal + monthly deposit × n\nGrowth = ending balance − contributions',
     formulaNotes: [
-      'End-of-month timing means a deposit made on the first day of the month would be worth slightly more than this model shows, because it would earn that month\'s return. The difference is one month of growth on each deposit, which is the ordinary-annuity result multiplied by (1 + r).',
+      'End of each month is the default. Choose beginning of each month when the deposit should earn the month it is added. That choice multiplies the deposit future value by (1 + r). On the 7%, 10-year, $250 example the balance moves from $63,367.82 to $63,620.23. The effective annual rate stays 7.23% either way, because the rate still compounds monthly.',
       'A 0% return skips the division by r. The ending balance is then exactly the money you contributed, and growth is zero. That check confirms the form is not inventing a return you did not enter.'
     ],
     examplesHeading: 'Worked compound-growth examples',
@@ -335,7 +338,7 @@ export const calculatorContent = {
       },
       {
         q: 'How often does the interest compound?',
-        a: 'Monthly. The annual percent is divided by 12, and that monthly rate is compounded once per month for years times 12. Annual compounding, daily compounding, and continuous compounding are different formulas and will not match this result.'
+        a: 'Monthly. The annual percent is divided by 12, and that monthly rate is compounded once per month for years times 12. At 7% the effective annual rate is 7.23%. Annual, daily, and continuous compounding are different formulas and will not match this result. The timing menu changes when deposits earn, not how many times the rate compounds.'
       },
       {
         q: 'Is the ending balance a prediction of investment growth?',
@@ -351,33 +354,36 @@ export const calculatorContent = {
       }
     ],
     relatedLinks: [
-      { slug: 'simple-interest-calculator', label: 'Simple interest calculator', note: '$10,000 at 5% for 3 years is $11,500.00 there, with $1,500.00 of interest. This page, with a $0 monthly deposit, compounds the same inputs to $11,614.72. The $114.72 gap is monthly compounding.' }
+      { slug: 'simple-interest-calculator', label: 'Simple interest calculator', note: '$10,000 at 5% for 3 years is $11,500.00 there, with $1,500.00 of interest. This page, with a $0 monthly deposit, compounds the same inputs to $11,614.72. The $114.72 gap is monthly compounding. The effective annual rate at 5% is 5.12%.' },
+      { slug: 'inflation-calculator', label: 'Inflation calculator', note: '$100 of 2016 buying power is $134.14 in 2025 CPI-U dollars, a 34.14% rise. A constant 3% for 10 years prices the same $100 at $134.39. Neither figure is this investment balance.' }
     ]
   },
   'bmi-calculator': {
-    title: 'Adult BMI Calculator in Kilograms and Centimeters | ClearCalc',
-    h1: 'Adult BMI Calculator (kg and cm)',
-    description: 'Calculate adult body mass index from kilograms and centimeters. See the BMI formula, WHO category cutoffs, worked examples, and what the result does not diagnose.',
+    title: 'Adult BMI Calculator in Metric or US Units | ClearCalc',
+    h1: 'Adult BMI Calculator',
+    description: 'Calculate adult BMI from kilograms and centimeters, or from pounds and inches. 75 kg at 175 cm is BMI 24.5, Healthy range. 120 kg at 175 cm is BMI 39.2, Obesity class II.',
     intro: [
-      'This BMI calculator computes adult body mass index from weight in kilograms and height in centimeters. BMI is weight divided by height squared, with height converted from centimeters to meters first. The page then labels the result with one of four ranges: Underweight, Healthy range, Overweight, or Obesity range.',
-      'Those labels follow the usual adult cutoffs used by the World Health Organization: under 18.5, 18.5 up to 25, 25 up to 30, and 30 or above. BMI is a screening measure for population and clinic use. It is not a diagnosis, it does not measure body fat directly, and it is not the right chart for children, teenagers, or pregnancy. A clinician uses more than a single ratio.'
+      'This BMI calculator computes adult body mass index from weight and height. Leave the unit menu on kilograms and centimeters, or switch it to pounds and inches. BMI is weight divided by height squared after both inputs are in kilograms and meters. The page then labels the result: Underweight, Healthy range, Overweight, Obesity class I, Obesity class II, or Obesity class III.',
+      'Those labels follow the usual adult cutoffs: under 18.5, 18.5 up to 25, 25 up to 30, then obesity split at 35 and 40. BMI is a screening measure. It is not a diagnosis, it does not measure body fat directly, and it is not the right chart for children, teenagers, or pregnancy. The body-fat page uses tape measurements. This page does not.',
+      'The result also prints a healthy-range weight for the height you entered, from BMI 18.5 up to but not including 25. At 175 cm that span is 56.7 kg to just under 76.6 kg, or 124.9 lb to just under 168.8 lb. The upper figure is not itself a healthy-range weight, because BMI 25 is the first point of the overweight label.'
     ],
     steps: [
-      'Enter weight in kilograms. Pounds have to be converted before you type.',
-      'Enter height in centimeters, not meters. A height of 1.75 m is entered as 175.',
+      'Choose kilograms and centimeters, or pounds and inches. The sample starts on metric, with weight 75 and height 175.',
+      'If you switch to pounds and inches, replace those sample numbers. Five feet nine inches is 69, and a weight in pounds is typed as pounds. Do not leave 175 in the height field after switching.',
       'Press Calculate. The headline is BMI rounded to one decimal. The category uses the unrounded value.',
-      'Read the category line. The calculator also reminds you that BMI is a screening measure, not a medical diagnosis.'
+      'Read the category, the unrounded BMI, and the healthy-range weight for that height. The result also shows the other unit system, converted rather than retyped.'
     ],
     howHeading: 'How adult BMI is calculated from kilograms and centimeters',
     howItWorks: [
-      'Height in centimeters is divided by 100 to get meters. That height is squared. Weight in kilograms is divided by the squared height. For 75 kg and 175 cm, height is 1.75 meters, the square is 3.0625, and 75 / 3.0625 is about 24.49, which displays as BMI 24.5.',
-      'The category is chosen from the unrounded value. Below 18.5 is Underweight. From 18.5 up to but not including 25 is Healthy range. From 25 up to but not including 30 is Overweight. 30 or above is Obesity range. A result that rounds to 25.0 on screen can still be Healthy range if the unrounded BMI is under 25.',
-      'The form has no field for age, sex, waist circumference, or muscle mass. Those factors change how a clinician reads a number. The arithmetic itself is the same for every adult who enters the same weight and height.'
+      'On the metric path, height in centimeters is divided by 100 to get meters. That height is squared. Weight in kilograms is divided by the squared height. For 75 kg and 175 cm, height is 1.75 meters, the square is 3.0625, and 75 / 3.0625 is 24.4898 before rounding, which displays as BMI 24.5 and Healthy range.',
+      'Pounds and inches take a different door into the same division. One pound is 0.45359237 kilograms and one inch is 2.54 centimeters. The calculator converts first, then uses kilograms and meters. It does not multiply by the rounded factor 703. A height of zero is rejected, because the square would be zero and the ratio would not be a number.',
+      'The category is chosen from the unrounded value. Below 18.5 is Underweight. From 18.5 up to but not including 25 is Healthy range. From 25 up to but not including 30 is Overweight. From 30 up to 35 is Obesity class I, from 35 up to 40 is Obesity class II, and 40 or above is Obesity class III. A result that rounds to 25.0 on screen can still be Healthy range if the unrounded BMI is under 25.',
+      'The form has no field for age, waist circumference, or muscle mass. Those factors change how a clinician reads a number. The arithmetic itself is the same for every adult who enters the same weight and height. Sex does not change this formula. It does change the Navy body-fat equation on the other page.'
     ],
-    formula: 'Height in meters = height in centimeters / 100\nBMI = weight in kilograms / (height in meters)²\nUnder 18.5: Underweight\n18.5 up to 25: Healthy range\n25 up to 30: Overweight\n30 or above: Obesity range',
+    formula: 'Metric: meters = centimeters / 100, BMI = kilograms / meters²\nUS units: kilograms = pounds × 0.45359237, centimeters = inches × 2.54, then the same BMI division\nUnder 18.5: Underweight\n18.5 up to 25: Healthy range\n25 up to 30: Overweight\n30 up to 35: Obesity class I\n35 up to 40: Obesity class II\n40 and above: Obesity class III\nHealthy-range weight = 18.5 × meters² up to, but not including, 25 × meters²',
     formulaNotes: [
       'The on-screen BMI uses at most one decimal place. The category does not use that rounded text. It uses the full division. That is why the label and the rounded number can sit on different sides of a cutoff.',
-      'The World Health Organization describes the adult bands as underweight below 18.5, normal from 18.5 to 24.9, overweight from 25 to 29.9, and obese at 30 and above, with further obese classes at 35 and 40. This tool stops at four labels and calls the 18.5–24.9 band Healthy range. It does not split obesity into classes.'
+      'The adult bands used here are the common World Health Organization cutoffs, including the obese classes at 30, 35, and 40. This page calls the 18.5 up to 25 band Healthy range. It does not adjust the cutoffs for age, sex, or ethnicity.'
     ],
     examplesHeading: 'Worked BMI examples',
     examples: [
@@ -392,26 +398,28 @@ export const calculatorContent = {
         title: 'Shorter, heavier, and lighter adults',
         paragraphs: [
           '50 kg and 160 cm: height 1.60, squared height 2.56, BMI 50 / 2.56 = 19.53125. The calculator shows BMI 19.5 and Healthy range. 54 kg and 175 cm: 54 / 3.0625 = 17.63265, shown as BMI 17.6 and Underweight.',
-          '92 kg and 180 cm: height 1.80, squared height 3.24, BMI 92 / 3.24 = 28.39506, shown as BMI 28.4 and Overweight. 120 kg and 175 cm: 120 / 3.0625 = 39.18367, shown as BMI 39.2 and Obesity range. The tool does not relabel 39.2 as a separate class III figure. Any BMI of 30 or more gets the same Obesity range label.'
+          '92 kg and 180 cm: height 1.80, squared height 3.24, BMI 92 / 3.24 = 28.3951, shown as BMI 28.4 and Overweight. 120 kg and 175 cm: 120 / 3.0625 = 39.1837, shown as BMI 39.2 and Obesity class II, because 39.1837 is at least 35 and still under 40. 140 kg at the same 175 cm is 45.7143, shown as BMI 45.7 and Obesity class III.'
         ]
       },
       {
-        title: 'Starting from pounds and inches',
+        title: '165 pounds and 69 inches, without rounding first',
         paragraphs: [
-          'The form does not accept pounds or feet. Convert first. Multiply pounds by 0.45359237 to get kilograms, and multiply inches by 2.54 to get centimeters. Five feet nine inches is 69 inches, and 69 × 2.54 = 175.26 cm. A weight of 165 pounds is 165 × 0.45359237 = 74.8427 kg.',
-          'If you type the rounded values 74.8 kg and 175 cm, BMI is 74.8 / 3.0625 = 24.4245, which displays as BMI 24.4 and Healthy range. Rounding the inputs before you type them moves the result slightly. The calculator is doing the metric formula on whatever you entered, not a hidden imperial formula.'
+          'Choose pounds and inches. Five feet nine inches is 69. Type weight 165 and height 69. The conversion is 165 × 0.45359237 = 74.84 kg and 69 × 2.54 = 175.26 cm. BMI is 24.366 before rounding. The calculator shows BMI 24.4 and Healthy range. The healthy-range weight at 69 inches is 56.8 kg to just under 76.8 kg, or 125.3 lb to just under 169.3 lb.',
+          'Typing the rounded metric pair 74.8 kg and 175 cm instead is a different entry. That BMI is 24.4245, which also displays as BMI 24.4, but the unrounded value is not 24.366. Use the unit menu when you have pounds and inches. Do not round onto the metric fields and expect the same unrounded line. A height of 0 is rejected on either menu.'
         ]
       }
     ],
     table: {
       heading: 'Adult BMI cutoffs used on this page',
-      caption: 'Category boundaries match this calculator. WHO wording for adults is shown beside the label this page prints. The displayed BMI is rounded to one decimal after the category is chosen.',
-      headers: ['Unrounded BMI', 'Label on this page', 'Common WHO adult band'],
+      caption: 'Category boundaries match this calculator. The displayed BMI is rounded to one decimal after the category is chosen. The healthy-range weight line uses 18.5 and 25 on the height you typed.',
+      headers: ['Unrounded BMI', 'Label on this page', 'What the boundary means'],
       rows: [
-        ['Below 18.5', 'Underweight', 'Underweight'],
-        ['18.5 up to 25', 'Healthy range', 'Normal range, often written 18.5–24.9'],
+        ['Below 18.5', 'Underweight', 'Below the healthy-range floor'],
+        ['18.5 up to 25', 'Healthy range', 'Normal adult band, often written 18.5–24.9'],
         ['25 up to 30', 'Overweight', 'Overweight, often written 25.0–29.9'],
-        ['30 and above', 'Obesity range', 'Obese, with further classes at 35 and 40']
+        ['30 up to 35', 'Obesity class I', 'Obese class I'],
+        ['35 up to 40', 'Obesity class II', 'Obese class II. 120 kg at 175 cm is BMI 39.2'],
+        ['40 and above', 'Obesity class III', 'Obese class III. 140 kg at 175 cm is BMI 45.7']
       ]
     },
     limitsHeading: 'What BMI does not tell you',
@@ -424,11 +432,11 @@ export const calculatorContent = {
     faqs: [
       {
         q: 'Which units does this BMI calculator accept?',
-        a: 'Kilograms for weight and centimeters for height. Do not enter pounds, stones, feet, or meters. A height of 1.75 meters must be typed as 175. Convert pounds to kilograms by multiplying by 0.45359237, and inches to centimeters by multiplying by 2.54.'
+        a: 'Kilograms and centimeters, or pounds and inches, from the unit menu. A height of 1.75 meters is typed as 175 on the metric menu. On the US menu, 69 inches and 165 pounds display BMI 24.4. Stones are not a unit. A height of zero is rejected.'
       },
       {
-        q: 'What do Underweight, Healthy range, Overweight, and Obesity range mean?',
-        a: 'They are the four adult bands this tool prints: under 18.5, 18.5 up to 25, 25 up to 30, and 30 or above. The middle band corresponds to the WHO normal range. The tool does not subdivide obesity at 35 or 40.'
+        q: 'What do the six adult BMI labels mean?',
+        a: 'Under 18.5 is Underweight, 18.5 up to 25 is Healthy range, 25 up to 30 is Overweight, 30 up to 35 is Obesity class I, 35 up to 40 is Obesity class II, and 40 or above is Obesity class III. At 175 cm, 120 kg is BMI 39.2 and class II. 140 kg is BMI 45.7 and class III.'
       },
       {
         q: 'Can the BMI display 25.0 and still say Healthy range?',
@@ -439,13 +447,14 @@ export const calculatorContent = {
         a: 'No. It is a screening ratio of weight to height squared. It does not measure body fat, and it is not a diagnosis of any disease. The calculator states that on the result itself.'
       },
       {
-        q: 'Does age or sex change the formula here?',
-        a: 'No. The same division is used for every entry. Age and sex matter in how a result is interpreted, especially for children, but this form does not collect them and does not switch formulas.'
+        q: 'Does age or sex change the BMI formula here?',
+        a: 'No. The same division is used for every entry. Age and sex matter in how a result is interpreted, especially for children, but this form does not collect them and does not switch the BMI formula. Sex does change the Navy equation on the body-fat page.'
       }
     ],
     relatedLinks: [
-      { slug: 'ideal-weight-calculator', label: 'Ideal weight calculator', note: 'Devine, Robinson, and Miller from height and sex. A man at 175 cm has a Devine headline of 70.5 kg. Typing 70.5 kg and 175 cm here shows BMI 23. This page does not run those formulas.' },
-      { slug: 'calorie-calculator', label: 'Daily calorie calculator', note: 'Mifflin–St Jeor from a weight you already have. BMI does not estimate calories, and a category is not a maintenance target.' }
+      { slug: 'ideal-weight-calculator', label: 'Ideal weight calculator', note: 'Devine, Robinson, and Miller from height and sex. A man at 175 cm has a Devine headline of 70.5 kg. Typing 70.5 kg and 175 cm here shows BMI 23, Healthy range. This page does not run those formulas.' },
+      { slug: 'calorie-calculator', label: 'Daily calorie calculator', note: 'Mifflin–St Jeor from a weight you already have. BMI does not estimate calories, and a category is not a maintenance target.' },
+      { slug: 'body-fat-calculator', label: 'Body fat calculator', note: 'U.S. Navy circumferences. A man at 70 inches, neck 15, waist 34, and 180 lb is 17.51% body fat. That percent is not this BMI.' }
     ]
   },
   'calorie-calculator': {
@@ -1405,6 +1414,11 @@ export const calculatorContent = {
         slug: 'england-stamp-duty-calculator',
         label: 'England stamp duty calculator',
         note: 'SDLT on a residential purchase in England or Northern Ireland. Keep that sterling tax separate from this take-home figure.'
+      },
+      {
+        slug: 'northern-ireland-take-home-pay-calculator',
+        label: 'Northern Ireland take-home pay calculator for 2026/27',
+        note: 'The same rest-of-UK tax and National Insurance. At £35,000 with no loan the monthly figure is still £2,393.30. Choosing Plan 1 subtracts £729.00 and the headline becomes £2,332.55.'
       }
     ]
   },
@@ -1420,7 +1434,8 @@ export const calculatorContent = {
   ...nov3CalculatorContent,
   ...nov5CalculatorContent,
   ...nov6CalculatorContent,
-  ...nov7CalculatorContent
+  ...nov7CalculatorContent,
+  ...nov9CalculatorContent
 };
 
 export function contentWordCount(entry) {

@@ -99,7 +99,8 @@ export const nov6CalculatorContent = {
       { slug: 'age-calculator', label: 'Age calculator', note: 'Completed years, months, and days between two dates. It does not add 280 days to an LMP or read a cycle length.' },
       { slug: 'date-difference-calculator', label: 'Date difference calculator', note: 'Elapsed days between two dates. 1 January 2026 to 8 October 2026 is the 280-day span this due date uses, without the trimester labels.' },
       { slug: 'ideal-weight-calculator', label: 'Ideal weight calculator', note: 'Devine, Robinson, and Miller from adult height. A 175 cm man is 70.5 kg on the Devine headline. That is not a pregnancy weight.' },
-      { slug: 'bmi-calculator', label: 'Adult BMI calculator', note: 'BMI from kilograms and centimeters. The page says the adult categories are not the right chart in pregnancy. This due date page does not compute one.' }
+      { slug: 'bmi-calculator', label: 'Adult BMI calculator', note: 'BMI from kilograms and centimeters, or pounds and inches. The page says the adult categories are not the right chart in pregnancy. This due date page does not compute one.' },
+      { slug: 'ovulation-calculator', label: 'Ovulation calculator', note: 'A last period of 1 January 2026 and a 28-day cycle with a 14-day luteal phase ovulates on 15 January 2026. That is the conception day this due date page uses. The fertile window is 10 January through 15 January. This page still estimates the due date, not the window.' }
     ]
   },
   'simple-interest-calculator': {

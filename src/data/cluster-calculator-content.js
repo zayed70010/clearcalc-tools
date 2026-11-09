@@ -521,7 +521,8 @@ export const clusterCalculatorContent = {
       { slug: 'mortgage-calculator', label: 'Fixed-rate mortgage payment calculator', note: 'The loan payment on a house, not the concrete under a patio.' },
       { slug: 'rent-affordability-calculator', label: 'Rent affordability calculator', note: 'Compares rent with 30% of gross income. It does not estimate a pour.' },
       { slug: 'length-converter', label: 'Length converter from meters', note: 'If the slab was measured in meters, convert to feet before you type the length and width here. Thickness stays in inches on this form.' },
-      { slug: 'room-paint-calculator', label: 'Room paint calculator', note: 'Gallons for a rectangular room. It uses square feet per gallon, not these bag yields.' }
+      { slug: 'room-paint-calculator', label: 'Room paint calculator', note: 'Gallons for a rectangular room. It uses square feet per gallon, not these bag yields.' },
+      { slug: 'fence-calculator', label: 'Fence calculator', note: 'A 40 by 20 foot rectangle at 8 foot spacing is 16 posts and 32 rails of two per section, plus 241 pickets at 5.5 inches with a half-inch gap. It does not count concrete bags.' }
     ]
   }
 };

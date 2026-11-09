@@ -1581,16 +1581,67 @@ export function calculate(slug, values) {
     return { headline: `${money(payment)} / month`, details: [`Total repayment: ${money(total)}`, `Total interest: ${money(total - v.principal)}`] };
   }
   if (slug === 'compound-interest-calculator') {
-    const months = v.years * 12, r = v.rate / 1200;
+    if (!Number.isFinite(v.principal) || v.principal < 0) throw new Error('Enter an initial investment of zero or more');
+    if (!Number.isFinite(v.monthly) || v.monthly < 0) throw new Error('Enter a monthly contribution of zero or more');
+    if (!Number.isFinite(v.rate) || v.rate < 0 || v.rate > 100) throw new Error('Enter an annual return from 0 to 100 percent');
+    if (!Number.isFinite(v.years) || v.years < 0 || v.years > 100) throw new Error('Enter a term from 0 to 100 years');
+    const timing = v.timing == null ? 0 : Number(v.timing);
+    if (timing !== 0 && timing !== 1) throw new Error('Choose when each deposit is added');
+    const months = v.years * 12;
+    const r = v.rate / 1200;
     const futurePrincipal = v.principal * (1 + r) ** months;
-    const futureContributions = r === 0 ? v.monthly * months : v.monthly * (((1 + r) ** months - 1) / r);
-    const total = futurePrincipal + futureContributions, contributed = v.principal + v.monthly * months;
-    return { headline: money(total), details: [`Total contributions: ${money(contributed)}`, `Estimated growth: ${money(total - contributed)}`] };
+    const ordinary = r === 0 ? v.monthly * months : v.monthly * (((1 + r) ** months - 1) / r);
+    const futureContributions = timing === 1 ? ordinary * (1 + r) : ordinary;
+    const total = futurePrincipal + futureContributions;
+    const contributed = v.principal + v.monthly * months;
+    if (!Number.isFinite(total)) throw new Error('That term and rate are too large to project');
+    const ear = ((1 + r) ** 12 - 1) * 100;
+    const simple = v.principal * (v.rate / 100) * v.years;
+    return {
+      headline: money(total),
+      details: [
+        `Total contributions: ${money(contributed)}`,
+        `Estimated growth: ${money(total - contributed)}`,
+        `Future value of the starting balance: ${money(futurePrincipal)}`,
+        `Future value of the deposits: ${money(futureContributions)}`,
+        `Effective annual rate from monthly compounding: ${percent(ear)}%`,
+        `Simple interest on the starting balance alone: ${money(simple)}. Deposits are not included in that simple-interest figure.`,
+        timing === 1
+          ? 'Deposit timing: beginning of each month. Each deposit earns that month’s return, so the deposit future value is the end-of-month annuity multiplied by (1 + monthly rate).'
+          : 'Deposit timing: end of each month. A deposit does not earn the month it is added. This is an ordinary annuity.',
+        'Monthly rate = annual percent / 100 / 12. Ending balance = future value of the starting amount + future value of the deposits. Fees, taxes, and inflation are not deducted.'
+      ]
+    };
   }
   if (slug === 'bmi-calculator') {
-    const bmi = v.weight / ((v.height / 100) ** 2);
-    const category = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Healthy range' : bmi < 30 ? 'Overweight' : 'Obesity range';
-    return { headline: `BMI ${number(bmi, 1)}`, details: [`Category: ${category}`, 'BMI is a screening measure, not a medical diagnosis.'] };
+    const units = v.units == null ? 1 : Number(v.units);
+    if (units !== 1 && units !== 2) throw new Error('Choose kilograms and centimeters, or pounds and inches');
+    if (!Number.isFinite(v.weight) || v.weight < 0) throw new Error('Enter a weight of zero or more');
+    if (!Number.isFinite(v.height) || v.height <= 0) throw new Error('Enter a height above zero');
+    const kg = units === 2 ? v.weight * POUND_KG : v.weight;
+    const cm = units === 2 ? v.height * 2.54 : v.height;
+    const meters = cm / 100;
+    const bmi = kg / (meters ** 2);
+    const category = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Healthy range' : bmi < 30 ? 'Overweight' : bmi < 35 ? 'Obesity class I' : bmi < 40 ? 'Obesity class II' : 'Obesity class III';
+    const lowKg = 18.5 * meters ** 2;
+    const highKg = 25 * meters ** 2;
+    const entered = units === 2
+      ? `${number(v.weight, 2)} lb and ${number(v.height, 2)} in (${number(kg, 2)} kg and ${number(cm, 2)} cm)`
+      : `${number(v.weight, 2)} kg and ${number(v.height, 2)} cm (${number(kg / POUND_KG, 2)} lb and ${number(cm / 2.54, 2)} in)`;
+    return {
+      headline: `BMI ${number(bmi, 1)}`,
+      details: [
+        `Category: ${category}`,
+        `Unrounded BMI: ${number(bmi, 4)}`,
+        `Measurements used: ${entered}`,
+        `Adult healthy-range weight at this height: ${number(lowKg, 1)} kg to just under ${number(highKg, 1)} kg (${number(lowKg / POUND_KG, 1)} lb to just under ${number(highKg / POUND_KG, 1)} lb).`,
+        'The healthy-range weight is BMI 18.5 up to, but not including, 25. Labels: under 18.5 Underweight, 18.5 up to 25 Healthy range, 25 up to 30 Overweight, 30 up to 35 Obesity class I, 35 up to 40 Obesity class II, 40 and above Obesity class III. The label uses the unrounded BMI. The headline rounds to one decimal.',
+        units === 2
+          ? 'Pounds and inches were converted with 1 pound = 0.45359237 kg and 1 inch = 2.54 cm, then BMI = kg / m². The rounded factor 703 was not used.'
+          : 'BMI = kilograms / (centimeters / 100)². Pounds and inches in the measurement line use the same exact conversions, in reverse.',
+        'BMI is an adult screening measure, not a medical diagnosis, not a body-fat percentage, and not the chart for children or pregnancy.'
+      ]
+    };
   }
   if (slug === 'calorie-calculator') {
     const constant = v.sex;
@@ -4185,5 +4236,529 @@ export function calculate(slug, values) {
       ]
     };
   }
+  if (slug === 'inflation-calculator') return inflationResult(v);
+  if (slug === 'body-fat-calculator') return bodyFatResult(v);
+  if (slug === 'ovulation-calculator') return ovulationResult(v);
+  if (slug === 'sleep-calculator') return sleepResult(v);
+  if (slug === 'tennessee-paycheck-calculator') return tennesseePaycheck(v);
+  if (slug === 'indiana-paycheck-calculator') return indianaPaycheck(v);
+  if (slug === 'maryland-paycheck-calculator') return marylandPaycheck(v);
+  if (slug === 'nunavut-take-home-pay-calculator') return nunavutTakeHome(v);
+  if (slug === 'northern-ireland-take-home-pay-calculator') return northernIrelandTakeHome(v);
+  if (slug === 'fence-calculator') return fenceResult(v);
   throw new Error('Unsupported calculator');
+}
+
+// CPI-U, U.S. city average, all items, not seasonally adjusted, annual
+// averages, 1982–84 = 100. Years 1990–2017 are the annual averages in BLS
+// Table 24. Years 2018–2025 are BLS series CUUR0000SA0 annual averages as
+// extracted on 9 November 2026. October 2025 is missing from the monthly row
+// because of the appropriations lapse; BLS still published the 2025 annual
+// average of 321.943. Calendar 2026 has no annual average yet and is rejected.
+const CPI_U_ANNUAL = {
+  1990: 130.7,
+  1991: 136.2,
+  1992: 140.3,
+  1993: 144.5,
+  1994: 148.2,
+  1995: 152.4,
+  1996: 156.9,
+  1997: 160.5,
+  1998: 163.0,
+  1999: 166.6,
+  2000: 172.2,
+  2001: 177.1,
+  2002: 179.9,
+  2003: 184.0,
+  2004: 188.9,
+  2005: 195.3,
+  2006: 201.6,
+  2007: 207.342,
+  2008: 215.303,
+  2009: 214.537,
+  2010: 218.056,
+  2011: 224.939,
+  2012: 229.594,
+  2013: 232.957,
+  2014: 236.736,
+  2015: 237.017,
+  2016: 240.007,
+  2017: 245.120,
+  2018: 251.107,
+  2019: 255.657,
+  2020: 258.811,
+  2021: 270.970,
+  2022: 292.655,
+  2023: 304.702,
+  2024: 313.689,
+  2025: 321.943
+};
+
+function inflationResult(v) {
+  const mode = Number(v.mode);
+  if (mode !== 1 && mode !== 2) throw new Error('Choose a CPI comparison or a constant annual rate');
+  if (!Number.isFinite(v.amount) || v.amount < 0) throw new Error('Enter an amount of zero or more');
+  if (mode === 1) {
+    if (!Number.isInteger(v.startyear) || !Number.isInteger(v.endyear)) throw new Error('Enter whole years from 1990 through 2025');
+    const start = CPI_U_ANNUAL[v.startyear];
+    const end = CPI_U_ANNUAL[v.endyear];
+    if (start == null || end == null) throw new Error('Enter a start year and an end year from 1990 through 2025');
+    const adjusted = v.amount * end / start;
+    const change = (end / start - 1) * 100;
+    const direction = v.endyear > v.startyear ? 'later' : v.endyear < v.startyear ? 'earlier' : 'the same';
+    return {
+      headline: money(adjusted),
+      details: [
+        `${money(v.amount)} in ${v.startyear} has the buying power of ${money(adjusted)} in ${v.endyear}.`,
+        `Cumulative CPI-U change: ${percent(change)}%. The end year is ${direction} than the start year.`,
+        `CPI-U annual average, 1982–84 = 100: ${v.startyear} is ${number(start, 3)}, ${v.endyear} is ${number(end, 3)}.`,
+        'Adjusted amount = amount × end-year CPI-U / start-year CPI-U. Both indexes are annual averages for all items, U.S. city average. A single month, a city index, and CPI-W are not used.',
+        'The constant-rate fields on the form were ignored. Calendar 2026 is not in the table because BLS has not published that annual average.'
+      ]
+    };
+  }
+  if (!Number.isFinite(v.rate) || v.rate <= -100 || v.rate > 100) throw new Error('Enter an annual inflation rate above −100 and at most 100 percent');
+  if (!Number.isFinite(v.years) || v.years < 0 || v.years > 100) throw new Error('Enter a period from 0 to 100 years');
+  const factor = (1 + v.rate / 100) ** v.years;
+  const futurePrice = v.amount * factor;
+  const buyingPower = v.amount / factor;
+  if (!Number.isFinite(futurePrice) || !Number.isFinite(buyingPower)) throw new Error('That rate and period are too large to project');
+  return {
+    headline: money(futurePrice),
+    details: [
+      `A price of ${money(v.amount)} becomes ${money(futurePrice)} after ${number(v.years, 4)} ${v.years === 1 ? 'year' : 'years'} at ${rateText(v.rate)}% a year.`,
+      `Buying power of today’s ${money(v.amount)} after that period: ${money(buyingPower)}.`,
+      `Price factor: ${number(factor, 4)}. Future price = amount × (1 + rate/100)^years. Buying power = amount / that same factor.`,
+      'This path compounds once a year. It does not use the CPI-U table, and the year fields were ignored. It is not the monthly-compounding balance on the compound interest page, and it does not add deposits.',
+      'A constant rate is an assumption you typed. It is not a forecast from the Bureau of Labor Statistics.'
+    ]
+  };
+}
+
+function bodyFatBand(sex, percentValue) {
+  if (sex === 1) {
+    if (percentValue < 6) return 'below the usual athletic band for men';
+    if (percentValue < 14) return 'athletic band for men (about 6% up to 14%)';
+    if (percentValue < 18) return 'fitness band for men (about 14% up to 18%)';
+    if (percentValue < 25) return 'average band for men (about 18% up to 25%)';
+    return 'above the usual average band for men (about 25% and over)';
+  }
+  if (percentValue < 14) return 'below the usual athletic band for women';
+  if (percentValue < 21) return 'athletic band for women (about 14% up to 21%)';
+  if (percentValue < 25) return 'fitness band for women (about 21% up to 25%)';
+  if (percentValue < 32) return 'average band for women (about 25% up to 32%)';
+  return 'above the usual average band for women (about 32% and over)';
+}
+
+function bodyFatResult(v) {
+  const sex = Number(v.sex);
+  if (sex !== 1 && sex !== 2) throw new Error('Choose the Navy formula for men or women');
+  const units = Number(v.units);
+  if (units !== 1 && units !== 2) throw new Error('Choose inches and pounds, or centimeters and kilograms');
+  const fields = ['height', 'neck', 'waist', 'weight'];
+  for (const field of fields) {
+    if (!Number.isFinite(v[field]) || v[field] <= 0) throw new Error(`Enter a ${field} above zero`);
+  }
+  const toInches = (value) => units === 2 ? value / 2.54 : value;
+  const heightIn = toInches(v.height);
+  const neckIn = toInches(v.neck);
+  const waistIn = toInches(v.waist);
+  const hipIn = sex === 2 ? toInches(v.hip) : 0;
+  if (sex === 2 && (!Number.isFinite(v.hip) || v.hip <= 0)) throw new Error('Enter a hip measurement above zero');
+  if (heightIn <= 0 || neckIn <= 0 || waistIn <= 0) throw new Error('Enter measurements above zero');
+  let bodyFat;
+  if (sex === 1) {
+    if (waistIn <= neckIn) throw new Error('Waist must be larger than the neck');
+    bodyFat = 86.010 * Math.log10(waistIn - neckIn) - 70.041 * Math.log10(heightIn) + 36.76;
+  } else {
+    if (hipIn <= 0) throw new Error('Enter a hip measurement above zero');
+    if (waistIn + hipIn <= neckIn) throw new Error('Waist plus hip must be larger than the neck');
+    bodyFat = 163.205 * Math.log10(waistIn + hipIn - neckIn) - 97.684 * Math.log10(heightIn) - 78.387;
+  }
+  if (!Number.isFinite(bodyFat)) throw new Error('Those measurements cannot be used in the Navy formula');
+  const weight = v.weight;
+  const fatMass = weight * bodyFat / 100;
+  const leanMass = weight - fatMass;
+  const unit = units === 2 ? 'kg' : 'lb';
+  return {
+    headline: `${percent(bodyFat)}% body fat`,
+    details: [
+      `Unrounded body fat: ${number(bodyFat, 4)}%`,
+      `Fat mass: ${number(fatMass, 2)} ${unit}`,
+      `Lean mass: ${number(leanMass, 2)} ${unit}`,
+      `General fitness band: ${bodyFatBand(sex, bodyFat)}.`,
+      sex === 1
+        ? 'Formula: men’s U.S. Navy circumference equation, % = 86.010 × log10(waist − neck) − 70.041 × log10(height) + 36.76, with height, neck, and waist in inches.'
+        : 'Formula: women’s U.S. Navy circumference equation, % = 163.205 × log10(waist + hip − neck) − 97.684 × log10(height) − 78.387, with height, neck, waist, and hip in inches.',
+      units === 2
+        ? 'Centimeters were divided by 2.54 before the logarithms. Kilograms are used only to split fat mass and lean mass. They are not inside the percent.'
+        : 'Inches were used as entered. Pounds are used only to split fat mass and lean mass.',
+      sex === 1
+        ? 'Tape sites for the men’s equation: neck just below the larynx, and the waist horizontal at the navel. A hip entry is ignored.'
+        : 'Tape sites for the women’s equation: neck just below the larynx, the waist at the narrowest point, and the hip at the largest horizontal circumference.',
+      'This is an estimate from circumferences, not a DEXA scan, hydrostatic weighing, or a diagnosis. The fitness band is a general adult label, not a Navy body-composition standard and not medical advice.'
+    ]
+  };
+}
+
+function ovulationResult(v) {
+  const lmp = parseCalendarDate(v.lmpdate, 'last menstrual period date');
+  const cycle = v.cycle;
+  const luteal = v.luteal;
+  if (!Number.isInteger(cycle) || cycle < 21 || cycle > 45) throw new Error('Enter a cycle length from 21 to 45 days');
+  if (!Number.isInteger(luteal) || luteal < 10 || luteal > 16) throw new Error('Enter a luteal phase from 10 to 16 days');
+  const ovulation = addCalendarDays(lmp, cycle - luteal);
+  const fertileStart = addCalendarDays(ovulation, -5);
+  const nextPeriod = addCalendarDays(lmp, cycle);
+  const following = addCalendarDays(ovulation, cycle);
+  const matchesConception = luteal === 14
+    ? `With a 14-day luteal phase, this ovulation date is the same day the pregnancy due date page calls the conception day for a cycle of ${cycle} days.`
+    : `The luteal phase is ${luteal} days, not 14, so this ovulation date is not the conception day on the pregnancy due date page. That page always counts conception as cycle length minus 14.`;
+  return {
+    headline: `Ovulation ${formatCalendarDate(ovulation)}`,
+    details: [
+      `Estimated ovulation: ${formatCalendarDate(ovulation)}`,
+      `Fertile window: ${formatCalendarDate(fertileStart)} through ${formatCalendarDate(ovulation)}`,
+      `Next period if this cycle stays ${cycle} days: ${formatCalendarDate(nextPeriod)}`,
+      `Following ovulation, one cycle later: ${formatCalendarDate(following)}`,
+      `Cycle length: ${cycle} days. Luteal phase: ${luteal} days. Ovulation = first day of the last period + cycle length − luteal phase.`,
+      'The fertile window starts five days before ovulation and ends on ovulation day. It does not add the day after. Sperm survival and the day of ovulation both vary.',
+      matchesConception,
+      'This is a calendar estimate. It is not contraception, not a fertility treatment, and not a diagnosis. Illness, contraception, and pregnancy move a real cycle off this count.'
+    ]
+  };
+}
+
+function sleepMoment(totalMinutes) {
+  const day = Math.floor(totalMinutes / 1440);
+  const mod = totalMinutes - day * 1440;
+  const hours = Math.floor(mod / 60);
+  const minutes = mod % 60;
+  const text = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  const evening = hours >= 12;
+  let when = 'the same day';
+  if (day === -1) when = evening ? 'the evening before' : 'the previous morning';
+  else if (day === 1) when = evening ? 'the next evening' : 'the next morning';
+  else if (day <= -2) when = `${-day} days earlier`;
+  else if (day >= 2) when = `${day} days later`;
+  return `${text}, ${when}`;
+}
+
+function sleepResult(v) {
+  const mode = Number(v.mode);
+  if (mode !== 1 && mode !== 2) throw new Error('Choose a wake time or a bedtime');
+  const hour = clockPart(v.hour, 23, 'hour');
+  const minute = clockPart(v.minute, 59, 'minute');
+  if (!Number.isInteger(v.fallasleep) || v.fallasleep < 0 || v.fallasleep > 90) {
+    throw new Error('Enter minutes to fall asleep as a whole number from 0 to 90');
+  }
+  if (!Number.isInteger(v.cycle) || v.cycle < 60 || v.cycle > 120) {
+    throw new Error('Enter a cycle length from 60 to 120 minutes');
+  }
+  const anchor = hour * 60 + minute;
+  const clock = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+  const cycles = [6, 5, 4, 3];
+  const moments = cycles.map((count) => {
+    const sleepMinutes = count * v.cycle;
+    const target = mode === 1
+      ? anchor - sleepMinutes - v.fallasleep
+      : anchor + v.fallasleep + sleepMinutes;
+    return { count, sleepMinutes, label: sleepMoment(target) };
+  });
+  const lines = moments.map((item) => `${item.count} cycles (${number(item.sleepMinutes / 60, 2)} hours asleep): ${item.label}`);
+  return {
+    headline: `5 cycles: ${moments[1].label}`,
+    details: [
+      mode === 1
+        ? `Wake time entered: ${clock}. Bedtimes below subtract the cycles, then subtract ${v.fallasleep} minutes to fall asleep.`
+        : `Bedtime entered: ${clock}. Wake times below add ${v.fallasleep} minutes to fall asleep, then add the cycles.`,
+      ...lines,
+      `Cycle length used: ${v.cycle} minutes. Minutes to fall asleep: ${v.fallasleep}.`,
+      'The headline is the 5-cycle result. Six cycles is a longer night, and three or four cycles are shorter. The clock is 24-hour and can cross midnight.',
+      'A sleep cycle is not exactly the same length every night, and 90 minutes is only the default average. This is not a diagnosis, a treatment for insomnia, or a schedule for an infant.'
+    ]
+  };
+}
+
+function tennesseePaycheck(v) {
+  const result = usPaycheck(v, 'Tennessee');
+  result.details.push(
+    'Tennessee income tax on these wages is $0.00. Tennessee has no tax on salaries or wages. The Hall income tax, which applied to some interest and dividends and never to wages, was repealed for tax periods beginning on or after 1 January 2021. No Tennessee county or city wage tax is subtracted.',
+    'Federal income tax, Social Security, Medicare, and the Additional Medicare Tax use the same 2026 wage rules as the Texas and Florida pages. Sales tax is not withheld here.'
+  );
+  return result;
+}
+
+const IN_RATE_BASIS_POINTS = 295;
+const IN_EXEMPTION_CENTS = 100_000;
+
+function indianaPaycheck(v) {
+  const status = filingStatusCode(v.status);
+  const periods = payPeriodCount(v.periods);
+  const salary = nonNegativeCents(v.salary, 'salary');
+  const requestedDeferral = nonNegativeCents(v.deferral, '401(k) deferral');
+  const deferral = Math.min(requestedDeferral, salary, US_401K_DEFERRAL_CENTS);
+  const exemptions = wholeCount(v.exemptions, 'Indiana exemptions');
+  if (!Number.isFinite(v.county) || v.county < 0 || v.county > 4) throw new Error('Enter a county income tax rate from 0 to 4 percent');
+  const countyPoints = Math.round(v.county * 10000);
+  const agi = Math.max(0, salary - deferral);
+  const exemptionCents = Math.min(exemptions * IN_EXEMPTION_CENTS, agi);
+  const indianaBase = Math.max(0, agi - exemptionCents);
+  const stateTax = Math.round(indianaBase * IN_RATE_BASIS_POINTS / 10000);
+  const countyTax = Math.round(indianaBase * countyPoints / 1_000_000);
+  const federalTaxable = Math.max(0, agi - US_STANDARD_DEDUCTION[status]);
+  const federal = bracketTaxCents(federalTaxable, status === 1 ? US_SINGLE_BRACKETS : US_JOINT_BRACKETS);
+  const socialSecurity = Math.round(Math.min(salary, US_SS_WAGE_BASE_CENTS) * 620 / 10000);
+  const medicare = Math.round(salary * 145 / 10000);
+  const additionalMedicare = Math.round(Math.max(0, salary - US_ADDL_MEDICARE_CENTS) * 90 / 10000);
+  const takeHome = salary - federal - socialSecurity - medicare - additionalMedicare - stateTax - countyTax - deferral;
+  const details = [
+    `Federal income tax: ${usdCents(federal)}`,
+    `Social Security: ${usdCents(socialSecurity)}`,
+    `Medicare: ${usdCents(medicare)}`,
+    `Additional Medicare Tax: ${usdCents(additionalMedicare)}`,
+    `Indiana income tax: ${usdCents(stateTax)}`,
+    `Indiana county income tax: ${usdCents(countyTax)}`,
+    `Indiana taxable income: ${usdCents(indianaBase)}`,
+    `Indiana exemptions applied: ${usdCents(exemptionCents)}`,
+    `401(k) deferred: ${usdCents(deferral)}`,
+    `Annual take-home: ${usdCents(takeHome)}`,
+    status === 1
+      ? 'Filing status: single. Indiana tax is 2.95% of wages after the 401(k) and after $1,000 for each exemption. The federal standard deduction is not an Indiana deduction.'
+      : 'Filing status: married filing jointly, with this salary as the only wage on the return. Indiana tax is 2.95% of wages after the 401(k) and after $1,000 for each exemption. A joint return often claims two personal exemptions. This page uses the count you typed.',
+    `County rate used: ${rateText(v.county)}% of the same Indiana taxable income. Departmental Notice #1 is the withholding chart, and county rates can change in January and October. This page does not look up a county.`,
+    'The 2.95% state rate is the 2026 individual adjusted gross income tax rate on the Indiana Department of Revenue rate page. It is scheduled to be 2.90% in 2027, and that later rate is not used. Add-backs, renter and homeowner deductions, and the earned income credit are not applied.'
+  ];
+  if (requestedDeferral > deferral) {
+    details.push(`401(k) entered above the 2026 elective deferral limit or above wages was reduced to ${usdCents(deferral)}`);
+  }
+  return {
+    headline: `${usdCents(Math.round(takeHome / periods))} ${PAY_PERIOD_LABEL[periods]}`,
+    details
+  };
+}
+
+// 2026 Maryland. Brackets are the Comptroller’s 2026 estimated-tax schedules.
+// Standard deduction: Tax-General §10-217 starts at $3,350 single and $6,700
+// joint, then increases that base for a taxable year beginning after
+// 31 December 2025 by the IRC §1(f)(3) cost-of-living adjustment with
+// calendar year 2024 substituted for 2016. The increase is rounded down to
+// a multiple of $50. Using CPI-U for the 12 months ending 31 August 2024
+// (310.955) and 31 August 2025 (319.205), the adjustment is 2.653%, the
+// single increase rounds down to $50, and the joint increase rounds down to
+// $150. This page therefore uses $3,400 and $6,850. The Comptroller’s 2026
+// estimated-tax worksheet still prints $3,350 and $6,700. The 2026
+// withholding percentage method prints $3,400. Personal exemptions and the
+// phaseout are §10-211 and the 2026 worksheet chart. Local tax is a rate the
+// visitor types, applied to Maryland taxable net income.
+const MD_SINGLE_BRACKETS = [
+  [100_000, 200],
+  [200_000, 300],
+  [300_000, 400],
+  [10_000_000, 475],
+  [12_500_000, 500],
+  [15_000_000, 525],
+  [25_000_000, 550],
+  [50_000_000, 575],
+  [100_000_000, 625],
+  [Number.POSITIVE_INFINITY, 650]
+];
+const MD_JOINT_BRACKETS = [
+  [100_000, 200],
+  [200_000, 300],
+  [300_000, 400],
+  [15_000_000, 475],
+  [17_500_000, 500],
+  [22_500_000, 525],
+  [30_000_000, 550],
+  [60_000_000, 575],
+  [120_000_000, 625],
+  [Number.POSITIVE_INFINITY, 650]
+];
+const MD_STANDARD_DEDUCTION = { 1: 340_000, 2: 685_000 };
+
+function marylandExemptionEachCents(agiCents, status) {
+  if (status === 1) {
+    if (agiCents <= 10_000_000) return 320_000;
+    if (agiCents <= 12_500_000) return 160_000;
+    if (agiCents <= 15_000_000) return 80_000;
+    return 0;
+  }
+  if (agiCents <= 15_000_000) return 320_000;
+  if (agiCents <= 17_500_000) return 160_000;
+  if (agiCents <= 20_000_000) return 80_000;
+  return 0;
+}
+
+function marylandPaycheck(v) {
+  const status = filingStatusCode(v.status);
+  const periods = payPeriodCount(v.periods);
+  const salary = nonNegativeCents(v.salary, 'salary');
+  const requestedDeferral = nonNegativeCents(v.deferral, '401(k) deferral');
+  const deferral = Math.min(requestedDeferral, salary, US_401K_DEFERRAL_CENTS);
+  const exemptions = wholeCount(v.exemptions, 'Maryland exemptions');
+  if (!Number.isFinite(v.local) || v.local < 0 || v.local > 3.3) throw new Error('Enter a local income tax rate from 0 to 3.3 percent');
+  const localPoints = Math.round(v.local * 100);
+  const agi = Math.max(0, salary - deferral);
+  const standard = Math.min(MD_STANDARD_DEDUCTION[status], agi);
+  const each = marylandExemptionEachCents(agi, status);
+  const exemptionCents = Math.min(exemptions * each, Math.max(0, agi - standard));
+  const marylandBase = Math.max(0, agi - standard - exemptionCents);
+  const stateTax = bracketTaxCents(marylandBase, status === 1 ? MD_SINGLE_BRACKETS : MD_JOINT_BRACKETS);
+  const localTax = Math.round(marylandBase * localPoints / 10000);
+  const federalTaxable = Math.max(0, agi - US_STANDARD_DEDUCTION[status]);
+  const federal = bracketTaxCents(federalTaxable, status === 1 ? US_SINGLE_BRACKETS : US_JOINT_BRACKETS);
+  const socialSecurity = Math.round(Math.min(salary, US_SS_WAGE_BASE_CENTS) * 620 / 10000);
+  const medicare = Math.round(salary * 145 / 10000);
+  const additionalMedicare = Math.round(Math.max(0, salary - US_ADDL_MEDICARE_CENTS) * 90 / 10000);
+  const takeHome = salary - federal - socialSecurity - medicare - additionalMedicare - stateTax - localTax - deferral;
+  const details = [
+    `Federal income tax: ${usdCents(federal)}`,
+    `Social Security: ${usdCents(socialSecurity)}`,
+    `Medicare: ${usdCents(medicare)}`,
+    `Additional Medicare Tax: ${usdCents(additionalMedicare)}`,
+    `Maryland state income tax: ${usdCents(stateTax)}`,
+    `Maryland local income tax: ${usdCents(localTax)}`,
+    `Maryland taxable net income: ${usdCents(marylandBase)}`,
+    `Maryland standard deduction applied: ${usdCents(standard)}`,
+    `Maryland exemption amount applied: ${usdCents(exemptionCents)}`,
+    `Each Maryland exemption at this income: ${usdCents(each)}`,
+    `401(k) deferred: ${usdCents(deferral)}`,
+    `Annual take-home: ${usdCents(takeHome)}`,
+    status === 1
+      ? 'Filing status: single. The indexed 2026 standard deduction used here is $3,400. A single filer’s $3,200 exemption falls to $1,600 above $100,000 of this wage, to $800 above $125,000, and to $0 above $150,000.'
+      : 'Filing status: married filing jointly, with this salary as the only wage on the return. The indexed 2026 standard deduction used here is $6,850. Each joint exemption stays $3,200 through $150,000 of this wage, then $1,600 through $175,000, $800 through $200,000, and $0 above that. The deduction belongs to the return, not to each spouse.',
+    `Local rate used: ${rateText(v.local)}% of Maryland taxable net income. Most counties are a flat rate. Anne Arundel County and Frederick County use income brackets instead of one rate, so a single percent is not their statute. The nonresident special rate is not applied.`,
+    'State brackets follow the Comptroller’s 2026 schedules: single 2% to $1,000, 3% to $2,000, 4% to $3,000, 4.75% to $100,000, then 5%, 5.25%, 5.5%, 5.75%, 6.25%, and 6.5% above $1,000,000. Joint 4.75% runs through $150,000, and 6.5% starts above $1,200,000. The extra 2% on some net capital gain, itemized deductions, the earned income credit, and the extra $1,000 age or blindness exemption are not applied. The Comptroller’s 2026 estimated-tax worksheet still prints a $3,350 and $6,700 standard deduction; this page uses the indexed amounts instead.'
+  ];
+  if (requestedDeferral > deferral) {
+    details.push(`401(k) entered above the 2026 elective deferral limit or above wages was reduced to ${usdCents(deferral)}`);
+  }
+  return {
+    headline: `${usdCents(Math.round(takeHome / periods))} ${PAY_PERIOD_LABEL[periods]}`,
+    details
+  };
+}
+
+// 2026 Nunavut, CRA T4032-NU and the Canada.ca 2026 territorial rate table.
+// Indexing factor 2.0%. Basic personal amount $19,659. Credit at the 4%
+// lowest rate. The cost of living credit is not applied.
+const NU_BRACKETS = [
+  [5_580_100, 400],
+  [11_160_200, 700],
+  [18_143_900, 900],
+  [Number.POSITIVE_INFINITY, 1150]
+];
+const NU_BASIC_PERSONAL_CENTS = 1_965_900;
+
+function nunavutTakeHome(v) {
+  const salary = nonNegativeCents(v.salary, 'salary');
+  const payroll = canadaEmployeePayroll(salary);
+  const nunavutCredit = Math.round((NU_BASIC_PERSONAL_CENTS + payroll.cppBase + payroll.ei) * 400 / 10000);
+  const nunavutTax = Math.max(0, bracketTaxCents(payroll.taxable, NU_BRACKETS) - nunavutCredit);
+  const takeHome = salary - payroll.cpp - payroll.cpp2 - payroll.ei - payroll.federalTax - nunavutTax;
+  return {
+    headline: `${cadCents(Math.round(takeHome / 12))} / month`,
+    details: [
+      `Federal income tax: ${cadCents(payroll.federalTax)}`,
+      `Nunavut income tax: ${cadCents(nunavutTax)}`,
+      `Employee CPP, including CPP2: ${cadCents(payroll.cpp + payroll.cpp2)}`,
+      `Employee EI: ${cadCents(payroll.ei)}`,
+      `Annual take-home: ${cadCents(takeHome)}`,
+      `Every two weeks: ${cadCents(Math.round(takeHome / 26))}`,
+      `Federal basic personal amount applied: ${cadCents(payroll.basicPersonal)}`,
+      `Nunavut basic personal amount applied: ${cadCents(NU_BASIC_PERSONAL_CENTS)}`,
+      `Nunavut credit at 4% for the basic amount, CPP base, and EI: ${cadCents(nunavutCredit)}`,
+      'Nunavut rates used for 2026: 4% to $55,801, 7% to $111,602, 9% to $181,439, and 11.5% above that. The basic personal amount is $19,659. Federal tax, the basic personal amount phase-out, CPP, CPP2, and EI outside Quebec come from the same payroll helper as the other territories. The Nunavut cost of living tax credit is not applied. Quebec QPP and QPIP are not used.'
+    ]
+  };
+}
+
+function northernIrelandTakeHome(v) {
+  if (!Number.isFinite(v.salary) || v.salary < 0) throw new Error('Enter a salary of zero or more');
+  const loan = Number(v.loan);
+  if (loan !== 0 && loan !== 1) throw new Error('Choose whether to subtract a Plan 1 student loan');
+  const salaryPence = Math.round(v.salary * 100);
+  const allowance = ukPersonalAllowancePence(salaryPence);
+  const tax = ukIncomeTaxPence(Math.max(salaryPence - allowance, 0));
+  const ni = ukEmployeeNiPence(salaryPence);
+  const plan1 = loan === 1 ? loanDeductionPence(salaryPence, STUDENT_PLANS[1].annual, STUDENT_PLANS[1].rate) : 0;
+  const takeHome = salaryPence - tax - ni - plan1;
+  return {
+    headline: `${gbp(Math.round(takeHome / 12))} / month`,
+    details: [
+      `Income tax: ${gbp(tax)}`,
+      `Employee National Insurance: ${gbp(ni)}`,
+      loan === 1
+        ? `Plan 1 student loan: ${gbp(plan1)}`
+        : 'Plan 1 student loan: £0.00',
+      `Annual take-home: ${gbp(takeHome)}`,
+      `Weekly take-home: ${gbp(Math.round(takeHome / 52))}`,
+      `Personal allowance applied: ${gbp(allowance)}`,
+      'Income tax uses the 2026/27 rest-of-UK bands: 20% on the first £37,700 of taxable income, 40% to £125,140, and 45% above that. The personal allowance is £12,570 and tapers by £1 for every £2 over £100,000. These are the same bands as England and Wales. Scottish bands are not used.',
+      'Employee National Insurance is 8% between the £12,570 primary threshold and the £50,270 upper earnings limit, then 2%. It is not a devolved Northern Ireland rate.',
+      loan === 1
+        ? 'Plan 1 is the undergraduate loan for Northern Ireland. The deduction is 9% of earnings above £26,900, rounded down to the pound, on the annual threshold. Employer withholding uses the weekly or monthly Plan 1 threshold and can differ by a few pounds. Plan 2, Plan 4, Plan 5, and a postgraduate loan are not subtracted.'
+        : 'No Plan 1 deduction was subtracted. With that choice, income tax and employee National Insurance match the England, Wales, and Northern Ireland take-home page. A postgraduate loan is still not subtracted.'
+    ]
+  };
+}
+
+function fenceSectionCount(lengthFeet, spacingFeet) {
+  const ratio = lengthFeet / spacingFeet;
+  if (Math.abs(ratio - Math.round(ratio)) < 1e-8) return Math.round(ratio);
+  return Math.ceil(ratio - 1e-9);
+}
+
+function fenceResult(v) {
+  const shape = Number(v.shape);
+  if (shape !== 1 && shape !== 2) throw new Error('Choose a closed rectangle or a straight run');
+  if (!Number.isFinite(v.length) || v.length <= 0 || v.length > 10000) throw new Error('Enter a length above zero and at most 10,000 feet');
+  if (shape === 1 && (!Number.isFinite(v.width) || v.width <= 0 || v.width > 10000)) throw new Error('Enter a width above zero and at most 10,000 feet');
+  if (!Number.isFinite(v.spacing) || v.spacing < 2 || v.spacing > 20) throw new Error('Enter post spacing from 2 to 20 feet');
+  const railsEach = Number(v.rails);
+  if (railsEach !== 2 && railsEach !== 3) throw new Error('Choose 2 or 3 rails');
+  if (!Number.isFinite(v.picket) || v.picket < 0 || v.picket > 12) throw new Error('Enter a picket width from 0 to 12 inches');
+  if (!Number.isFinite(v.gap) || v.gap < 0 || v.gap > 6) throw new Error('Enter a gap from 0 to 6 inches');
+  if (v.picket > 0 && v.picket + v.gap <= 0) throw new Error('Enter a picket width above zero');
+  if (!Number.isFinite(v.gate) || v.gate < 0) throw new Error('Enter a gate width of zero or more');
+  const width = shape === 1 ? v.width : 0;
+  const sections = shape === 1
+    ? fenceSectionCount(v.length, v.spacing) * 2 + fenceSectionCount(width, v.spacing) * 2
+    : fenceSectionCount(v.length, v.spacing);
+  const posts = shape === 1 ? sections : sections + 1;
+  const linear = shape === 1 ? 2 * (v.length + width) : v.length;
+  if (v.gate > linear) throw new Error('The gate is wider than the fence');
+  const rails = sections * railsEach;
+  const picketRun = linear - v.gate;
+  let pickets = 0;
+  if (v.picket > 0 && picketRun > 0) {
+    const runInches = picketRun * 12;
+    pickets = Math.ceil((runInches + v.gap) / (v.picket + v.gap) - 1e-9);
+  }
+  const shortSide = shape === 1 && (
+    Math.abs(v.length / v.spacing - Math.round(v.length / v.spacing)) >= 1e-8
+    || Math.abs(width / v.spacing - Math.round(width / v.spacing)) >= 1e-8
+  );
+  const straightShort = shape === 2 && Math.abs(v.length / v.spacing - Math.round(v.length / v.spacing)) >= 1e-8;
+  return {
+    headline: `${number(posts, 0)} posts`,
+    details: [
+      `Linear feet: ${number(linear, 2)}`,
+      `Sections: ${number(sections, 0)}`,
+      `Posts: ${number(posts, 0)}`,
+      `Rail pieces, ${railsEach} per section: ${number(rails, 0)}`,
+      v.picket === 0
+        ? 'Pickets: 0. A picket width of 0 is a rail fence, so the gap is not used.'
+        : `Pickets: ${number(pickets, 0)}, on ${number(picketRun, 2)} feet after the gate.`,
+      `Post spacing: ${number(v.spacing, 2)} feet. Gate width removed from the picket run only: ${number(v.gate, 2)} feet.`,
+      shape === 1
+        ? 'Closed rectangle: each side is divided by the spacing, and a remainder becomes one shorter end section on that side. Posts equal the section count because the last post of each side is the first post of the next side.'
+        : 'Straight run: posts equal the section count plus one, so both ends have a post.',
+      shortSide || straightShort
+        ? 'At least one side does not divide evenly by the spacing, so the last section on that side is shorter than the spacing. Rail pieces are still counted one per section. They are not all full spacing-length boards.'
+        : 'Every side divides evenly by the spacing, so every section is the full spacing.',
+      'Pickets are estimated along the whole run: the count is the smallest number of boards whose widths plus the gaps between them cover the run after the gate. Post thickness is not removed, and a gate still needs its own posts, which are already inside the post count only if they fall on the spacing. Concrete, hinges, and a gate kit are not counted.'
+    ]
+  };
 }

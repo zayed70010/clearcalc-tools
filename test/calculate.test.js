@@ -1644,3 +1644,238 @@ test('tip split reports the cent gap and rejects a fractional party', () => {
   assert.throws(() => calculate('tip-calculator', { bill: 85, tip: 18, people: 1.5 }), /people/);
   assert.throws(() => calculate('tip-calculator', { bill: -1, tip: 18, people: 1 }), /bill/);
 });
+
+test('BMI rejects a zero height, splits obesity classes, and converts pounds exactly', () => {
+  const metric = calculate('bmi-calculator', { weight: 75, height: 175 });
+  assert.equal(metric.headline, 'BMI 24.5');
+  assert.equal(metric.details[0], 'Category: Healthy range');
+  assert.equal(metric.details[1], 'Unrounded BMI: 24.4898');
+  assert.match(metric.details[3], /56\.7 kg to just under 76\.6 kg/);
+  const heavy = calculate('bmi-calculator', { weight: 120, height: 175 });
+  assert.equal(heavy.headline, 'BMI 39.2');
+  assert.equal(heavy.details[0], 'Category: Obesity class II');
+  const severe = calculate('bmi-calculator', { weight: 140, height: 175 });
+  assert.equal(severe.details[0], 'Category: Obesity class III');
+  const imperial = calculate('bmi-calculator', { units: 2, weight: 165, height: 69 });
+  assert.equal(imperial.headline, 'BMI 24.4');
+  assert.equal(imperial.details[1], 'Unrounded BMI: 24.366');
+  assert.match(imperial.details[2], /74\.84 kg and 175\.26 cm/);
+  const devine = calculate('bmi-calculator', { weight: 70.5, height: 175 });
+  assert.equal(devine.headline, 'BMI 23');
+  assert.equal(devine.details[0], 'Category: Healthy range');
+  assert.throws(() => calculate('bmi-calculator', { weight: 75, height: 0 }), /height/);
+  assert.throws(() => calculate('bmi-calculator', { weight: -1, height: 175 }), /weight/);
+});
+
+test('compound interest keeps monthly end-of-month values and prices a beginning deposit', () => {
+  const end = calculate('compound-interest-calculator', { principal: 10000, monthly: 250, rate: 7, years: 10 });
+  assert.equal(end.headline, '$63,367.82');
+  assert.equal(end.details[0], 'Total contributions: $40,000.00');
+  assert.equal(end.details[1], 'Estimated growth: $23,367.82');
+  assert.equal(end.details[2], 'Future value of the starting balance: $20,096.61');
+  assert.equal(end.details[3], 'Future value of the deposits: $43,271.20');
+  assert.equal(end.details[4], 'Effective annual rate from monthly compounding: 7.23%');
+  assert.match(end.details[6], /end of each month/);
+  const begin = calculate('compound-interest-calculator', { principal: 10000, monthly: 250, rate: 7, years: 10, timing: 1 });
+  assert.equal(begin.headline, '$63,620.23');
+  assert.equal(begin.details[3], 'Future value of the deposits: $43,523.62');
+  const simpleGap = calculate('compound-interest-calculator', { principal: 10000, monthly: 0, rate: 5, years: 3 });
+  assert.equal(simpleGap.headline, '$11,614.72');
+  assert.equal(simpleGap.details[4], 'Effective annual rate from monthly compounding: 5.12%');
+  const zero = calculate('compound-interest-calculator', { principal: 10000, monthly: 250, rate: 0, years: 10, timing: 1 });
+  assert.equal(zero.headline, '$40,000.00');
+  assert.equal(zero.details[1], 'Estimated growth: $0.00');
+  assert.throws(() => calculate('compound-interest-calculator', { principal: -1, monthly: 0, rate: 7, years: 10 }), /initial investment/);
+  assert.throws(() => calculate('compound-interest-calculator', { principal: 1, monthly: 0, rate: 7, years: 101 }), /100 years/);
+});
+
+test('inflation uses CPI-U annual averages and a separate constant rate', () => {
+  const span = calculate('inflation-calculator', { mode: 1, amount: 100, startyear: 2016, endyear: 2025, rate: 3, years: 10 });
+  assert.equal(span.headline, '$134.14');
+  assert.match(span.details[1], /34\.14%/);
+  assert.match(span.details[2], /240\.007/);
+  const back = calculate('inflation-calculator', { mode: 1, amount: 100, startyear: 2025, endyear: 2016 });
+  assert.equal(back.headline, '$74.55');
+  const early = calculate('inflation-calculator', { mode: 1, amount: 2500, startyear: 2000, endyear: 2025 });
+  assert.equal(early.headline, '$4,673.97');
+  const same = calculate('inflation-calculator', { mode: 1, amount: 80, startyear: 2019, endyear: 2019 });
+  assert.equal(same.headline, '$80.00');
+  const forward = calculate('inflation-calculator', { mode: 2, amount: 100, startyear: 2016, endyear: 2025, rate: 3, years: 10 });
+  assert.equal(forward.headline, '$134.39');
+  assert.match(forward.details[1], /\$74\.41/);
+  const flat = calculate('inflation-calculator', { mode: 2, amount: 100, rate: 0, years: 10 });
+  assert.equal(flat.headline, '$100.00');
+  assert.throws(() => calculate('inflation-calculator', { mode: 1, amount: 100, startyear: 2026, endyear: 2025 }), /1990 through 2025/);
+  assert.throws(() => calculate('inflation-calculator', { mode: 2, amount: 100, rate: -100, years: 10 }), /inflation rate/);
+});
+
+test('Navy body-fat equations use inches and reject a waist that is not larger than the neck', () => {
+  const man = calculate('body-fat-calculator', { sex: 1, units: 1, height: 70, neck: 15, waist: 34, hip: 40, weight: 180 });
+  assert.equal(man.headline, '17.51% body fat');
+  assert.equal(man.details[0], 'Unrounded body fat: 17.5131%');
+  assert.equal(man.details[1], 'Fat mass: 31.52 lb');
+  assert.equal(man.details[2], 'Lean mass: 148.48 lb');
+  assert.match(man.details[6], /hip entry is ignored/);
+  const woman = calculate('body-fat-calculator', { sex: 2, units: 1, height: 64, neck: 13, waist: 28, hip: 38, weight: 140 });
+  assert.equal(woman.headline, '26.59% body fat');
+  assert.equal(woman.details[1], 'Fat mass: 37.22 lb');
+  assert.equal(woman.details[2], 'Lean mass: 102.78 lb');
+  const metric = calculate('body-fat-calculator', { sex: 1, units: 2, height: 175, neck: 38, waist: 86, hip: 90, weight: 75 });
+  assert.equal(metric.headline, '17.79% body fat');
+  assert.equal(metric.details[1], 'Fat mass: 13.35 kg');
+  assert.throws(() => calculate('body-fat-calculator', { sex: 1, units: 1, height: 70, neck: 15, waist: 15, weight: 180 }), /Waist must be larger/);
+  assert.throws(() => calculate('body-fat-calculator', { sex: 2, units: 1, height: 64, neck: 13, waist: 28, hip: 0, weight: 140 }), /hip/);
+});
+
+test('ovulation subtracts the luteal phase and keeps a five-day window', () => {
+  const sample = calculate('ovulation-calculator', { lmpdate: '2026-01-01', cycle: 28, luteal: 14 });
+  assert.equal(sample.headline, 'Ovulation 15 January 2026');
+  assert.equal(sample.details[1], 'Fertile window: 10 January 2026 through 15 January 2026');
+  assert.equal(sample.details[2], 'Next period if this cycle stays 28 days: 29 January 2026');
+  assert.match(sample.details[6], /conception day/);
+  const longer = calculate('ovulation-calculator', { lmpdate: '2026-01-01', cycle: 35, luteal: 14 });
+  assert.equal(longer.headline, 'Ovulation 22 January 2026');
+  const shifted = calculate('ovulation-calculator', { lmpdate: '2026-01-01', cycle: 26, luteal: 12 });
+  assert.equal(shifted.headline, 'Ovulation 15 January 2026');
+  assert.equal(shifted.details[2], 'Next period if this cycle stays 26 days: 27 January 2026');
+  assert.match(shifted.details[6], /not the conception day/);
+  const edge = calculate('ovulation-calculator', { lmpdate: '2026-01-01', cycle: 21, luteal: 16 });
+  assert.equal(edge.headline, 'Ovulation 6 January 2026');
+  assert.throws(() => calculate('ovulation-calculator', { lmpdate: '2026-01-01', cycle: 21, luteal: 21 }), /luteal phase/);
+  assert.throws(() => calculate('ovulation-calculator', { lmpdate: '2026-02-31', cycle: 28, luteal: 14 }), /real/);
+});
+
+test('sleep cycles cross midnight and the headline is the five-cycle result', () => {
+  const wake = calculate('sleep-calculator', { mode: 1, hour: 6, minute: 30, fallasleep: 15, cycle: 90 });
+  assert.equal(wake.headline, '5 cycles: 22:45, the evening before');
+  assert.equal(wake.details[1], '6 cycles (9 hours asleep): 21:15, the evening before');
+  assert.equal(wake.details[2], '5 cycles (7.5 hours asleep): 22:45, the evening before');
+  assert.equal(wake.details[3], '4 cycles (6 hours asleep): 00:15, the same day');
+  assert.equal(wake.details[4], '3 cycles (4.5 hours asleep): 01:45, the same day');
+  const bed = calculate('sleep-calculator', { mode: 2, hour: 23, minute: 0, fallasleep: 15, cycle: 90 });
+  assert.equal(bed.headline, '5 cycles: 06:45, the next morning');
+  assert.equal(bed.details[1], '6 cycles (9 hours asleep): 08:15, the next morning');
+  const exact = calculate('sleep-calculator', { mode: 1, hour: 7, minute: 0, fallasleep: 0, cycle: 90 });
+  assert.equal(exact.headline, '5 cycles: 23:30, the evening before');
+  assert.throws(() => calculate('sleep-calculator', { mode: 1, hour: 24, minute: 0, fallasleep: 15, cycle: 90 }), /hour/);
+  assert.throws(() => calculate('sleep-calculator', { mode: 1, hour: 6, minute: 30, fallasleep: 15, cycle: 59 }), /cycle length/);
+});
+
+test('2026 Tennessee wages match federal tax with a zero state line', () => {
+  const sample = calculate('tennessee-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0 });
+  assert.equal(sample.headline, '$2,092.60 / two weeks');
+  assert.equal(sample.details[0], 'Federal income tax: $5,620.00');
+  assert.equal(sample.details[4], 'Tennessee income tax: $0.00');
+  assert.equal(sample.details[6], 'Annual take-home: $54,407.50');
+  assert.match(sample.details.at(-2), /Hall income tax/);
+  const texas = calculate('texas-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0 });
+  assert.equal(texas.details[0], sample.details[0]);
+  assert.equal(texas.details[1], sample.details[1]);
+  assert.equal(texas.headline, '$2,092.60 / two weeks');
+  const deferred = calculate('tennessee-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 6500 });
+  assert.equal(deferred.details[0], 'Federal income tax: $4,840.00');
+  assert.equal(deferred.details[4], 'Tennessee income tax: $0.00');
+  assert.throws(() => calculate('tennessee-paycheck-calculator', { salary: -1, status: 1, periods: 26, deferral: 0 }), /salary/);
+});
+
+test('2026 Indiana paycheck applies 2.95% and the county rate to the same base', () => {
+  const sample = calculate('indiana-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0, exemptions: 1, county: 2.02 });
+  assert.equal(sample.headline, '$1,970.26 / two weeks');
+  assert.equal(sample.details[4], 'Indiana income tax: $1,888.00');
+  assert.equal(sample.details[5], 'Indiana county income tax: $1,292.80');
+  assert.equal(sample.details[6], 'Indiana taxable income: $64,000.00');
+  const noCounty = calculate('indiana-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0, exemptions: 1, county: 0 });
+  assert.equal(noCounty.headline, '$2,019.98 / two weeks');
+  assert.equal(noCounty.details[5], 'Indiana county income tax: $0.00');
+  const deferred = calculate('indiana-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 6500, exemptions: 1, county: 2.02 });
+  assert.equal(deferred.details[4], 'Indiana income tax: $1,696.25');
+  assert.equal(deferred.details[5], 'Indiana county income tax: $1,161.50');
+  const fine = calculate('indiana-paycheck-calculator', { salary: 64000, status: 1, periods: 12, deferral: 0, exemptions: 0, county: 2.5234 });
+  assert.equal(fine.details[6], 'Indiana taxable income: $64,000.00');
+  assert.equal(fine.details[5], 'Indiana county income tax: $1,614.98');
+  assert.throws(() => calculate('indiana-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0, exemptions: 1, county: 4.1 }), /county/);
+});
+
+test('2026 Maryland paycheck uses indexed deductions and the local rate on taxable income', () => {
+  const sample = calculate('maryland-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0, exemptions: 1, local: 3.2 });
+  assert.equal(sample.headline, '$1,916.05 / two weeks');
+  assert.equal(sample.details[4], 'Maryland state income tax: $2,721.50');
+  assert.equal(sample.details[5], 'Maryland local income tax: $1,868.80');
+  assert.equal(sample.details[6], 'Maryland taxable net income: $58,400.00');
+  assert.equal(sample.details[7], 'Maryland standard deduction applied: $3,400.00');
+  const worcester = calculate('maryland-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0, exemptions: 1, local: 2.25 });
+  assert.equal(worcester.headline, '$1,937.38 / two weeks');
+  assert.equal(worcester.details[5], 'Maryland local income tax: $1,314.00');
+  const joint = calculate('maryland-paycheck-calculator', { salary: 65000, status: 2, periods: 26, deferral: 0, exemptions: 2, local: 3.2 });
+  assert.equal(joint.details[7], 'Maryland standard deduction applied: $6,850.00');
+  assert.equal(joint.details[4], 'Maryland state income tax: $2,405.63');
+  const phased = calculate('maryland-paycheck-calculator', { salary: 160000, status: 1, periods: 26, deferral: 0, exemptions: 1, local: 3.2 });
+  assert.equal(phased.details[8], 'Maryland exemption amount applied: $0.00');
+  assert.equal(phased.details[4], 'Maryland state income tax: $7,623.00');
+  assert.throws(() => calculate('maryland-paycheck-calculator', { salary: 65000, status: 1, periods: 26, deferral: 0, exemptions: 1, local: 3.31 }), /local/);
+});
+
+test('2026 Nunavut take-home pay uses the 4% credit and shared CPP and EI', () => {
+  const sample = calculate('nunavut-take-home-pay-calculator', { salary: 70000 });
+  assert.equal(sample.headline, '$4,618.79 / month');
+  assert.equal(sample.details[0], 'Federal income tax: $7,278.19');
+  assert.equal(sample.details[1], 'Nunavut income tax: $2,216.47');
+  assert.equal(sample.details[2], 'Employee CPP, including CPP2: $3,956.75');
+  assert.equal(sample.details[3], 'Employee EI: $1,123.07');
+  assert.equal(sample.details[7], 'Nunavut basic personal amount applied: $19,659.00');
+  const low = calculate('nunavut-take-home-pay-calculator', { salary: 40000 });
+  assert.equal(low.headline, '$2,815.36 / month');
+  assert.equal(low.details[1], 'Nunavut income tax: $700.69');
+  const high = calculate('nunavut-take-home-pay-calculator', { salary: 120000 });
+  assert.equal(high.headline, '$7,575.66 / month');
+  assert.equal(high.details[2], 'Employee CPP, including CPP2: $4,646.45');
+  const nwt = calculate('northwest-territories-take-home-pay-calculator', { salary: 70000 });
+  assert.equal(nwt.details[0], sample.details[0]);
+  assert.equal(nwt.details[2], sample.details[2]);
+  assert.notEqual(nwt.details[1], sample.details[1]);
+  assert.throws(() => calculate('nunavut-take-home-pay-calculator', { salary: -1 }), /salary/);
+});
+
+test('Northern Ireland uses rest-of-UK tax and an optional Plan 1 loan', () => {
+  const plain = calculate('northern-ireland-take-home-pay-calculator', { salary: 35000, loan: 0 });
+  assert.equal(plain.headline, '£2,393.30 / month');
+  assert.equal(plain.details[0], 'Income tax: £4,486.00');
+  assert.equal(plain.details[1], 'Employee National Insurance: £1,794.40');
+  assert.equal(plain.details[2], 'Plan 1 student loan: £0.00');
+  const england = calculate('uk-take-home-pay-calculator', { salary: 35000 });
+  assert.equal(england.details[0], plain.details[0]);
+  assert.equal(england.details[1], plain.details[1]);
+  assert.equal(england.headline, plain.headline);
+  const plan1 = calculate('northern-ireland-take-home-pay-calculator', { salary: 35000, loan: 1 });
+  assert.equal(plan1.headline, '£2,332.55 / month');
+  assert.equal(plan1.details[2], 'Plan 1 student loan: £729.00');
+  assert.equal(plan1.details[3], 'Annual take-home: £27,990.60');
+  const under = calculate('northern-ireland-take-home-pay-calculator', { salary: 20000, loan: 1 });
+  assert.equal(under.details[2], 'Plan 1 student loan: £0.00');
+  assert.equal(under.headline, '£1,493.30 / month');
+  const higher = calculate('northern-ireland-take-home-pay-calculator', { salary: 60000, loan: 1 });
+  assert.equal(higher.details[0], 'Income tax: £11,432.00');
+  assert.equal(higher.details[2], 'Plan 1 student loan: £2,979.00');
+  assert.throws(() => calculate('northern-ireland-take-home-pay-calculator', { salary: -1, loan: 0 }), /salary/);
+});
+
+test('fence posts are counted per side and pickets cover the run after the gate', () => {
+  const yard = calculate('fence-calculator', { shape: 1, length: 40, width: 20, spacing: 8, rails: 2, picket: 5.5, gap: 0.5, gate: 0 });
+  assert.equal(yard.headline, '16 posts');
+  assert.equal(yard.details[0], 'Linear feet: 120');
+  assert.equal(yard.details[1], 'Sections: 16');
+  assert.equal(yard.details[3], 'Rail pieces, 2 per section: 32');
+  assert.match(yard.details[4], /241/);
+  const straight = calculate('fence-calculator', { shape: 2, length: 40, width: 20, spacing: 8, rails: 3, picket: 0, gap: 0.5, gate: 4 });
+  assert.equal(straight.headline, '6 posts');
+  assert.equal(straight.details[3], 'Rail pieces, 3 per section: 15');
+  assert.match(straight.details[4], /Pickets: 0/);
+  const gated = calculate('fence-calculator', { shape: 1, length: 50, width: 30, spacing: 8, rails: 2, picket: 6, gap: 0, gate: 4 });
+  assert.equal(gated.headline, '22 posts');
+  assert.match(gated.details[4], /312/);
+  const even = calculate('fence-calculator', { shape: 1, length: 32, width: 16, spacing: 8, rails: 2, picket: 8, gap: 0, gate: 0 });
+  assert.equal(even.headline, '12 posts');
+  assert.equal(even.details[0], 'Linear feet: 96');
+  assert.throws(() => calculate('fence-calculator', { shape: 1, length: 40, width: 20, spacing: 8, rails: 2, picket: 6, gap: 0, gate: 121 }), /wider than the fence/);
+  assert.throws(() => calculate('fence-calculator', { shape: 1, length: 40, width: 0, spacing: 8, rails: 2, picket: 0, gap: 0, gate: 0 }), /width/);
+});

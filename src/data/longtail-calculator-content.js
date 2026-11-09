@@ -102,7 +102,8 @@ export const longtailCalculatorContent = {
       { slug: 'texas-paycheck-calculator', label: 'Texas paycheck calculator for 2026', note: 'The same federal and FICA lines when the inputs match, with state income tax at $0.' },
       { slug: 'new-york-paycheck-calculator', label: 'New York paycheck calculator for 2026', note: 'At $65,000 single, New York State tax is $2,913.00 rather than this $3,072.71 Illinois tax.' },
       { slug: 'california-paycheck-calculator', label: 'California paycheck calculator for 2026', note: 'California brackets plus 1.3% State Disability Insurance, instead of a flat 4.95%.' },
-      { slug: '401k-contribution-calculator', label: '2026 401(k) contribution calculator', note: 'Check a deferral rate against the $24,500 limit before you type the dollar amount here.' }
+      { slug: '401k-contribution-calculator', label: '2026 401(k) contribution calculator', note: 'Check a deferral rate against the $24,500 limit before you type the dollar amount here.' },
+      { slug: 'indiana-paycheck-calculator', label: 'Indiana paycheck calculator for 2026', note: 'A flat 2.95% after a $1,000 exemption, plus a county rate you type. At $65,000 single with one exemption and 2.02% county tax, Indiana state tax is $1,888.00, county tax is $1,292.80, and the two-week headline is $1,970.26.' }
     ]
   },
   'manitoba-take-home-pay-calculator': {

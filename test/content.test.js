@@ -441,6 +441,59 @@ test('ten November 7 calculators are linked from the homepage and a related page
   );
 });
 
+test('ten November 9 calculators are linked from the homepage and a related page', () => {
+  const home = readFileSync('src/pages/index.astro', 'utf8');
+  const links = [
+    ['inflation-calculator', 'compound-interest-calculator'],
+    ['body-fat-calculator', 'bmi-calculator'],
+    ['ovulation-calculator', 'pregnancy-due-date-calculator'],
+    ['sleep-calculator', 'time-card-hours-calculator'],
+    ['tennessee-paycheck-calculator', 'texas-paycheck-calculator'],
+    ['indiana-paycheck-calculator', 'illinois-paycheck-calculator'],
+    ['maryland-paycheck-calculator', 'virginia-paycheck-calculator'],
+    ['nunavut-take-home-pay-calculator', 'northwest-territories-take-home-pay-calculator'],
+    ['northern-ireland-take-home-pay-calculator', 'uk-take-home-pay-calculator'],
+    ['fence-calculator', 'concrete-slab-calculator']
+  ];
+  for (const [slug, related] of links) {
+    assert.match(home, new RegExp(`calculators/${slug}/`));
+    assert.ok(calculatorContent[slug], slug);
+    assert.equal(
+      calculatorContent[related].relatedLinks.some((link) => link.slug === slug),
+      true,
+      related
+    );
+  }
+  assert.match(calculatorContent['inflation-calculator'].description, /\$134\.14/);
+  assert.match(calculatorContent['inflation-calculator'].table.rows[4][3], /\$134\.39/);
+  assert.match(calculatorContent['body-fat-calculator'].description, /17\.51%/);
+  assert.match(calculatorContent['body-fat-calculator'].table.rows[1][2], /26\.59%/);
+  assert.match(calculatorContent['ovulation-calculator'].description, /15 January 2026/);
+  assert.match(calculatorContent['ovulation-calculator'].table.rows[1][2], /22 January 2026/);
+  assert.match(calculatorContent['sleep-calculator'].description, /22:45/);
+  assert.match(calculatorContent['sleep-calculator'].table.rows[2][2], /00:15/);
+  assert.match(calculatorContent['tennessee-paycheck-calculator'].description, /\$2,092\.60/);
+  assert.match(calculatorContent['tennessee-paycheck-calculator'].table.rows[0][4], /\$0\.00/);
+  assert.match(calculatorContent['indiana-paycheck-calculator'].description, /2\.95%/);
+  assert.match(calculatorContent['indiana-paycheck-calculator'].table.rows[0][6], /\$1,970\.26/);
+  assert.match(calculatorContent['maryland-paycheck-calculator'].description, /\$3,400/);
+  assert.match(calculatorContent['maryland-paycheck-calculator'].table.rows[0][6], /\$1,916\.05/);
+  assert.match(calculatorContent['nunavut-take-home-pay-calculator'].description, /\$4,618\.79/);
+  assert.match(calculatorContent['nunavut-take-home-pay-calculator'].table.rows[1][5], /\$4,618\.79/);
+  assert.match(calculatorContent['northern-ireland-take-home-pay-calculator'].description, /£2,332\.55/);
+  assert.match(calculatorContent['northern-ireland-take-home-pay-calculator'].table.rows[0][5], /£2,393\.30/);
+  assert.match(calculatorContent['fence-calculator'].description, /16 posts/);
+  assert.match(calculatorContent['fence-calculator'].table.rows[2][3], /22/);
+  const bmi = calculatorContent['bmi-calculator'];
+  assert.match(bmi.description, /Obesity class II/);
+  assert.match(bmi.howItWorks[1], /0\.45359237/);
+  assert.equal(bmi.relatedLinks.some((link) => link.slug === 'body-fat-calculator'), true);
+  const compound = calculatorContent['compound-interest-calculator'];
+  assert.match(compound.howItWorks[3], /7\.23%/);
+  assert.match(compound.howItWorks[4], /\$63,620\.23/);
+  assert.equal(compound.relatedLinks.some((link) => link.slug === 'inflation-calculator'), true);
+});
+
 test('length converter slug matches the page title', () => {
   const length = calculators.find((item) => item.slug === 'length-converter');
   assert.equal(length.title, 'Length Converter');

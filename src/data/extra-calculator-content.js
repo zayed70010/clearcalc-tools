@@ -97,7 +97,8 @@ export const extraCalculatorContent = {
       { slug: 'washington-paycheck-calculator', label: 'Washington paycheck calculator for 2026', note: 'State income tax is also $0, then Paid Leave and WA Cares come off gross wages.' },
       { slug: 'florida-paycheck-calculator', label: 'Florida paycheck calculator for 2026', note: 'The same federal and FICA rules, with a Florida state income tax line of $0.' },
       { slug: 'california-paycheck-calculator', label: 'California paycheck calculator for 2026', note: 'Adds California income tax and 1.3% State Disability Insurance.' },
-      { slug: '401k-contribution-calculator', label: '2026 401(k) contribution calculator', note: 'Check a deferral rate against the $24,500 limit and an employer match before you type the dollar deferral here.' }
+      { slug: '401k-contribution-calculator', label: '2026 401(k) contribution calculator', note: 'Check a deferral rate against the $24,500 limit and an employer match before you type the dollar deferral here.' },
+      { slug: 'tennessee-paycheck-calculator', label: 'Tennessee paycheck calculator for 2026', note: 'The same $65,000 single wage is also $2,092.60 every two weeks, because Tennessee wage tax is $0.00. The Hall tax repeal is explained on that page, not this one.' }
     ]
   },
   'florida-paycheck-calculator': {
