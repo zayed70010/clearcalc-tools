@@ -1,4 +1,22 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 ---
-<Layout title="Contact | ClearCalc Tools" description="Contact ClearCalc Tools about a calculator error, a formula question, or an idea for a new tool. Feedback goes through the public GitHub issue tracker."><section class="legal"><h1>Contact ClearCalc</h1><p>Found a calculation issue or have an idea for a useful tool? A public contact address will be added when the site's custom domain is connected.</p><p class="notice">For now, calculator feedback can be submitted through the project's GitHub issue tracker.</p></section></Layout>
+<Layout
+  title="Contact ClearCalc Tools"
+  description="Email zayed70010@gmail.com about a calculator error, a new calculator idea, or a partnership. ClearCalc has no contact form and no account."
+>
+  <section class="legal">
+    <p class="eyebrow">Contact</p>
+    <h1>Contact ClearCalc</h1>
+    <p>Email is the way to reach me. Write to <a href="mailto:zayed70010@gmail.com">zayed70010@gmail.com</a>. I read messages sent to that address. There is no contact form on this site, and there is no account to sign in to.</p>
+    <h2>A calculator error</h2>
+    <p>Tell me the name of the calculator, the values you typed, the result you saw, and the result you expected. If a tax page is involved, include the jurisdiction and the tax year on the page. Those details are enough to check the formula. A screenshot is useful, but the numbers matter more.</p>
+    <h2>A calculator suggestion</h2>
+    <p>Describe the question you want answered, and say which country it is for. Ideas for tax, duty, or paycheck tools are most useful when they name the jurisdiction and the year the rates should follow.</p>
+    <h2>Partnerships</h2>
+    <p>If you are writing about a partnership or another business note, say who you are and what you have in mind. Use the same email address. I do not take those notes through a form.</p>
+    <p>Privacy questions about the site can use that address as well. The <a href={`${base}privacy-policy/`}>privacy policy</a> explains what the pages do and do not collect.</p>
+  </section>
+</Layout>

@@ -4,3 +4,7 @@
 
 # The handwritten sitemap was replaced by Astro's sitemap index.
 /sitemap.xml /sitemap-index.xml 301
+
+# The privacy policy moved to the AdSense path. Keep the old URL working.
+/privacy /privacy-policy/ 301
+/privacy/ /privacy-policy/ 301
