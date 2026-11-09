@@ -463,7 +463,7 @@ test('cloudflare redirects preserve the old length url and sitemap', () => {
 });
 
 test('legal pages do not share one meta description', () => {
-  const descriptions = ['contact', 'privacy', 'terms'].map((page) => {
+  const descriptions = ['about', 'contact', 'privacy-policy', 'terms'].map((page) => {
     const source = readFileSync(`src/pages/${page}.astro`, 'utf8');
     const match = source.match(/description="([^"]+)"/);
     assert.ok(match, page);
@@ -471,4 +471,49 @@ test('legal pages do not share one meta description', () => {
   });
   assert.equal(new Set(descriptions).size, descriptions.length);
   for (const description of descriptions) assert.notEqual(description, defaultDescription);
+});
+
+test('trust pages name Zayed, the contact address, and the advertising disclosures', () => {
+  const about = readFileSync('src/pages/about.astro', 'utf8');
+  assert.match(about, /Zayed/);
+  assert.match(about, /AI developer/);
+  assert.match(about, /calculators\.length/);
+  assert.match(about, /mailto:zayed70010@gmail.com/);
+  assert.equal(about.includes('years of experience'), false);
+
+  const contact = readFileSync('src/pages/contact.astro', 'utf8');
+  assert.match(contact, /mailto:zayed70010@gmail.com/);
+  assert.match(contact, /partnership/i);
+  assert.equal(contact.includes('<form'), false);
+
+  const privacy = readFileSync('src/pages/privacy-policy.astro', 'utf8');
+  assert.match(privacy, /Last updated: November 10, 2026/);
+  assert.match(privacy, /https:\/\/policies\.google\.com\/technologies\/ads/);
+  assert.match(privacy, /https:\/\/adssettings\.google\.com/);
+  assert.match(privacy, /https:\/\/www\.aboutads\.info/);
+  assert.match(privacy, /mailto:zayed70010@gmail.com/);
+  assert.match(privacy, /in your browser/);
+  assert.equal(privacy.includes('adsbygoogle'), false);
+  assert.equal(existsSync('src/pages/privacy.astro'), false);
+
+  const terms = readFileSync('src/pages/terms.astro', 'utf8');
+  assert.match(terms, /no warranty/i);
+  assert.match(terms, /not financial, tax, legal, or medical advice/);
+
+  const layout = readFileSync('src/layouts/Layout.astro', 'utf8');
+  assert.match(layout, /href=\{`\$\{base\}about\/`\}>About/);
+  assert.match(layout, /href=\{`\$\{base\}contact\/`\}>Contact/);
+  assert.match(layout, /href=\{`\$\{base\}privacy-policy\/`\}>Privacy Policy/);
+  assert.match(layout, /href=\{`\$\{base\}terms\/`\}>Terms/);
+  assert.equal(layout.includes('privacy/'), false);
+  assert.equal(layout.includes('adsbygoogle'), false);
+  assert.equal(layout.includes('googlesyndication'), false);
+  assert.equal(existsSync('public/ads.txt'), false);
+
+  const redirects = readFileSync('public/_redirects', 'utf8');
+  assert.match(redirects, /^\/privacy\s+\/privacy-policy\/\s+301$/m);
+  assert.match(redirects, /^\/privacy\/\s+\/privacy-policy\/\s+301$/m);
+  const worker = readFileSync('public/_worker.js', 'utf8');
+  assert.match(worker, /clearcalc-tools\.pages\.dev/);
+  assert.equal(worker.includes('privacy-policy'), false);
 });

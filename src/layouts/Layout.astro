@@ -39,6 +39,6 @@ const socialImage = absoluteSiteUrl('/og-image.png');
       <nav aria-label="Main navigation"><a href={`${base}#calculators`}>Calculators</a><a href={`${base}about/`}>About</a></nav>
     </header>
     <main><slot /></main>
-    <footer><div><a class="brand footer-brand" href={base}>ClearCalc Tools</a><p>Useful answers, without the clutter.</p></div><nav><a href={`${base}about/`}>About</a><a href={`${base}privacy/`}>Privacy</a><a href={`${base}terms/`}>Terms</a><a href={`${base}contact/`}>Contact</a></nav><small>© {new Date().getFullYear()} ClearCalc Tools</small></footer>
+    <footer><div><a class="brand footer-brand" href={base}>ClearCalc Tools</a><p>Useful answers, without the clutter.</p></div><nav aria-label="Footer"><a href={`${base}about/`}>About</a><a href={`${base}contact/`}>Contact</a><a href={`${base}privacy-policy/`}>Privacy Policy</a><a href={`${base}terms/`}>Terms</a></nav><small>© {new Date().getFullYear()} ClearCalc Tools</small></footer>
   </body>
 </html>

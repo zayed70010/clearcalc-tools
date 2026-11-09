@@ -1,4 +1,24 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 ---
-<Layout title="Terms of Use | ClearCalc Tools" description="Terms of use for ClearCalc Tools. Calculators provide general estimates, not financial, medical, legal, or tax advice, and important results should be verified."><section class="legal"><h1>Terms of Use</h1><p>ClearCalc Tools provides estimates for general informational purposes. We make reasonable efforts to keep calculators accurate, but do not guarantee that every result is complete or suitable for a particular decision.</p><p>You remain responsible for verifying important calculations and consulting an appropriate professional. By using the site, you agree not to misuse it or attempt to disrupt its operation.</p></section></Layout>
+<Layout
+  title="Terms and Disclaimer | ClearCalc Tools"
+  description="Terms and disclaimer for ClearCalc Tools. Results are estimates only, not financial, tax, legal, or medical advice, and they are provided with no warranty."
+>
+  <section class="legal">
+    <p class="eyebrow">Terms</p>
+    <h1>Terms and disclaimer</h1>
+    <p>These terms apply when you use ClearCalc Tools, the free calculators at clearcalctools.com. The site is operated by Zayed. Using the site means you accept this page. If you do not accept it, do not use the calculators.</p>
+    <h2>Estimates only</h2>
+    <p>Every result is an estimate. It is the formula described on that page, applied to the numbers you enter. Tax, duty, and paycheck pages name a jurisdiction and a year, and they leave out anything the form does not ask for. A rate can change after the page was written. Your own facts can include a credit, a local tax, a deduction, or a limit the calculator does not model. A result can also be wrong if an input is wrong. Check a figure that matters before you rely on it.</p>
+    <h2>Not professional advice</h2>
+    <p>Nothing on this site is financial, tax, legal, or medical advice, and using a calculator does not create a professional relationship with Zayed or with ClearCalc. A paycheck figure is not a pay stub, a withholding order, or a tax return. A health figure is not a diagnosis, a diet, or a treatment plan. A loan, mortgage, stamp duty, or other money figure is not a loan offer, a revenue assessment, or a filing. For a decision with real consequences, use the official source and a qualified professional who has your actual facts.</p>
+    <h2>No warranty</h2>
+    <p>The calculators, the explanations, and the rest of the site are provided as is and as available. There is no warranty, express or implied, of accuracy, completeness, fitness for a particular purpose, or uninterrupted access. To the fullest extent the law allows, Zayed and ClearCalc are not liable for any loss, claim, or decision that results from using a calculator, from relying on a result, or from the site being wrong or unavailable. Some places do not allow certain limits on liability. Where that is the law, the limit applies only as far as that law allows. Nothing on this page removes a right that cannot legally be removed.</p>
+    <h2>Using the site</h2>
+    <p>You may use the calculators for your own information. Do not attempt to disrupt the site, break its security, or interfere with anyone else's use of it. The pages, including these terms, can be updated by editing this page. The version published here is the version that applies when you use the site.</p>
+    <p>Questions about these terms can go to <a href="mailto:zayed70010@gmail.com">zayed70010@gmail.com</a>, or through the <a href={`${base}contact/`}>contact page</a>. How the site handles information is described in the <a href={`${base}privacy-policy/`}>privacy policy</a>.</p>
+  </section>
+</Layout>

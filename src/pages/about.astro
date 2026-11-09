@@ -1,4 +1,26 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { calculators } from '../data/calculators.js';
+
+const calculatorCount = calculators.length;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 ---
-<Layout title="About ClearCalc Tools" description="Learn why ClearCalc builds simple, transparent online calculators."><section class="legal"><span class="eyebrow">ABOUT US</span><h1>Numbers should feel simple.</h1><p>ClearCalc Tools is an independent library of free calculators designed to turn everyday questions into clear, useful estimates.</p><h2>Our approach</h2><p>We prioritize readable interfaces, transparent assumptions, mobile performance, and original explanatory content. Our calculators are informational and are reviewed as the site evolves.</p><h2>Editorial standards</h2><p>We explain what each tool does, avoid presenting estimates as professional advice, and correct errors when they are identified.</p></section></Layout>
+<Layout
+  title="About ClearCalc Tools"
+  description="Zayed, an AI developer, builds ClearCalc: free no-login calculators for money, tax, home, health, dates, and conversions in the US, UK, Canada, and Australia."
+>
+  <section class="legal">
+    <p class="eyebrow">About</p>
+    <h1>About ClearCalc</h1>
+    <p>I'm Zayed. I'm an AI developer — an AI programmer — and I build ClearCalc.</p>
+    <h2>Why I built it</h2>
+    <p>I wanted calculators that stay free, stay readable, and never ask you to create an account or sign in. The questions are ordinary ones people look up in the United States, the United Kingdom, Canada, and Australia: a loan or mortgage payment, a tax or take-home estimate, a home project, a health figure, a date or a span of time, and a conversion from one unit to another.</p>
+    <p>The library currently has {calculatorCount} calculators. Each one does a single job and shows the formula it uses, so you can see where the number came from.</p>
+    <h2>How a calculator is built and checked</h2>
+    <p>The formula runs in your browser, on the page you already have open. I test the formulas. A tax, duty, or paycheck page names the jurisdiction and the year it follows, and it lists what the estimate leaves out, such as a local tax, a credit, or a deduction the form does not ask for. When a rate or a rule comes from an official source, the page says so and uses that source where it can.</p>
+    <h2>What a result is</h2>
+    <p>A result is an estimate. It is not financial, tax, legal, or medical advice, and it is not a decision from a lender, a revenue office, or a clinician. A paycheck figure is not a pay stub. A health figure is not a diagnosis. If the number matters, compare it with the official source and with a qualified professional who has your actual facts. The <a href={`${base}terms/`}>terms and disclaimer</a> say the same thing in more detail.</p>
+    <h2>If something is wrong</h2>
+    <p>If a result looks off, or you want a calculator that is not here yet, email me at <a href="mailto:zayed70010@gmail.com">zayed70010@gmail.com</a>. Name the page, the numbers you entered, and what you expected. The <a href={`${base}contact/`}>contact page</a> has the same address, including notes about partnerships.</p>
+  </section>
+</Layout>
