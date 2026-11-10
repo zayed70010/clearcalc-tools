@@ -383,7 +383,8 @@ export const nov9CalculatorContent = {
     relatedLinks: [
       { slug: 'time-card-hours-calculator', label: 'Time card hours calculator', note: '09:00 to 17:30 with a 30-minute break is 8.0000 hours. It does not suggest a bedtime, and it does not roll a night shift into the next day.' },
       { slug: 'overtime-pay-calculator', label: 'Weekly overtime pay calculator', note: 'Prices hours over a threshold. A sleep cycle is not an overtime hour.' },
-      { slug: 'age-calculator', label: 'Age calculator', note: 'Completed years, months, and days. It does not divide a night into 90-minute cycles.' }
+      { slug: 'age-calculator', label: 'Age calculator', note: 'Completed years, months, and days. It does not divide a night into 90-minute cycles.' },
+      { slug: 'calorie-calculator', label: 'Calorie calculator', note: 'A maintenance-calorie estimate from Mifflin–St Jeor. It does not turn a bedtime into a cycle count.' }
     ]
   },
   'tennessee-paycheck-calculator': {

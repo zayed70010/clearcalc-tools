@@ -207,18 +207,20 @@ export const clusterCalculatorContent = {
     ]
   },
   'england-stamp-duty-calculator': {
-    title: 'England Stamp Duty Calculator 2026 (SDLT) | ClearCalc',
-    h1: 'England Stamp Duty Calculator for 2026 Purchases',
-    description: 'Estimate residential Stamp Duty Land Tax on an England or Northern Ireland purchase using the post-April 2025 rates still in force in 2026, including first-time buyers and additional homes.',
+    title: 'Stamp Duty Calculator UK (England & NI) 2026 – How Much Will I Pay? | ClearCalc',
+    h1: 'Stamp Duty Calculator UK (England & NI) 2026: How Much Stamp Duty Will I Pay?',
+    description: 'Stamp duty calculator for England and Northern Ireland in 2026. See how much SDLT you pay on £190k, £430k, £850k and other prices, for a main home, a first-time buyer, or an additional property.',
     intro: [
-      'This England stamp duty calculator estimates Stamp Duty Land Tax on a residential freehold purchase in England or Northern Ireland. The price is sliced across bands. You do not pay one rate on the whole price. The rates are the residential rates that have applied since 1 April 2025 and that GOV.UK was still publishing for purchases in 2026: 0% to £125,000, then 2% to £250,000, 5% to £925,000, 10% to £1.5 million, and 12% above that.',
-      'Choose whether the purchase replaces your main home, whether every buyer is a first-time buyer, or whether the higher rates for an additional dwelling apply. A separate choice adds the 2 percentage point non-UK resident surcharge on every band. The sample price is £450,000 for someone replacing a main home and treated as a UK resident. Scotland charges Land and Buildings Transaction Tax instead, and Wales charges Land Transaction Tax. Neither of those systems is calculated here.'
+      'This stamp duty calculator answers how much Stamp Duty Land Tax you pay on a residential freehold in England or Northern Ireland. The price is sliced across bands. You do not pay one rate on the whole price. For a completion on or after 1 April 2025, the rates GOV.UK is still publishing in 2026 are 0% to £125,000, then 2% to £250,000, 5% to £925,000, 10% to £1.5 million, and 12% above that. On a £430,000 main home that is £11,500. A first-time buyer on the same price pays £6,500. An additional property pays £33,000.',
+      'Choose whether the purchase replaces your main home, whether every buyer is a first-time buyer, or whether the higher rates for an additional dwelling apply. A separate choice adds the 2 percentage point non-UK resident surcharge on every band. The completion-period menu keeps the 2026 rates as the default and can switch to an earlier HMRC rate card, including the 2018 and 2019 bands and the pre-December 2014 slab. The sample price is £450,000 for someone replacing a main home and treated as a UK resident. Scotland charges Land and Buildings Transaction Tax instead, and Wales charges Land Transaction Tax. Neither of those systems is calculated here.',
+      'The table further down, Stamp duty on common prices, is the current-rule answer for the prices people actually type: £150,000, £190,000, £220,000, £250,000, £270,000, £300,000, £360,000, £400,000, £420,000, £430,000, £500,000, £600,000, £750,000, £850,000, £900,000, £1 million, £1.1 million, £1.5 million, and £2 million. Each cell is what this calculator displays for a UK resident when the completion period is left on 1 April 2025 onward.'
     ],
     steps: [
       'Enter the chargeable consideration in pounds. The sample, 450000, means a £450,000 purchase price. Do not enter the deposit alone.',
       'Choose the buyer. “Replacing your main home” uses the standard residential bands. “First-time buyer” uses the relief only when the price is £500,000 or less. “Additional property” uses the higher rates when the price is £40,000 or more.',
-      'Choose UK resident or non-UK resident. Non-UK resident adds 2 percentage points to whichever bands the buyer type selected.',
-      'Press Calculate. The headline is the SDLT in pounds. The lines under it name the rate table, the effective rate, and the price.'
+      'Choose UK resident or non-UK resident. Non-UK resident adds 2 percentage points to whichever bands the buyer type selected, from 1 April 2021 onward. Earlier periods say the surcharge was not in force and do not add it.',
+      'Leave the completion period on “1 April 2025 onward” for a 2026 purchase. Pick an earlier row only when the completion date fell in that window. A 2018 or 2019 completion uses “22 Nov 2017 – 7 Jul 2020”. A question about the old slab uses the last row.',
+      'Press Calculate. The headline is the SDLT in pounds. The lines under it name the rate table, the effective rate, the price, and the completion period.'
     ],
     howHeading: 'How residential SDLT is sliced in 2026',
     howItWorks: [
@@ -226,6 +228,8 @@ export const clusterCalculatorContent = {
       'First-time buyer relief replaces those bands only when the price is £500,000 or less and every purchaser qualifies. The first £300,000 is taxed at 0% and the slice from £300,001 to £500,000 is taxed at 5%. On a price of £500,000 the tax is £10,000. One pound above £500,000 loses the relief on the entire price, not just on the excess. The calculator then switches to the standard bands and says so. At £500,001 that standard calculation is £15,000.05.',
       'The higher rates for an additional dwelling are 5 percentage points above the standard rates, for a price of £40,000 or more: 5%, 7%, 10%, 15%, and 17%. GOV.UK’s example of an additional home bought for £300,000 is £6,250 plus £8,750 plus £5,000, which is £20,000. Below £40,000 the higher rates are not applied. A non-UK resident, generally someone not present in the UK for at least 183 days in the 12 months before the purchase, pays 2 percentage points more on every band that applies, including first-time buyer bands and the higher rates. The employer, the lender, and the solicitor decide residence. This page only adds the 2 points when you select that status.',
       'The duty is calculated in pence and rounded to the nearest penny once, after every band has been added. The effective rate is that duty divided by the price. It is always lower than the top band you touched, because the earlier slices were cheaper. On the £450,000 standard example the top slice is taxed at 5%, and the effective rate is 2.78%.',
+      'A few of the searched prices, worked on the 1 April 2025 bands for a UK resident, show why the slice matters. £190,000 is entirely inside the 2% band after the nil-rate slice: 2% of £65,000 is £1,300, and a first-time buyer pays £0 because £190,000 is under £300,000. £430,000 is £2,500 on the £125,000 slice between £125,000 and £250,000, plus 5% of the remaining £180,000, which is £9,000, so £11,500. The same first-time buyer pays 5% of the £130,000 above £300,000, which is £6,500. £850,000 is above the £500,000 first-time buyer cap, so relief is refused and both the standard buyer and the first-time buyer pay £32,500: £2,500 plus 5% of £600,000. The additional-property column is not that arithmetic plus a flat fee. It re-prices every slice 5 points higher, so £850,000 becomes £75,000.',
+      'The completion-period menu does not change those 2026 figures unless you move it. A 2018 or 2019 completion, which sits in 22 November 2017 to 7 July 2020, uses the same standard and first-time buyer slices up to £925,000, so £430,000 is still £11,500 or £6,500. The additional-property loading in that window was 3 points, not 5, so the same £430,000 additional dwelling is £24,400 rather than £33,000. The section “How stamp duty has changed” sets out each window. The menu is the same arithmetic.',
       'A Cardiff purchase is not a smaller copy of these bands. On the Wales Land Transaction Tax page, a £250,000 main home is £1,500.00, which is £1,000.00 less than this £2,500.00 and £600.00 less than Scotland’s £2,100.00, because the Welsh nil-rate band runs to £225,000 and the next slice is 6%. At £450,000 the three results pull apart: £12,500.00 of SDLT here, £18,350.00 of LBTT in Scotland, and £14,250.00 of main-rate LTT in Wales. The Welsh higher rate on that £450,000 additional dwelling is £36,200.00, against £35,000.00 on this page. The Welsh bands are not a flat 5-point loading, so the two additional-dwelling bills are close at this price and not the same arithmetic. Wales also has no first-time buyer button. England’s £7,500.00 first-time buyer result on £450,000 does not exist in the Welsh table.'
     ],
     formula: 'Residential freehold in England or Northern Ireland. Rates in force from 1 April 2025 and unchanged on the GOV.UK residential tables used here for 2026.\nStandard, replacing a main home:\n  0% to £125,000\n  2% on £125,001 to £250,000\n  5% on £250,001 to £925,000\n  10% on £925,001 to £1,500,000\n  12% above £1,500,000\nFirst-time buyers, price £500,000 or less:\n  0% to £300,000\n  5% on £300,001 to £500,000\nAbove £500,000, first-time buyer relief is refused and the standard table is used on the whole price.\nAdditional dwelling, price £40,000 or more: standard rates + 5 points (5%, 7%, 10%, 15%, 17%).\nUnder £40,000, the additional-dwelling table is not used.\nNon-UK resident: add 2 percentage points to every band in the table that was selected.\nSDLT = sum of (slice × rate), rounded to the nearest penny\nEffective rate = SDLT / price',
@@ -256,21 +260,73 @@ export const clusterCalculatorContent = {
           'An additional dwelling at £300,000 shows £20,000.00 and an effective rate of 6.67%. That is the GOV.UK higher-rate example: £6,250 at 5%, £8,750 at 7%, and £5,000 at 10%. A purchase under £40,000 does not use that table. At £39,999 the additional-property choice shows £0.00 and explains that the higher rates were not applied. At £40,000 the same choice shows £2,000.00, which is 5% of £40,000.',
           'A non-UK resident replacing a main home at £450,000 shows £21,500.00, an effective rate of 4.78%. That is the £12,500 standard result plus £9,000, and £9,000 is 2% of £450,000. The same non-resident first-time buyer shows £16,500.00. The same non-resident additional-property buyer shows £44,000.00. Residence is a statutory test with its own refund rules if you later spend enough days in the UK. Selecting the surcharge here does not file that test.'
         ]
+      },
+      {
+        title: '£190,000, £430,000, and £850,000 on the 2026 bands',
+        paragraphs: [
+          '£190,000, replacing a main home, shows £1,300.00. That is 2% of the £65,000 above £125,000. First-time buyer shows £0.00. Additional property shows £10,800.00, which is 5% of £125,000 plus 7% of £65,000. £220,000 is the same pattern one step up: £1,900.00 standard, £0.00 first-time buyer, and £12,900.00 additional.',
+          '£430,000 standard shows £11,500.00: £2,500 on the slice from £125,000 to £250,000 and £9,000 on the £180,000 above £250,000. First-time buyer shows £6,500.00, which is 5% of the £130,000 above £300,000. Additional property shows £33,000.00. £850,000 is over the £500,000 relief cap, so standard and first-time buyer both show £32,500.00. Additional property shows £75,000.00. £1.1 million standard is £53,750.00, because the 10% slice has started, and the additional-property result is £108,750.00.'
+        ]
       }
     ],
     table: {
-      heading: 'SDLT at selected England residential prices',
-      caption: 'UK resident purchases. Standard means the rates for replacing a main home. First-time buyer relief is refused above £500,000, so those cells equal the standard column. Additional means the higher rates. Each amount is what this calculator displays. Non-UK residents pay 2 percentage points more on each band.',
-      headers: ['Price', 'Standard SDLT', 'First-time buyer', 'Additional dwelling'],
+      heading: 'Stamp duty on common prices',
+      caption: 'UK resident, completion on or after 1 April 2025, the rates still used for a 2026 purchase. Standard means replacing a main home. First-time buyer relief is refused above £500,000, so those cells equal the standard column. Additional means the higher rates, 5 percentage points above standard, for a price of £40,000 or more. Each amount is what this calculator displays. A non-UK resident pays 2 percentage points more on each band.',
+      headers: ['Price', 'Standard SDLT', 'First-time buyer', 'Additional property'],
       rows: [
+        ['£150,000', '£500.00', '£0.00', '£8,000.00'],
+        ['£190,000', '£1,300.00', '£0.00', '£10,800.00'],
+        ['£220,000', '£1,900.00', '£0.00', '£12,900.00'],
         ['£250,000', '£2,500.00', '£0.00', '£15,000.00'],
-        ['£350,000', '£7,500.00', '£2,500.00', '£25,000.00'],
-        ['£450,000', '£12,500.00', '£7,500.00', '£35,000.00'],
+        ['£270,000', '£3,500.00', '£0.00', '£17,000.00'],
+        ['£300,000', '£5,000.00', '£0.00', '£20,000.00'],
+        ['£360,000', '£8,000.00', '£3,000.00', '£26,000.00'],
+        ['£400,000', '£10,000.00', '£5,000.00', '£30,000.00'],
+        ['£420,000', '£11,000.00', '£6,000.00', '£32,000.00'],
+        ['£430,000', '£11,500.00', '£6,500.00', '£33,000.00'],
+        ['£500,000', '£15,000.00', '£10,000.00', '£40,000.00'],
         ['£600,000', '£20,000.00', '£20,000.00 (no relief)', '£50,000.00'],
-        ['£925,000', '£36,250.00', '£36,250.00 (no relief)', '£82,500.00'],
-        ['£1,500,000', '£93,750.00', '£93,750.00 (no relief)', '£168,750.00']
+        ['£750,000', '£27,500.00', '£27,500.00 (no relief)', '£65,000.00'],
+        ['£850,000', '£32,500.00', '£32,500.00 (no relief)', '£75,000.00'],
+        ['£900,000', '£35,000.00', '£35,000.00 (no relief)', '£80,000.00'],
+        ['£1,000,000', '£43,750.00', '£43,750.00 (no relief)', '£93,750.00'],
+        ['£1,100,000', '£53,750.00', '£53,750.00 (no relief)', '£108,750.00'],
+        ['£1,500,000', '£93,750.00', '£93,750.00 (no relief)', '£168,750.00'],
+        ['£2,000,000', '£153,750.00', '£153,750.00 (no relief)', '£253,750.00']
       ]
     },
+    extraSections: [
+      {
+        heading: 'How stamp duty has changed',
+        paragraphs: [
+          'The amount on a house depends on the completion date, not on the year somebody types into a search box. The bands below are the residential freehold tables HMRC published for England and Northern Ireland. They are the same tables the completion-period menu uses. Lease premiums, the net present value of rent, non-residential rates, multiple dwellings relief, and the flat 15% or 17% rate for certain company purchases are not in the menu. Scotland left SDLT on 1 April 2015, and Wales left on 1 April 2018, so a 2018 search about a Scottish or Welsh purchase is the wrong tax even when the English bands below are right.',
+          'Before 4 December 2014, SDLT was a slab. One rate applied to the whole price. From 22 March 2012 until 3 December 2014 the residential slabs on GOV.UK were 0% up to £125,000, 1% over £125,000 to £250,000, 3% over £250,000 to £500,000, 4% over £500,000 to £1 million, 5% over £1 million to £2 million, and 7% over £2 million. Exactly £250,000 was £2,500. One pound more was 3% of the whole price, £7,500.03. There was no first-time buyer relief of the current kind and no additional-dwelling surcharge. The 15% rate for certain non-natural persons is a different charge and this calculator does not apply it.',
+          'From 4 December 2014 the tax became a slice. The standard bands were 0% to £125,000, 2% to £250,000, 5% to £925,000, 10% to £1.5 million, and 12% above that. Those slices are still the 2026 standard bands. The cliff at £250,000 disappeared: £250,001 on the slice is £2,500.05, not £7,500.03. From 4 December 2014 to 31 March 2016 there was still no additional-dwelling surcharge and no first-time buyer relief. Choosing those buyer types on that period returns the standard slice and says so.',
+          'From 1 April 2016 an additional dwelling paid 3 percentage points on top of each standard slice, for a price of £40,000 or more. That is the higher-rate table through 21 November 2017 as well: 3%, 5%, 8%, 13%, and 15%. First-time buyer relief did not exist yet. A 2017 completion before 22 November is this row. On £300,000 the additional-dwelling result is £14,000, which is £6,000 less than the £20,000 GOV.UK example uses for the later 5-point loading.',
+          'From 22 November 2017 to 7 July 2020, first-time buyers paid 0% to £300,000 and 5% from £300,001 to £500,000, and nothing in that relief if the price was over £500,000. The standard slices and the 3-point additional-dwelling loading stayed. This is the card for 2018 and for 2019. A £430,000 main home is £11,500, the same as 2026, because the standard slices under £925,000 had not moved. A first-time buyer pays £6,500. An additional property pays £24,400: 3% of £125,000, 5% of the next £125,000, and 8% of the last £180,000. The 2026 additional-property figure on that price is £33,000. The £8,600 gap is the later increase from 3 points to 5 points, not a different price.',
+          'From 8 July 2020 to 30 June 2021 the nil-rate band was £500,000. GOV.UK says the special first-time buyer rules were replaced by those reduced rates, so a first-time buyer and a standard buyer match. The next slices were 5% to £925,000, 10% to £1.5 million, and 12% above. Additional dwellings still paid 3 points on top. A £430,000 main home in that holiday is £0. A £600,000 main home is £5,000. The 2% non-UK resident surcharge started on 1 April 2021, so the menu splits the holiday: 8 July 2020 to 31 March 2021 does not add the surcharge, and 1 April 2021 to 30 June 2021 does.',
+          'From 1 July 2021 to 30 September 2021 the nil-rate band tapered to £250,000 and first-time buyer relief returned at £300,000 and £500,000. The non-resident surcharge applied. From 1 October 2021 to 22 September 2022 the nil-rate band went back to £125,000. Standard duty on £190,000 was £1,300 again, and the additional-dwelling loading was still 3 points. From 23 September 2022 to 30 October 2024 the nil-rate band was £250,000, and first-time buyers paid 0% to £425,000 and 5% from £425,001 to £625,000. Above £625,000 the relief was refused. A £430,000 main home in that window is £9,000, which is 5% of the £180,000 above £250,000. The same first-time buyer pays £250, which is 5% of the £5,000 above £425,000. The additional-dwelling loading was still 3 points, so that £430,000 additional property is £21,900.',
+          'From 31 October 2024 to 31 March 2025 the September 2022 thresholds stayed, and the additional-dwelling loading rose from 3 points to 5. GOV.UK says a contract exchanged before 31 October 2024 can keep the 3-point rate even if it completes later. This menu cannot see the exchange date. The 31 October 2024 row charges 5 points. The 23 September 2022 row charges 3 points on the same thresholds. Use the row that matches the contract. On 1 April 2025 the nil-rate band returned to £125,000, first-time buyer relief returned to £300,000 and £500,000, and the 5-point additional-dwelling loading stayed. That is the default row, and it is the row behind the common-price table.'
+        ],
+        table: {
+          heading: 'Residential SDLT by completion period',
+          caption: 'England and Northern Ireland residential freehold. “Slice” means each rate applies only to its portion of the price. “Slab” means one rate applies to the whole price. Additional-dwelling points are added to each standard slice from £40,000. The non-resident surcharge, where it exists, is a further 2 points on each band from 1 April 2021. Sources are the GOV.UK residential rate cards for each window.',
+          headers: ['Completion', 'Standard bands', 'First-time buyer', 'Extra home'],
+          rows: [
+            ['22 Mar 2012 – 3 Dec 2014', 'Slab: 0% to £125k, then 1%, 3%, 4%, 5% to £2m, 7% above', 'No relief', 'No surcharge'],
+            ['4 Dec 2014 – 31 Mar 2016', 'Slice: 0% / 2% / 5% / 10% / 12%', 'No relief', 'No surcharge'],
+            ['1 Apr 2016 – 21 Nov 2017', 'Same slice', 'No relief', '+3 points'],
+            ['22 Nov 2017 – 7 Jul 2020', 'Same slice. This is 2018 and 2019.', '0% to £300k, 5% to £500k', '+3 points'],
+            ['8 Jul 2020 – 30 Jun 2021', '0% to £500k, then 5% / 10% / 12%', 'Replaced by the holiday rates', '+3 points'],
+            ['1 Jul 2021 – 30 Sep 2021', '0% to £250k, then 5% / 10% / 12%', '0% to £300k, 5% to £500k', '+3 points'],
+            ['1 Oct 2021 – 22 Sep 2022', '0% / 2% / 5% / 10% / 12%', '0% to £300k, 5% to £500k', '+3 points'],
+            ['23 Sep 2022 – 30 Oct 2024', '0% to £250k, then 5% / 10% / 12%', '0% to £425k, 5% to £625k', '+3 points'],
+            ['31 Oct 2024 – 31 Mar 2025', '0% to £250k, then 5% / 10% / 12%', '0% to £425k, 5% to £625k', '+5 points'],
+            ['1 Apr 2025 onward', '0% / 2% / 5% / 10% / 12%. This is 2026.', '0% to £300k, 5% to £500k', '+5 points']
+          ]
+        }
+      }
+    ],
     limitsHeading: 'What this stamp duty estimate leaves out',
     limits: [
       'The form covers one residential freehold price. It does not calculate rent on a new lease, the net present value of rent, non-residential or mixed-use rates, multiple dwellings relief, or the 17% flat rate that can apply when a company buys a dwelling over £500,000. Linked transactions, exchanges, and contingent consideration need the chargeable consideration rules, not a single typed price. Fixtures that are chattels can fall outside the price. This page taxes whatever number you type.',
@@ -301,13 +357,17 @@ export const clusterCalculatorContent = {
         a: 'It adds 2 percentage points on every band, which is £9,000 on a £450,000 price. The standard result moves from £12,500.00 to £21,500.00. The first-time buyer result moves from £7,500.00 to £16,500.00. The additional-dwelling result moves from £35,000.00 to £44,000.00. The surcharge has its own statutory test and a possible refund. Selecting it here does not decide residence.'
       },
       {
-        q: 'Is England stamp duty included in the monthly mortgage payment?',
-        a: 'No. SDLT is a tax on the purchase, usually due shortly after completion. The mortgage calculator on this site estimates principal and interest on the amount borrowed in US dollars, and it does not add this sterling tax. If a lender increases the loan to cover a cost, that is a new loan amount, not an automatic line on this page.'
+        q: 'How much was stamp duty in 2018 or 2019?',
+        a: 'A completion from 22 November 2017 to 7 July 2020, which covers 2018 and 2019, used the same standard slices as 2026 up to £925,000. A £430,000 main home was £11,500.00 and a first-time buyer paid £6,500.00. The additional-property loading was 3 percentage points, not 5, so that £430,000 additional dwelling was £24,400.00 rather than today’s £33,000.00. Choose that completion period in the form. The pre-December 2014 slab is a different system: £250,001 was about £7,500, not £2,500. SDLT is not added to the monthly mortgage payment. The mortgage page estimates principal and interest in US dollars and does not add this sterling tax.'
       }
     ],
     relatedLinks: [
       { slug: 'scotland-lbtt-calculator', label: 'Scotland LBTT calculator for 2026', note: 'Residential Land and Buildings Transaction Tax, including up to £600 of first-time buyer relief and the 8% additional dwelling supplement. A £250,000 main home is £2,100 there and £2,500 here.' },
       { slug: 'wales-land-transaction-tax-calculator', label: 'Wales Land Transaction Tax calculator', note: 'A £250,000 main home is £1,500 there and £2,500 here. A £450,000 main home is £14,250 there and £12,500 here. Wales has no first-time buyer band.' },
+      { slug: 'scotland-take-home-pay-calculator', label: 'Scotland take-home pay calculator for 2026/27', note: 'Scottish income tax and National Insurance on a salary. It is not LBTT and it is not SDLT.' },
+      { slug: 'northern-ireland-take-home-pay-calculator', label: 'Northern Ireland take-home pay calculator for 2026/27', note: 'Rest-of-UK income tax on a Northern Ireland salary. SDLT on a Northern Ireland purchase is this page, not that one.' },
+      { slug: 'uk-student-loan-repayment-calculator', label: 'UK student loan repayment calculator for 2026/27', note: 'Plan 1, Plan 2, Plan 4, Plan 5, or postgraduate. It is not deducted inside the SDLT figure.' },
+      { slug: 'uk-working-days-calculator', label: 'UK working days calculator', note: 'Weekdays and bank holidays. England and Wales have 253 working days in 2026. It does not count the 14-day SDLT filing window as a tax.' },
       { slug: 'mortgage-calculator', label: 'Fixed-rate mortgage payment calculator', note: 'Principal and interest in US dollars. It does not add SDLT or convert pounds.' },
       { slug: 'nsw-stamp-duty-calculator', label: 'NSW stamp duty calculator for 2026/27', note: 'Transfer duty in Australian dollars, including the first home buyer concession. Not SDLT.' },
       { slug: 'uk-take-home-pay-calculator', label: '2026/27 take-home pay for England, Wales and Northern Ireland', note: 'Income tax and employee National Insurance on a salary, not the tax on a house.' },

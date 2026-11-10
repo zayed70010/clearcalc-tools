@@ -105,11 +105,11 @@ export const nov3CalculatorContent = {
     ]
   },
   'sales-tax-calculator': {
-    title: 'Sales Tax Calculator: Add or Remove Tax | ClearCalc',
-    h1: 'Sales Tax Calculator',
-    description: 'Add a sales tax rate to a price or remove it from a total. $100 at 8.25% becomes $108.25. Statewide rates are the 1 July 2026 figures, and a city rate can be typed instead.',
+    title: 'Sales Tax Calculator by State (2026 Rates) | ClearCalc',
+    h1: 'Sales Tax Calculator by State',
+    description: 'Sales tax calculator by state for 2026. Add or remove a statewide rate, or type a combined local rate. $100 at 8.25% becomes $108.25. City and county tax is extra unless you type it.',
     intro: [
-      'This sales tax calculator either adds a rate to a pre-tax price or pulls the tax back out of a total that already includes it. The sample is $100 before tax, with 8.25% typed in. The tax is $8.25 and the headline is $108.25 total. That 8.25% is a rate you chose, not a state lookup. It is a common combined city rate. The menu can replace it with a statewide rate as of 1 July 2026.',
+      'This sales tax calculator by state either adds a rate to a pre-tax price or pulls the tax back out of a total that already includes it. The sample is $100 before tax, with 8.25% typed in. The tax is $8.25 and the headline is $108.25 total. That 8.25% is a rate you chose, not a state lookup. It is a common combined city rate. The menu can replace it with a statewide rate as of 1 July 2026. Pick the state when you want the state base rate. Type the percent when the receipt includes a city or county add-on.',
       'The percentage calculator answers a different question. Part 8.25 and whole 100 is 8.25%, which matches this tax only because the tax on $100 came out in even cents. Part 8.25 and whole 108.25 is 7.62%. That second figure is the tax as a share of the tax-inclusive total, and it is not the rate. The discount calculator takes a percent off a price. The tip calculator adds a percent and splits the bill. Neither one looks up a state, and neither one removes tax from a total.',
       'Statewide rates here follow the Tax Foundation state-rate column as of 1 July 2026, with three rates kept at the statutory figure that column rounds: Minnesota 6.875% rather than 6.88%, Missouri 4.225% rather than 4.23%, and New Jersey 6.625% rather than 6.63%. California’s 7.25% includes the 1.25% mandatory statewide local add-on. Utah’s 6.10% includes its 1.25% statewide local add-on. Virginia’s 5.30% includes its 1% statewide local add-on. City and county tax on top of those rates is not in the menu. Type the combined rate when you have it.'
     ],
@@ -163,14 +163,22 @@ export const nov3CalculatorContent = {
       }
     ],
     table: {
-      heading: 'Tax on $100 at selected 1 July 2026 rates',
-      caption: 'Each row is what this calculator displays for a $100 price before tax. The first row uses a typed rate. The others use the statewide menu, which ignores the typed percent. Local tax beyond the statewide figure is not included. California includes its mandatory 1.25% statewide local add-on.',
+      heading: 'Sales tax by state on $100',
+      caption: 'Each row is what this calculator displays for a $100 price before tax at the 1 July 2026 statewide rate, except the first row, which uses a typed 8.25% combined rate. The statewide menu ignores the typed percent. Local city and county tax on top of the state rate is not included. California includes its mandatory 1.25% statewide local add-on. New York’s 4% and Georgia’s 4% are the state rates only. A New York City or Atlanta local rate has to be typed.',
       headers: ['Rate source', 'Rate', 'Tax', 'Total', 'Tax as a share of the total'],
       rows: [
         ['Typed percent', '8.25%', '$8.25', '$108.25', '7.62%'],
         ['California', '7.25%', '$7.25', '$107.25', '6.76%'],
+        ['Tennessee', '7%', '$7.00', '$107.00', '6.54%'],
+        ['Washington', '6.5%', '$6.50', '$106.50', '6.10%'],
         ['Texas', '6.25%', '$6.25', '$106.25', '5.88%'],
         ['New Jersey', '6.625%', '$6.63', '$106.63', '6.22%'],
+        ['Florida', '6%', '$6.00', '$106.00', '5.66%'],
+        ['Ohio', '5.75%', '$5.75', '$105.75', '5.44%'],
+        ['Arizona', '5.6%', '$5.60', '$105.60', '5.30%'],
+        ['North Carolina', '4.75%', '$4.75', '$104.75', '4.53%'],
+        ['New York', '4%', '$4.00', '$104.00', '3.85%'],
+        ['Georgia', '4%', '$4.00', '$104.00', '3.85%'],
         ['Oregon', '0%', '$0.00', '$100.00', '0.00%']
       ]
     },

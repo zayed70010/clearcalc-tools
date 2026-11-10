@@ -1,10 +1,10 @@
 export const batchCalculatorContent = {
   'georgia-paycheck-calculator': {
-    title: 'Georgia Paycheck Calculator 2026 (4.99% after $15,000) | ClearCalc',
-    h1: 'Georgia Paycheck Calculator for 2026',
-    description: 'Estimate a 2026 Georgia paycheck after federal income tax and the 4.99% state tax, using the $15,000 single or $30,000 joint standard deduction and a $5,000 dependent deduction.',
+    title: 'Georgia Paycheck Calculator 2026: Take-Home Pay After Tax | ClearCalc',
+    h1: 'Georgia Paycheck Calculator 2026: Take-Home Pay After Tax',
+    description: 'Georgia paycheck calculator for 2026 take-home pay after federal tax and the 4.99% state tax. A $50,000 single wage is $1,561.87 every two weeks. The standard deduction is $15,000 single or $30,000 joint.',
     intro: [
-      'This Georgia paycheck calculator estimates what is left from 2026 wages after federal income tax, Georgia income tax, Social Security, and Medicare. House Bill 463 cut the flat rate from 5.19% to 4.99% for taxable years beginning on or after 1 January 2026. The Governor signed it on 11 May 2026, and the Department of Revenue’s 2026 employer’s tax guide tells employers they could start withholding at 4.99% on that date. A stub from January through early May can still show 5.19% even though the return for the year uses 4.99%. This page uses the annual 4.99% rate, not the pre-May withholding rate.',
+      'This Georgia paycheck calculator estimates 2026 take-home pay after federal income tax, Georgia income tax, Social Security, and Medicare. House Bill 463 cut the flat rate from 5.19% to 4.99% for taxable years beginning on or after 1 January 2026. The Governor signed it on 11 May 2026, and the Department of Revenue’s 2026 employer’s tax guide tells employers they could start withholding at 4.99% on that date. A stub from January through early May can still show 5.19% even though the return for the year uses 4.99%. This page uses the annual 4.99% rate, not the pre-May withholding rate. On a $50,000 single wage with no dependents, Georgia tax is $1,746.50 and the two-week headline is $1,561.87.',
       'The same act raised the standard deduction to $15,000 for a single filer, a head of household, and a married person filing separately, and to $30,000 for married filing jointly. The dependent deduction is $5,000 for each dependent. Georgia no longer has a personal exemption for the taxpayer. The standard deduction does that work. The sample is $65,000, single, paid every two weeks, with no dependents and no 401(k). Federal tax uses the tax year 2026 brackets and standard deduction in IRS Revenue Procedure 2025-32. Social Security is 6.2% up to $184,500, and Medicare is 1.45% of all wages. Georgia has no city income tax on these wages.'
     ],
     steps: [
@@ -55,7 +55,13 @@ export const batchCalculatorContent = {
       headers: ['Wages', 'Georgia taxable income', 'Georgia tax', 'Annual take-home', 'Every two weeks'],
       rows: [
         ['$15,000', '$0.00', '$0.00', '$13,852.50', '$532.79'],
+        ['$40,000', '$25,000.00', '$1,247.50', '$33,072.50', '$1,272.02'],
+        ['$50,000', '$35,000.00', '$1,746.50', '$40,608.50', '$1,561.87'],
+        ['$55,000', '$40,000.00', '$1,996.00', '$44,376.50', '$1,706.79'],
         ['$65,000', '$50,000.00', '$2,495.00', '$51,912.50', '$1,996.63'],
+        ['$75,000', '$60,000.00', '$2,994.00', '$58,598.50', '$2,253.79'],
+        ['$100,000', '$85,000.00', '$4,241.50', '$74,938.50', '$2,882.25'],
+        ['$120,000', '$105,000.00', '$5,239.50', '$88,010.50', '$3,385.02'],
         ['$65,000 and two dependents', '$40,000.00', '$1,996.00', '$52,411.50', '$2,015.83'],
         ['$65,000 and a $6,500 401(k)', '$43,500.00', '$2,170.65', '$46,516.85', '$1,789.11'],
         ['$90,000', '$75,000.00', '$3,742.50', '$68,402.50', '$2,630.87'],
@@ -90,6 +96,10 @@ export const batchCalculatorContent = {
       {
         q: 'What if both spouses work and the return is married filing jointly?',
         a: 'The $30,000 standard deduction belongs to the return once. This form applies it to the single salary you type, which is right only when that salary is the only wage. The Department of Revenue tells two-earner couples to use the $15,000 withholding column rather than $30,000 each. On one $65,000 wage filed jointly, Georgia tax is $1,746.50 and the two-week headline is $2,109.27. Adding a second wage requires a second pass, or one combined wage with the deduction left at $30,000.'
+      },
+      {
+        q: 'How much is take-home pay on a $50,000 Georgia salary in 2026?',
+        a: 'Single, no dependents, and no 401(k): Georgia tax is $1,746.50 on $35,000 after the $15,000 standard deduction. Federal income tax is $3,820.00, Social Security is $3,100.00, and Medicare is $725.00. Annual take-home is $40,608.50, or $1,561.87 every two weeks. A $40,000 wage is $1,272.02 every two weeks. A $100,000 wage is $2,882.25. Georgia’s statewide sales tax is 4%, or $4.00 on a $100 purchase, and it is not taken out of these wages.'
       }
     ],
     relatedLinks: [
@@ -97,7 +107,9 @@ export const batchCalculatorContent = {
       { slug: 'michigan-paycheck-calculator', label: 'Michigan paycheck calculator for 2026', note: 'A 4.25% tax after a $5,900 exemption. At $65,000 single with one exemption and no city tax, Michigan tax is $2,511.75.' },
       { slug: 'texas-paycheck-calculator', label: 'Texas paycheck calculator for 2026', note: 'The same federal and FICA lines at $65,000, with state income tax at $0 and annual take-home of $54,407.50.' },
       { slug: '401k-contribution-calculator', label: '2026 401(k) contribution calculator', note: 'Check a deferral against the $24,500 limit before you type the dollar amount here. The deferral reduces Georgia tax and federal income tax.' },
-      { slug: 'virginia-paycheck-calculator', label: 'Virginia paycheck calculator for 2026', note: 'At $65,000 single with one $930 exemption, Virginia tax is $2,923.40 and the two-week headline is $1,980.16. This Georgia tax is $2,495.00.' }
+      { slug: 'virginia-paycheck-calculator', label: 'Virginia paycheck calculator for 2026', note: 'At $65,000 single with one $930 exemption, Virginia tax is $2,923.40 and the two-week headline is $1,980.16. This Georgia tax is $2,495.00.' },
+      { slug: 'sales-tax-calculator', label: 'Sales tax calculator by state', note: 'Georgia’s statewide sales tax is 4%, or $4.00 on $100. That is not withheld from the $1,996.63 paycheck.' },
+      { slug: 'us-federal-income-tax-calculator', label: '2026 federal income tax calculator', note: 'At $65,000 single the federal income tax is $5,620.00, the same federal line this paycheck uses before Georgia tax and FICA.' },
     ]
   },
   'north-carolina-paycheck-calculator': {

@@ -279,6 +279,23 @@ test('2026 England residential stamp duty', () => {
   assert.equal(calculate('england-stamp-duty-calculator', { price: 450000, buyer: 1, residence: 2 }).headline, '£21,500.00');
   assert.equal(calculate('england-stamp-duty-calculator', { price: 39999, buyer: 3, residence: 1 }).headline, '£0.00');
   assert.throws(() => calculate('england-stamp-duty-calculator', { price: -1, buyer: 1, residence: 1 }), /price/);
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 430000, buyer: 1, residence: 1, period: 1 }).headline, '£11,500.00');
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 430000, buyer: 2, residence: 1, period: 1 }).headline, '£6,500.00');
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 430000, buyer: 3, residence: 1, period: 1 }).headline, '£33,000.00');
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 190000, buyer: 1, residence: 1, period: 1 }).headline, '£1,300.00');
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 850000, buyer: 1, residence: 1, period: 1 }).headline, '£32,500.00');
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 1100000, buyer: 1, residence: 1, period: 1 }).headline, '£53,750.00');
+  const year2018 = calculate('england-stamp-duty-calculator', { price: 430000, buyer: 3, residence: 1, period: 8 });
+  assert.equal(year2018.headline, '£24,400.00');
+  assert.match(year2018.details[0], /3 percentage points/);
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 430000, buyer: 2, residence: 1, period: 3 }).headline, '£250.00');
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 250000, buyer: 1, residence: 1, period: 11 }).headline, '£2,500.00');
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 250001, buyer: 1, residence: 1, period: 11 }).headline, '£7,500.03');
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 430000, buyer: 1, residence: 1, period: 7 }).headline, '£0.00');
+  const holidayNonResident = calculate('england-stamp-duty-calculator', { price: 600000, buyer: 1, residence: 2, period: 7 });
+  assert.equal(holidayNonResident.headline, '£5,000.00');
+  assert.match(holidayNonResident.details[3], /not applied/);
+  assert.equal(calculate('england-stamp-duty-calculator', { price: 600000, buyer: 1, residence: 2, period: 6 }).headline, '£17,000.00');
 });
 
 test('final exam grade solves the weighted target', () => {
@@ -1878,4 +1895,33 @@ test('fence posts are counted per side and pickets cover the run after the gate'
   assert.equal(even.details[0], 'Linear feet: 96');
   assert.throws(() => calculate('fence-calculator', { shape: 1, length: 40, width: 20, spacing: 8, rails: 2, picket: 6, gap: 0, gate: 121 }), /wider than the fence/);
   assert.throws(() => calculate('fence-calculator', { shape: 1, length: 40, width: 0, spacing: 8, rails: 2, picket: 0, gap: 0, gate: 0 }), /width/);
+});
+
+test('November 10 calculators use their own formulas', () => {
+  assert.equal(calculate('uk-vat-calculator', { amount: 100, mode: 1, rate: 20 }).headline, '£120.00 total');
+  assert.equal(calculate('uk-vat-calculator', { amount: 49.99, mode: 1, rate: 20 }).details[0], 'VAT: £10.00');
+  assert.equal(calculate('uk-vat-calculator', { amount: 120, mode: 2, rate: 20 }).headline, '£100.00 before VAT');
+  assert.equal(calculate('savings-goal-calculator', { goal: 25000, current: 5000, rate: 5, years: 5, timing: 0 }).headline, '$273.26 / month');
+  assert.equal(calculate('savings-goal-calculator', { goal: 12000, current: 0, rate: 0, years: 1, timing: 0 }).headline, '$1,000.00 / month');
+  assert.equal(calculate('apr-calculator', { principal: 10000, rate: 7, months: 36, fees: 0 }).headline, '7.000% APR');
+  assert.equal(calculate('apr-calculator', { principal: 10000, rate: 7, months: 36, fees: 300 }).headline, '9.069% APR');
+  assert.equal(calculate('apr-calculator', { principal: 25000, rate: 6, months: 60, fees: 0 }).details[0], 'Monthly payment on the note: $483.32');
+  const federal = calculate('us-federal-income-tax-calculator', { salary: 80000, status: 1, deferral: 0 });
+  assert.equal(federal.headline, '$8,770.00 federal income tax');
+  assert.equal(calculate('us-federal-income-tax-calculator', { salary: 65000, status: 1, deferral: 0 }).headline, '$5,620.00 federal income tax');
+  assert.equal(calculate('us-federal-income-tax-calculator', { salary: 80000, status: 2, deferral: 0 }).headline, '$5,240.00 federal income tax');
+  assert.equal(calculate('canada-gst-hst-calculator', { amount: 100, mode: 1, province: 9 }).headline, '$113.00 total');
+  assert.equal(calculate('canada-gst-hst-calculator', { amount: 100, mode: 1, province: 7 }).headline, '$114.00 total');
+  assert.equal(calculate('canada-gst-hst-calculator', { amount: 100, mode: 1, province: 10 }).headline, '$114.98 total');
+  assert.equal(calculate('canada-gst-hst-calculator', { amount: 114.98, mode: 2, province: 10 }).headline, '$100.00 before tax');
+  assert.equal(calculate('weight-converter', { value: 70, unit: 1 }).headline, '154.32 lb');
+  assert.equal(calculate('weight-converter', { value: 11, unit: 3 }).headline, '154 lb');
+  assert.equal(calculate('add-days-calculator', { startdate: '2026-01-01', days: 90 }).headline, '1 April 2026');
+  assert.equal(calculate('add-days-calculator', { startdate: '2024-01-01', days: 365 }).headline, '31 December 2024');
+  assert.equal(calculate('markup-margin-calculator', { mode: 1, cost: 40, price: 60, percent: 50 }).headline, '$60.00 price');
+  assert.equal(calculate('markup-margin-calculator', { mode: 2, cost: 40, price: 60, percent: 50 }).headline, '$80.00 price');
+  assert.equal(calculate('down-payment-calculator', { price: 400000, percent: 20 }).headline, '$80,000.00 down');
+  assert.equal(calculate('down-payment-calculator', { price: 350000, percent: 5 }).details[2], 'Loan amount: $332,500.00');
+  assert.equal(calculate('australia-gst-calculator', { amount: 110, mode: 2 }).headline, '$100.00 before GST');
+  assert.equal(calculate('australia-gst-calculator', { amount: 100, mode: 1 }).headline, '$110.00 total');
 });

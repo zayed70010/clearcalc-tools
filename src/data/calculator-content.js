@@ -12,6 +12,7 @@ import { nov5CalculatorContent } from './nov5-calculator-content.js';
 import { nov6CalculatorContent } from './nov6-calculator-content.js';
 import { nov7CalculatorContent } from './nov7-calculator-content.js';
 import { nov9CalculatorContent } from './nov9-calculator-content.js';
+import { nov10CalculatorContent } from './nov10-calculator-content.js';
 
 export const calculatorContent = {
   'mortgage-calculator': {
@@ -126,6 +127,11 @@ export const calculatorContent = {
         slug: 'loan-calculator',
         label: 'Personal and auto loan calculator',
         note: 'The same amortization formula, aimed at shorter installment loans.'
+      },
+      {
+        slug: 'down-payment-calculator',
+        label: 'Down payment calculator',
+        note: '20% of a $400,000 home is $80,000 down and a $320,000 loan. This page amortizes a loan. It does not split the price.'
       },
       {
         slug: 'rent-affordability-calculator',
@@ -255,6 +261,11 @@ export const calculatorContent = {
         note: 'A $5,000 balance at 21.99% with a fixed $200 payment takes 34 months and $1,748.71 of interest. This loan page solves a payment from a term instead.'
       },
       {
+        slug: 'apr-calculator',
+        label: 'APR calculator',
+        note: '$10,000 at 7% for 36 months with $300 of prepaid charges has a $308.77 payment and a 9.069% APR. This loan page does not solve the APR.'
+      },
+      {
         slug: 'car-payment-calculator',
         label: 'Car payment calculator',
         note: 'The same amortizing formula with the term in months. $25,000 at 6% for 60 months is $483.32 a month and $3,999.20 of interest. This page takes the term in years.'
@@ -355,7 +366,8 @@ export const calculatorContent = {
     ],
     relatedLinks: [
       { slug: 'simple-interest-calculator', label: 'Simple interest calculator', note: '$10,000 at 5% for 3 years is $11,500.00 there, with $1,500.00 of interest. This page, with a $0 monthly deposit, compounds the same inputs to $11,614.72. The $114.72 gap is monthly compounding. The effective annual rate at 5% is 5.12%.' },
-      { slug: 'inflation-calculator', label: 'Inflation calculator', note: '$100 of 2016 buying power is $134.14 in 2025 CPI-U dollars, a 34.14% rise. A constant 3% for 10 years prices the same $100 at $134.39. Neither figure is this investment balance.' }
+      { slug: 'inflation-calculator', label: 'Inflation calculator', note: '$100 of 2016 buying power is $134.14 in 2025 CPI-U dollars, a 34.14% rise. A constant 3% for 10 years prices the same $100 at $134.39. Neither figure is this investment balance.' },
+      { slug: 'savings-goal-calculator', label: 'Savings goal calculator', note: 'With $5,000 already saved, a $25,000 goal at 5% for 5 years needs $273.26 a month at month-end. This page projects the balance from a deposit you choose.' }
     ]
   },
   'bmi-calculator': {
@@ -684,7 +696,8 @@ export const calculatorContent = {
       { slug: 'discount-calculator', label: 'Discount calculator', note: 'Takes 20% off a price. This page can then say what percent the dollars saved are of the original price. It does not compute the sale price.' },
       { slug: 'tip-calculator', label: 'Tip calculator', note: 'An 18% tip on $85 is $15.30. Part 15.30 and whole 85 on this page is 18%. The tip page also splits the bill.' },
       { slug: 'debt-to-income-ratio-calculator', label: 'Debt-to-income ratio calculator', note: 'On $8,000 of income, $2,200 of housing is 27.50% front-end and $2,600 of total debt is 32.50% back-end. Part 2200 and whole 8000 is 27.5% here, and part 2600 and whole 8000 is 32.5%.' },
-      { slug: 'percentage-change-calculator', label: 'Percentage change calculator', note: 'From 80 to 100 is a 25.00% increase. This page has no old and new fields. Part 25 and whole 80 is 31.25%, which is a different question.' }
+      { slug: 'percentage-change-calculator', label: 'Percentage change calculator', note: 'From 80 to 100 is a 25.00% increase. This page has no old and new fields. Part 25 and whole 80 is 31.25%, which is a different question.' },
+      { slug: 'markup-margin-calculator', label: 'Markup and margin calculator', note: 'A 50% markup on a $40 cost is a $60 price and a 33.33% margin. Part 20 and whole 40 is 50% here. Part 20 and whole 60 is 33.33%.' }
     ]
   },
   'tip-calculator': {
@@ -889,6 +902,16 @@ export const calculatorContent = {
         slug: 'date-difference-calculator',
         label: 'Days between two dates',
         note: 'The elapsed day count, including weekends. It does not borrow months the way this age result does.'
+      },
+      {
+        slug: 'add-days-calculator',
+        label: 'Add days to a date',
+        note: '1 January 2026 plus 90 days is 1 April 2026. This age page does not add a raw day count.'
+      },
+      {
+        slug: 'uk-working-days-calculator',
+        label: 'UK working days calculator',
+        note: 'Drops weekends and can drop bank holidays. An age in years is not a working-day count.'
       }
     ]
   },
@@ -1000,6 +1023,11 @@ export const calculatorContent = {
         note: 'Completed years, months, and days from a birthday. It borrows month lengths instead of counting every elapsed day.'
       },
       {
+        slug: 'add-days-calculator',
+        label: 'Add days to a date',
+        note: '1 January 2026 plus 90 days is 1 April 2026. This page would count those two dates as 90 elapsed days.'
+      },
+      {
         slug: 'hourly-to-salary-calculator',
         label: 'Hourly to salary calculator',
         note: 'Turns an hourly rate and a number of weeks into annual pay. It does not count the days between two dates.'
@@ -1092,13 +1120,14 @@ export const calculatorContent = {
       },
       {
         q: 'Can this convert weight, temperature, or area?',
-        a: 'No. The menu is only feet, inches, yards, and kilometers, and the input is meters of length. Square and cubic conversions need the length factor raised to the second or third power, which this form does not do. Temperature uses °F = °C × 9/5 + 32 on its own page: 180°C is 356°F. Fuel economy, in US mpg, UK mpg, or litres per 100 km, is a different rate and has its own page.'
+        a: 'No. The menu is only feet, inches, yards, and kilometers, and the input is meters of length. Weight is on the weight converter: 70 kg is 154.32 lb. Square and cubic conversions need the length factor raised to the second or third power, which this form does not do. Temperature uses °F = °C × 9/5 + 32 on its own page: 180°C is 356°F. Fuel economy, in US mpg, UK mpg, or litres per 100 km, is a different rate and has its own page.'
       }
     ],
     relatedLinks: [
       { slug: 'fuel-economy-converter', label: 'Fuel economy converter', note: '30 US mpg is 7.84 L/100 km and 36.03 UK mpg. This length page does not divide by a gallon. The mile on that page is 1.609344 kilometres, which is not the rounded foot factor used here.' },
       { slug: 'celsius-to-fahrenheit-calculator', label: 'Celsius to Fahrenheit calculator', note: '180°C is 356°F by °F = °C × 9/5 + 32. A chart that says 350°F is rounding. This length page does not convert a temperature.' },
-      { slug: 'concrete-slab-calculator', label: 'Concrete slab calculator', note: 'If the slab was measured in meters, convert to feet here first. Thickness on that page stays in inches.' }
+      { slug: 'concrete-slab-calculator', label: 'Concrete slab calculator', note: 'If the slab was measured in meters, convert to feet here first. Thickness on that page stays in inches.' },
+      { slug: 'weight-converter', label: 'Weight converter', note: '70 kg is 154.32 lb and 11 st 0.32 lb. This page converts length, not mass.' }
     ]
   },
   'gpa-calculator': {
@@ -1287,6 +1316,12 @@ export const calculatorContent = {
         q: 'Why might the savings and the sale price look a cent apart from the original?',
         a: 'Each amount is rounded to the cent on its own. Fifteen percent of $79.99 is 11.9985, shown as a $12.00 savings, and the sale price is shown as $67.99. Check a one-cent gap against that rounding before assuming the percent was wrong.'
       }
+    ],
+    relatedLinks: [
+      { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'Says what percent the savings are of the original price. It does not compute the sale price.' },
+      { slug: 'sales-tax-calculator', label: 'Sales tax calculator by state', note: 'Add tax after the discount if the shop taxes the sale price. $100 at 8.25% is $108.25 before any discount.' },
+      { slug: 'markup-margin-calculator', label: 'Markup and margin calculator', note: 'A 50% markup on a $40 cost is a $60 price and a 33.33% margin. A discount is not a margin.' },
+      { slug: 'tip-calculator', label: 'Tip calculator', note: 'Adds a percent and splits a bill. A tip is not a percent off.' }
     ]
   },
   'uk-take-home-pay-calculator': {
@@ -1406,6 +1441,16 @@ export const calculatorContent = {
         note: 'Compare a fixed monthly payment with take-home pay only when both numbers are in the same currency.'
       },
       {
+        slug: 'uk-vat-calculator',
+        label: 'UK VAT calculator',
+        note: '£100 before VAT at 20% is £20.00 of VAT and a £120.00 total. VAT is not deducted from this salary.'
+      },
+      {
+        slug: 'england-stamp-duty-calculator',
+        label: 'Stamp duty calculator for England and Northern Ireland',
+        note: 'A £430,000 main home is £11,500 of SDLT under the 2026 bands. That tax is not subtracted from take-home pay.'
+      },
+      {
         slug: 'mortgage-calculator',
         label: 'Fixed-rate mortgage calculator',
         note: 'Principal and interest only, in US dollars, with taxes and insurance left out.'
@@ -1435,7 +1480,8 @@ export const calculatorContent = {
   ...nov5CalculatorContent,
   ...nov6CalculatorContent,
   ...nov7CalculatorContent,
-  ...nov9CalculatorContent
+  ...nov9CalculatorContent,
+  ...nov10CalculatorContent
 };
 
 export function contentWordCount(entry) {
@@ -1455,6 +1501,14 @@ export function contentWordCount(entry) {
     entry.table.caption,
     ...entry.table.headers,
     ...entry.table.rows.flat(),
+    ...(entry.extraSections ?? []).flatMap((section) => [
+      section.heading,
+      ...(section.paragraphs ?? []),
+      section.table?.heading,
+      section.table?.caption,
+      ...(section.table?.headers ?? []),
+      ...(section.table?.rows?.flat() ?? [])
+    ]),
     ...entry.limits,
     entry.disclaimer,
     ...entry.faqs.flatMap((faq) => [faq.q, faq.a])

@@ -300,12 +300,24 @@ function bcTaxReductionCents(netCents) {
   return Math.max(0, base - phase);
 }
 
-// Residential SDLT for an effective date on or after 1 April 2025, still the
-// GOV.UK residential tables in 2026. Rates are percent. Non-resident purchases
-// add 2 percentage points to every band. Prices are in pence.
-const SDLT_STANDARD = [[12_500_000, 0], [25_000_000, 2], [92_500_000, 5], [150_000_000, 10], [Number.POSITIVE_INFINITY, 12]];
+// Residential SDLT. Rates are percent. Prices and band tops are pence.
+// Period 1 is the GOV.UK residential table from 1 April 2025, still current
+// for a 2026 completion. Earlier periods are the HMRC rate cards for that
+// completion window. The 15% or 17% higher rate for certain non-natural
+// persons is not one of these tables.
+const SDLT_SLICE_125 = [[12_500_000, 0], [25_000_000, 2], [92_500_000, 5], [150_000_000, 10], [Number.POSITIVE_INFINITY, 12]];
+const SDLT_NIL_250 = [[25_000_000, 0], [92_500_000, 5], [150_000_000, 10], [Number.POSITIVE_INFINITY, 12]];
+const SDLT_NIL_500 = [[50_000_000, 0], [92_500_000, 5], [150_000_000, 10], [Number.POSITIVE_INFINITY, 12]];
+const SDLT_FTB_300 = { bands: [[30_000_000, 0], [50_000_000, 5]], cap: 50_000_000, capLabel: '£500,000' };
+const SDLT_FTB_425 = { bands: [[42_500_000, 0], [62_500_000, 5]], cap: 62_500_000, capLabel: '£625,000' };
+// Slab in force immediately before 4 December 2014. One rate on the whole
+// price. GOV.UK "Stamp Duty Land Tax rates: 24 March 2014 to 3 December 2014".
+// The 7% band above £2 million dates from 22 March 2012. Exactly £2 million
+// is still the 5% slab. The 15% corporate rate is not applied.
+const SDLT_SLAB_2012 = [[12_500_000, 0], [25_000_000, 1], [50_000_000, 3], [100_000_000, 4], [200_000_000, 5], [Number.POSITIVE_INFINITY, 7]];
+const SDLT_STANDARD = SDLT_SLICE_125;
 const SDLT_ADDITIONAL = [[12_500_000, 5], [25_000_000, 7], [92_500_000, 10], [150_000_000, 15], [Number.POSITIVE_INFINITY, 17]];
-const SDLT_FIRST_HOME = [[30_000_000, 0], [50_000_000, 5]];
+const SDLT_FIRST_HOME = SDLT_FTB_300.bands;
 
 function sliceDutyPence(pricePence, bands) {
   let tax = 0;
@@ -318,6 +330,117 @@ function sliceDutyPence(pricePence, bands) {
     previous = upTo;
   }
   return Math.round(tax / 100);
+}
+
+function slabDutyPence(pricePence, slabs) {
+  let rate = slabs.at(-1)[1];
+  for (const [upTo, bandRate] of slabs) {
+    if (pricePence <= upTo) {
+      rate = bandRate;
+      break;
+    }
+  }
+  return { duty: Math.round(pricePence * rate / 100), rate };
+}
+
+// ftb: null means there is no separate first-time buyer table.
+// ftbNote 'replaced' is the 2020–21 holiday, when GOV.UK says the special
+// first-time buyer rules were replaced by the reduced residential rates.
+// ftbNote 'later' means relief had not started yet (before 22 November 2017).
+const SDLT_PERIODS = {
+  1: { label: '1 April 2025 onward', mode: 'slice', standard: SDLT_SLICE_125, extra: 5, ftb: SDLT_FTB_300, ftbNote: 'relief', nonResident: true },
+  2: { label: '31 October 2024 to 31 March 2025', mode: 'slice', standard: SDLT_NIL_250, extra: 5, ftb: SDLT_FTB_425, ftbNote: 'relief', nonResident: true },
+  3: { label: '23 September 2022 to 30 October 2024', mode: 'slice', standard: SDLT_NIL_250, extra: 3, ftb: SDLT_FTB_425, ftbNote: 'relief', nonResident: true },
+  4: { label: '1 October 2021 to 22 September 2022', mode: 'slice', standard: SDLT_SLICE_125, extra: 3, ftb: SDLT_FTB_300, ftbNote: 'relief', nonResident: true },
+  5: { label: '1 July 2021 to 30 September 2021', mode: 'slice', standard: SDLT_NIL_250, extra: 3, ftb: SDLT_FTB_300, ftbNote: 'relief', nonResident: true },
+  6: { label: '1 April 2021 to 30 June 2021', mode: 'slice', standard: SDLT_NIL_500, extra: 3, ftb: null, ftbNote: 'replaced', nonResident: true },
+  7: { label: '8 July 2020 to 31 March 2021', mode: 'slice', standard: SDLT_NIL_500, extra: 3, ftb: null, ftbNote: 'replaced', nonResident: false },
+  8: { label: '22 November 2017 to 7 July 2020', mode: 'slice', standard: SDLT_SLICE_125, extra: 3, ftb: SDLT_FTB_300, ftbNote: 'relief', nonResident: false },
+  9: { label: '1 April 2016 to 21 November 2017', mode: 'slice', standard: SDLT_SLICE_125, extra: 3, ftb: null, ftbNote: 'later', nonResident: false },
+  10: { label: '4 December 2014 to 31 March 2016', mode: 'slice', standard: SDLT_SLICE_125, extra: 0, ftb: null, ftbNote: 'later', nonResident: false },
+  11: { label: '22 March 2012 to 3 December 2014', mode: 'slab', slabs: SDLT_SLAB_2012, extra: 0, ftb: null, ftbNote: 'later', nonResident: false }
+};
+
+function liftBands(bands, points) {
+  return bands.map(([upTo, rate]) => [upTo, rate + points]);
+}
+
+function englandStampDutyResult(v) {
+  const price = nonNegativeCents(v.price, 'price');
+  const buyer = Number(v.buyer);
+  const residence = Number(v.residence);
+  const periodId = v.period == null || Number.isNaN(Number(v.period)) ? 1 : Number(v.period);
+  const period = SDLT_PERIODS[periodId];
+  if (![1, 2, 3].includes(buyer)) throw new Error('Choose a buyer type');
+  if (residence !== 1 && residence !== 2) throw new Error('Choose a residence status');
+  if (!period) throw new Error('Choose a completion period');
+  const wantNonResident = residence === 2;
+  const surcharge = wantNonResident && period.nonResident ? 2 : 0;
+  let duty;
+  let rule;
+  if (period.mode === 'slab') {
+    const slab = slabDutyPence(price, period.slabs);
+    duty = slab.duty;
+    rule = `Rates used: the pre-4 December 2014 slab. One rate, ${slab.rate}%, applies to the whole price. First-time buyer relief and the additional-dwelling surcharge did not exist in this period.`;
+  } else {
+    let bands = liftBands(period.standard, surcharge);
+    const standardRule = periodId === 1
+      ? (surcharge === 0
+        ? 'Rates used: standard residential SDLT for a purchase that replaces your main home.'
+        : 'Rates used: standard residential SDLT plus the 2 percentage point non-UK resident surcharge.')
+      : `Rates used: standard residential SDLT for ${period.label}${surcharge === 0 ? '.' : ', plus the 2 percentage point non-UK resident surcharge.'}`;
+    rule = standardRule;
+    if (buyer === 3 && period.extra > 0 && price >= 4_000_000) {
+      bands = liftBands(period.standard, period.extra + surcharge);
+      rule = periodId === 1
+        ? (surcharge === 0
+          ? 'Rates used: higher rates for an additional dwelling, 5 percentage points above the standard residential rates.'
+          : 'Rates used: higher rates for an additional dwelling, plus the 2 percentage point non-UK resident surcharge.')
+        : `Rates used: additional-dwelling rates for ${period.label}, ${period.extra} percentage points above the standard bands${surcharge === 0 ? '.' : ', plus the 2 percentage point non-UK resident surcharge.'}`;
+    } else if (buyer === 3 && period.extra > 0) {
+      rule = surcharge === 0
+        ? 'The additional-dwelling higher rates are not applied under £40,000. Standard residential rates were used instead.'
+        : 'The additional-dwelling higher rates are not applied under £40,000. Standard residential rates plus the non-UK resident surcharge were used.';
+      if (periodId !== 1 && surcharge === 0) rule = `The additional-dwelling higher rates are not applied under £40,000. Standard rates for ${period.label} were used instead.`;
+    } else if (buyer === 3 && period.extra === 0) {
+      rule = `The additional-dwelling surcharge was not in force for ${period.label}. Standard rates were used. The 3 percentage point higher rates started on completions from 1 April 2016.`;
+    } else if (buyer === 2 && period.ftb && price <= period.ftb.cap) {
+      bands = liftBands(period.ftb.bands, surcharge);
+      rule = periodId === 1
+        ? (surcharge === 0
+          ? 'Rates used: first-time buyer relief, available only when the price is £500,000 or less and every buyer qualifies.'
+          : 'Rates used: first-time buyer relief plus the 2 percentage point non-UK resident surcharge.')
+        : `Rates used: first-time buyer relief for ${period.label}. The price is within ${period.ftb.capLabel}${surcharge === 0 ? '.' : ', plus the 2 percentage point non-UK resident surcharge.'}`;
+    } else if (buyer === 2 && period.ftb) {
+      rule = periodId === 1
+        ? (surcharge === 0
+          ? 'First-time buyer relief does not apply above £500,000. Standard residential rates were used.'
+          : 'First-time buyer relief does not apply above £500,000. Standard residential rates plus the non-UK resident surcharge were used.')
+        : `First-time buyer relief does not apply above ${period.ftb.capLabel} in ${period.label}. Standard rates were used${surcharge === 0 ? '.' : ', plus the non-UK resident surcharge.'}`;
+    } else if (buyer === 2 && period.ftbNote === 'replaced') {
+      rule = `First-time buyer relief was replaced by the reduced residential rates for ${period.label}, so those standard bands were used${surcharge === 0 ? '.' : ', plus the non-UK resident surcharge.'}`;
+    } else if (buyer === 2) {
+      rule = `First-time buyer relief was not in force for ${period.label}. It started on 22 November 2017. Standard rates were used.`;
+    }
+    duty = sliceDutyPence(price, bands);
+  }
+  const effective = price === 0 ? 0 : duty / price * 100;
+  const residenceLine = !period.nonResident && wantNonResident
+    ? 'Non-UK resident surcharge: not applied. The 2 percentage point surcharge started on 1 April 2021, after this period.'
+    : surcharge === 2
+      ? 'Non-UK resident surcharge: 2 percentage points on each band.'
+      : 'Non-UK resident surcharge: not applied.';
+  return {
+    headline: gbp(duty),
+    details: [
+      rule,
+      `Effective rate: ${percent(effective)}%`,
+      `Price: ${gbp(price)}`,
+      residenceLine,
+      `Completion period: ${period.label}.`,
+      'England and Northern Ireland residential freehold. Scotland uses LBTT and Wales uses LTT.'
+    ]
+  };
 }
 
 const CONCRETE_BAGS = {
@@ -1922,48 +2045,7 @@ export function calculate(slug, values) {
       ]
     };
   }
-  if (slug === 'england-stamp-duty-calculator') {
-    const price = nonNegativeCents(v.price, 'price');
-    const buyer = Number(v.buyer);
-    const residence = Number(v.residence);
-    if (![1, 2, 3].includes(buyer)) throw new Error('Choose a buyer type');
-    if (residence !== 1 && residence !== 2) throw new Error('Choose a residence status');
-    const surcharge = residence === 2 ? 2 : 0;
-    let bands = SDLT_STANDARD.map(([upTo, rate]) => [upTo, rate + surcharge]);
-    let rule = surcharge === 0
-      ? 'Rates used: standard residential SDLT for a purchase that replaces your main home.'
-      : 'Rates used: standard residential SDLT plus the 2 percentage point non-UK resident surcharge.';
-    if (buyer === 3 && price >= 4_000_000) {
-      bands = SDLT_ADDITIONAL.map(([upTo, rate]) => [upTo, rate + surcharge]);
-      rule = surcharge === 0
-        ? 'Rates used: higher rates for an additional dwelling, 5 percentage points above the standard residential rates.'
-        : 'Rates used: higher rates for an additional dwelling, plus the 2 percentage point non-UK resident surcharge.';
-    } else if (buyer === 3) {
-      rule = 'The additional-dwelling higher rates are not applied under £40,000. Standard residential rates were used instead.';
-      if (surcharge !== 0) rule = 'The additional-dwelling higher rates are not applied under £40,000. Standard residential rates plus the non-UK resident surcharge were used.';
-    } else if (buyer === 2 && price <= 50_000_000) {
-      bands = SDLT_FIRST_HOME.map(([upTo, rate]) => [upTo, rate + surcharge]);
-      rule = surcharge === 0
-        ? 'Rates used: first-time buyer relief, available only when the price is £500,000 or less and every buyer qualifies.'
-        : 'Rates used: first-time buyer relief plus the 2 percentage point non-UK resident surcharge.';
-    } else if (buyer === 2) {
-      rule = surcharge === 0
-        ? 'First-time buyer relief does not apply above £500,000. Standard residential rates were used.'
-        : 'First-time buyer relief does not apply above £500,000. Standard residential rates plus the non-UK resident surcharge were used.';
-    }
-    const duty = sliceDutyPence(price, bands);
-    const effective = price === 0 ? 0 : duty / price * 100;
-    return {
-      headline: gbp(duty),
-      details: [
-        rule,
-        `Effective rate: ${percent(effective)}%`,
-        `Price: ${gbp(price)}`,
-        residence === 2 ? 'Non-UK resident surcharge: 2 percentage points on each band.' : 'Non-UK resident surcharge: not applied.',
-        'England and Northern Ireland residential freehold. Scotland uses LBTT and Wales uses LTT.'
-      ]
-    };
-  }
+  if (slug === 'england-stamp-duty-calculator') return englandStampDutyResult(v);
   if (slug === 'final-exam-grade-calculator') {
     const current = v.current;
     const weight = v.weight;
@@ -4246,7 +4328,427 @@ export function calculate(slug, values) {
   if (slug === 'nunavut-take-home-pay-calculator') return nunavutTakeHome(v);
   if (slug === 'northern-ireland-take-home-pay-calculator') return northernIrelandTakeHome(v);
   if (slug === 'fence-calculator') return fenceResult(v);
+  if (slug === 'uk-vat-calculator') return ukVatResult(v);
+  if (slug === 'savings-goal-calculator') return savingsGoalResult(v);
+  if (slug === 'apr-calculator') return aprResult(v);
+  if (slug === 'us-federal-income-tax-calculator') return federalIncomeTaxResult(v);
+  if (slug === 'canada-gst-hst-calculator') return canadaGstResult(v);
+  if (slug === 'weight-converter') return weightResult(v);
+  if (slug === 'add-days-calculator') return addDaysResult(v);
+  if (slug === 'markup-margin-calculator') return markupMarginResult(v);
+  if (slug === 'down-payment-calculator') return downPaymentResult(v);
+  if (slug === 'australia-gst-calculator') return australiaGstResult(v);
   throw new Error('Unsupported calculator');
+}
+
+const CANADA_GST = {
+  1: { name: 'Alberta', rate: 5, kind: 'gst', pst: 'Alberta has no provincial sales tax.' },
+  2: { name: 'British Columbia', rate: 5, kind: 'gst', pst: 'British Columbia also charges 7% PST, which is not added here.' },
+  3: { name: 'Manitoba', rate: 5, kind: 'gst', pst: 'Manitoba also charges 7% RST, which is not added here.' },
+  4: { name: 'New Brunswick', rate: 15, kind: 'hst', pst: 'New Brunswick HST is a single 15% tax. There is no separate PST.' },
+  5: { name: 'Newfoundland and Labrador', rate: 15, kind: 'hst', pst: 'Newfoundland and Labrador HST is a single 15% tax. There is no separate PST.' },
+  6: { name: 'Northwest Territories', rate: 5, kind: 'gst', pst: 'The Northwest Territories have no territorial sales tax.' },
+  7: { name: 'Nova Scotia', rate: 14, kind: 'hst', pst: 'Nova Scotia HST is 14% for GST/HST that becomes payable on or after 1 April 2025. It was 15% before that date.' },
+  8: { name: 'Nunavut', rate: 5, kind: 'gst', pst: 'Nunavut has no territorial sales tax.' },
+  9: { name: 'Ontario', rate: 13, kind: 'hst', pst: 'Ontario HST is a single 13% tax. There is no separate PST.' },
+  10: { name: 'Quebec', rate: 5, kind: 'qst', pst: 'Quebec QST is 9.975% of the price before GST. It is not HST.' },
+  11: { name: 'Prince Edward Island', rate: 15, kind: 'hst', pst: 'Prince Edward Island HST is a single 15% tax. There is no separate PST.' },
+  12: { name: 'Saskatchewan', rate: 5, kind: 'gst', pst: 'Saskatchewan also charges 6% PST, which is not added here.' },
+  13: { name: 'Yukon', rate: 5, kind: 'gst', pst: 'Yukon has no territorial sales tax.' }
+};
+
+function percentTaxCents(amountCents, rate) {
+  return Math.round(amountCents * rate / 100);
+}
+
+function priceBeforeRateCents(totalCents, rate) {
+  return Math.round(totalCents / (1 + rate / 100));
+}
+
+function ukVatResult(v) {
+  const amount = nonNegativeCents(v.amount, 'amount');
+  const mode = Number(v.mode);
+  const rate = Number(v.rate);
+  if (mode !== 1 && mode !== 2) throw new Error('Choose whether the amount is before VAT or includes VAT');
+  if (![20, 5, 0].includes(rate)) throw new Error('Choose the standard, reduced, or zero rate');
+  const rateName = rate === 20 ? 'standard rate' : rate === 5 ? 'reduced rate' : 'zero rate';
+  if (mode === 1) {
+    const vat = percentTaxCents(amount, rate);
+    return {
+      headline: `${gbp(amount + vat)} total`,
+      details: [
+        `VAT: ${gbp(vat)}`,
+        `Price before VAT: ${gbp(amount)}`,
+        `Rate: ${rate}% ${rateName}`,
+        'VAT is rounded to the nearest penny. HMRC’s standard rate is 20%, the reduced rate is 5%, and the zero rate is 0%.',
+        'This is one rate on one amount. It does not decide whether a supply is standard-rated, reduced-rated, zero-rated, or exempt.'
+      ]
+    };
+  }
+  const net = priceBeforeRateCents(amount, rate);
+  const vat = amount - net;
+  return {
+    headline: `${gbp(net)} before VAT`,
+    details: [
+      `VAT inside the total: ${gbp(vat)}`,
+      `Total including VAT: ${gbp(amount)}`,
+      `Rate: ${rate}% ${rateName}`,
+      'The price is the total divided by 1 plus the rate, rounded to the nearest penny.',
+      'A zero-rated total has no VAT to remove. An exempt supply is not the same thing as the zero rate, and this form cannot tell them apart.'
+    ]
+  };
+}
+
+function savingsGoalResult(v) {
+  const goal = nonNegativeCents(v.goal, 'goal');
+  const current = nonNegativeCents(v.current, 'current balance');
+  if (!Number.isFinite(v.rate) || v.rate < 0 || v.rate > 20) throw new Error('Enter an annual return from 0 to 20 percent');
+  if (!Number.isFinite(v.years) || v.years <= 0 || v.years > 50) throw new Error('Enter a term above 0 and at most 50 years');
+  const timing = Number(v.timing);
+  if (timing !== 0 && timing !== 1) throw new Error('Choose when each deposit is added');
+  const months = v.years * 12;
+  if (!Number.isFinite(months)) throw new Error('Enter a term in years');
+  const r = v.rate / 1200;
+  const growth = (1 + r) ** months;
+  const futureCurrent = current * growth;
+  let payment;
+  if (r === 0) payment = (goal - futureCurrent) / months;
+  else {
+    const factor = (growth - 1) / r;
+    const annuity = timing === 1 ? factor * (1 + r) : factor;
+    payment = (goal - futureCurrent) / annuity;
+  }
+  if (!Number.isFinite(payment)) throw new Error('That term and rate cannot be solved');
+  const paymentCents = Math.round(payment);
+  const contributed = current + Math.max(0, paymentCents) * months;
+  if (paymentCents <= 0) {
+    return {
+      headline: `${usdCents(0)} / month`,
+      details: [
+        `The balance you already have grows to ${usdCents(Math.round(futureCurrent))}, which covers the ${usdCents(goal)} goal.`,
+        `Surplus at the end, before any extra deposit: ${usdCents(Math.round(futureCurrent - goal))}`,
+        `Annual return used: ${percent(v.rate)}%`,
+        `Months: ${number(months, 2)}`,
+        timing === 1 ? 'Deposit timing: beginning of each month. No deposit was required.' : 'Deposit timing: end of each month. No deposit was required.'
+      ]
+    };
+  }
+  const futureDeposits = goal - futureCurrent;
+  return {
+    headline: `${usdCents(paymentCents)} / month`,
+    details: [
+      `Goal: ${usdCents(goal)}`,
+      `Already saved, grown to the end: ${usdCents(Math.round(futureCurrent))}`,
+      `Portion of the goal that the deposits must cover: ${usdCents(Math.round(futureDeposits))}`,
+      `Deposited over the term, not counting growth: ${usdCents(Math.round(paymentCents * months))}`,
+      `Starting balance counted inside contributions: ${usdCents(current)}`,
+      `Contributions if you ignore growth: ${usdCents(Math.round(contributed))}`,
+      timing === 1
+        ? 'Each deposit is added at the beginning of the month, so it earns that month’s interest.'
+        : 'Each deposit is added at the end of the month, so it does not earn that month’s interest.',
+      'The return is a constant monthly rate, annual percent divided by 12. It is not a forecast.'
+    ]
+  };
+}
+
+function loanPaymentDollars(principal, annualPercent, months) {
+  const r = annualPercent / 1200;
+  if (r === 0) return principal / months;
+  const growth = (1 + r) ** months;
+  return principal * r * growth / (growth - 1);
+}
+
+function aprResult(v) {
+  const principal = nonNegativeCents(v.principal, 'amount');
+  const fees = nonNegativeCents(v.fees, 'prepaid finance charges');
+  if (!Number.isFinite(v.rate) || v.rate < 0 || v.rate > 36) throw new Error('Enter a note rate from 0 to 36 percent');
+  if (!Number.isInteger(v.months) || v.months < 1 || v.months > 480) throw new Error('Enter a whole term from 1 to 480 months');
+  if (fees > principal) throw new Error('Prepaid finance charges cannot be larger than the amount you repay');
+  const payment = loanPaymentDollars(principal / 100, v.rate, v.months);
+  const amountFinanced = (principal - fees) / 100;
+  const pvAt = (monthly) => monthly === 0
+    ? payment * v.months
+    : payment * (1 - (1 + monthly) ** -v.months) / monthly;
+  let low = 0;
+  let high = 0.05;
+  while (pvAt(high) > amountFinanced && high < 5) high *= 2;
+  for (let i = 0; i < 80; i += 1) {
+    const mid = (low + high) / 2;
+    if (pvAt(mid) > amountFinanced) low = mid;
+    else high = mid;
+  }
+  const apr = ((low + high) / 2) * 1200;
+  const aprText = new Intl.NumberFormat('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(apr);
+  const interest = payment * v.months - principal / 100;
+  return {
+    headline: `${aprText}% APR`,
+    details: [
+      `Monthly payment on the note: ${money(payment)}`,
+      `Amount financed, after prepaid charges: ${usdCents(principal - fees)}`,
+      `Note rate: ${percent(v.rate)}%`,
+      `Finance charge, interest plus prepaid charges: ${money(interest + fees / 100)}`,
+      `Term: ${v.months} monthly payments`,
+      fees === 0
+        ? 'With no prepaid finance charge, this APR matches the note rate. It is the nominal annual rate, not the effective annual rate.'
+        : 'The APR is the constant monthly rate that makes the payment’s present value equal the amount financed. Prepaid charges raise it above the note rate.',
+      'This is the actuarial payment method for a fixed monthly loan. It is not a lender’s disclosed APR if the lender uses a different payment schedule, odd days, or a mortgage with mortgage insurance.'
+    ]
+  };
+}
+
+function federalIncomeTaxResult(v) {
+  const status = filingStatusCode(v.status);
+  const salary = nonNegativeCents(v.salary, 'wages');
+  const requested = nonNegativeCents(v.deferral, '401(k) deferral');
+  const deferral = Math.min(requested, salary, US_401K_DEFERRAL_CENTS);
+  const brackets = status === 1 ? US_SINGLE_BRACKETS : US_JOINT_BRACKETS;
+  const deduction = Math.min(US_STANDARD_DEDUCTION[status], Math.max(0, salary - deferral));
+  const taxable = Math.max(0, salary - deferral - deduction);
+  const tax = bracketTaxCents(taxable, brackets);
+  const details = [
+    `Federal income tax: ${usdCents(tax)}`,
+    `Wages: ${usdCents(salary)}`,
+    `Traditional 401(k) removed before the deduction: ${usdCents(deferral)}`,
+    `2026 standard deduction applied: ${usdCents(deduction)}`,
+    `Taxable income: ${usdCents(taxable)}`,
+    `Effective rate on wages: ${percent(salary === 0 ? 0 : tax / salary * 100)}%`
+  ];
+  let previous = 0;
+  let marginal = 0;
+  for (const [upTo, basisPoints] of brackets) {
+    const top = Math.min(taxable, upTo);
+    const slice = top - previous;
+    const rate = basisPoints / 100;
+    if (slice > 0) {
+      const sliceTax = Math.round(slice * basisPoints / 10000);
+      const topLabel = upTo === Number.POSITIVE_INFINITY ? 'and above' : `to ${usdCents(upTo)}`;
+      details.push(`${percent(rate)}% bracket, ${usdCents(previous)} ${topLabel}: ${usdCents(sliceTax)} on ${usdCents(slice)}`);
+      marginal = rate;
+    }
+    if (taxable <= upTo) break;
+    previous = upTo;
+  }
+  details.push(`Marginal rate on the next dollar of taxable income: ${percent(marginal)}%`);
+  details.push(status === 1
+    ? 'Filing status: single. Brackets and the $16,100 standard deduction are the 2026 figures in IRS Revenue Procedure 2025-32.'
+    : 'Filing status: married filing jointly, with this wage as the only income. The standard deduction is $32,200. A spouse’s wages are not added.');
+  details.push('Social Security, Medicare, and state income tax are not subtracted. This is the federal income tax only.');
+  if (requested > deferral) details.push(`401(k) entered above the 2026 elective deferral limit or above wages was reduced to ${usdCents(deferral)}`);
+  return { headline: `${usdCents(tax)} federal income tax`, details };
+}
+
+function canadaGstResult(v) {
+  const amount = nonNegativeCents(v.amount, 'amount');
+  const mode = Number(v.mode);
+  const place = CANADA_GST[Number(v.province)];
+  if (mode !== 1 && mode !== 2) throw new Error('Choose whether the amount is before tax or includes tax');
+  if (!place) throw new Error('Choose a province or territory');
+  if (place.kind === 'qst') {
+    if (mode === 1) {
+      const gst = percentTaxCents(amount, 5);
+      const qst = Math.round(amount * 9975 / 100000);
+      return {
+        headline: `${cadCents(amount + gst + qst)} total`,
+        details: [
+          `GST: ${cadCents(gst)}`,
+          `QST: ${cadCents(qst)}`,
+          `Price before tax: ${cadCents(amount)}`,
+          'Quebec: 5% GST and 9.975% QST, each rounded to the nearest cent. QST is calculated on the price before GST.',
+          place.pst,
+          'Rates are the CRA provincial table. Zero-rated groceries and other exemptions are not detected.'
+        ]
+      };
+    }
+    const guess = Math.round(amount / 1.14975);
+    let net = Math.max(0, guess);
+    let bestGap = Infinity;
+    for (let candidate = Math.max(0, guess - 3); candidate <= guess + 3; candidate += 1) {
+      const gstTry = percentTaxCents(candidate, 5);
+      const qstTry = Math.round(candidate * 9975 / 100000);
+      const gap = Math.abs(candidate + gstTry + qstTry - amount);
+      if (gap < bestGap) {
+        bestGap = gap;
+        net = candidate;
+      }
+    }
+    const gst = percentTaxCents(net, 5);
+    const qst = Math.round(net * 9975 / 100000);
+    return {
+      headline: `${cadCents(net)} before tax`,
+      details: [
+        `GST inside the total: ${cadCents(gst)}`,
+        `QST inside the total: ${cadCents(qst)}`,
+        `Total: ${cadCents(amount)}`,
+        `Rounding gap between the total and GST plus QST plus the price: ${cadCents(amount - net - gst - qst)}`,
+        'The price is the total divided by 1.14975 and rounded to the cent, then GST and QST are rebuilt from that price.',
+        place.pst
+      ]
+    };
+  }
+  if (mode === 1) {
+    const tax = percentTaxCents(amount, place.rate);
+    return {
+      headline: `${cadCents(amount + tax)} total`,
+      details: [
+        `${place.kind === 'hst' ? 'HST' : 'GST'}: ${cadCents(tax)}`,
+        `Price before tax: ${cadCents(amount)}`,
+        `Rate: ${percent(place.rate)}% in ${place.name}`,
+        place.pst,
+        'The rate is the CRA GST/HST rate for that province. Place-of-supply rules can charge a different province’s rate when goods are delivered elsewhere.'
+      ]
+    };
+  }
+  const net = priceBeforeRateCents(amount, place.rate);
+  const tax = amount - net;
+  return {
+    headline: `${cadCents(net)} before tax`,
+    details: [
+      `${place.kind === 'hst' ? 'HST' : 'GST'} inside the total: ${cadCents(tax)}`,
+      `Total: ${cadCents(amount)}`,
+      `Rate removed: ${percent(place.rate)}% in ${place.name}`,
+      place.pst,
+      'The price is the total divided by 1 plus the rate, rounded to the nearest cent.'
+    ]
+  };
+}
+
+function weightResult(v) {
+  const value = v.value;
+  const unit = Number(v.unit);
+  if (!Number.isFinite(value) || value < 0 || value > 1_000_000) throw new Error('Enter a weight from 0 to 1,000,000');
+  if (![1, 2, 3].includes(unit)) throw new Error('Choose kilograms, pounds, or stone');
+  const kg = unit === 1 ? value : unit === 2 ? value * POUND_KG : value * 14 * POUND_KG;
+  const pounds = kg / POUND_KG;
+  const stone = Math.floor(pounds / 14);
+  const stonePounds = pounds - stone * 14;
+  const kgText = number(kg, unit === 1 ? 2 : 5);
+  const lbText = number(pounds, 4);
+  const entered = unit === 1 ? `${number(value, 2)} kg` : unit === 2 ? `${number(value, 2)} lb` : `${number(value, 2)} stone`;
+  const headline = unit === 2 ? `${number(kg, 3)} kg` : `${number(pounds, 2)} lb`;
+  return {
+    headline,
+    details: [
+      `Kilograms: ${kgText}`,
+      `Pounds: ${lbText}`,
+      `Stone: ${number(pounds / 14, 4)}`,
+      `Stone and pounds: ${stone} st ${number(stonePounds, 2)} lb`,
+      `Started from: ${entered}`,
+      'One pound is 0.45359237 kilograms. One stone is 14 pounds. The ounce is not a separate field.'
+    ]
+  };
+}
+
+function addDaysResult(v) {
+  const start = parseCalendarDate(v.startdate, 'start date');
+  if (!Number.isInteger(v.days) || v.days < -36500 || v.days > 36500) throw new Error('Enter a whole number of days from -36500 to 36500');
+  const end = addCalendarDays(start, v.days);
+  const elapsed = calendarDaysBetween(start, end);
+  return {
+    headline: formatCalendarDate(end),
+    details: [
+      `Start: ${formatCalendarDate(start)}`,
+      `Days added: ${v.days}`,
+      `Elapsed days from the start to the result: ${elapsed}`,
+      v.days < 0 ? 'A negative count moves backward. The result is the date that many days before the start.' : 'The start date itself is day zero. Adding 1 lands on the next calendar date.',
+      'The count is calendar days, including weekends. It does not skip bank holidays or federal holidays.',
+      'February 29 is included when the span crosses it. Adding 365 days from 1 January 2024 lands on 31 December 2024 because 2024 is a leap year.'
+    ]
+  };
+}
+
+function markupMarginResult(v) {
+  const mode = Number(v.mode);
+  if (![1, 2, 3].includes(mode)) throw new Error('Choose what you know');
+  const cost = nonNegativeCents(v.cost, 'cost');
+  const typedPrice = nonNegativeCents(v.price, 'price');
+  if (!Number.isFinite(v.percent) || v.percent < 0 || v.percent > 1000) throw new Error('Enter a percent from 0 to 1000');
+  let price;
+  let markup;
+  let margin;
+  if (mode === 1) {
+    if (cost === 0 && v.percent > 0) throw new Error('Enter a cost above zero');
+    price = Math.round(cost * (1 + v.percent / 100));
+    markup = v.percent;
+    margin = price === 0 ? 0 : (price - cost) / price * 100;
+  } else if (mode === 2) {
+    if (v.percent >= 100) throw new Error('A margin must be under 100 percent');
+    if (cost === 0 && v.percent > 0) throw new Error('Enter a cost above zero');
+    price = Math.round(cost / (1 - v.percent / 100));
+    margin = v.percent;
+    markup = cost === 0 ? 0 : (price - cost) / cost * 100;
+  } else {
+    if (typedPrice <= 0) throw new Error('Enter a price above zero');
+    if (cost > typedPrice) throw new Error('Cost cannot be above the price in this mode');
+    price = typedPrice;
+    margin = (price - cost) / price * 100;
+    markup = cost === 0 ? 0 : (price - cost) / cost * 100;
+  }
+  const profit = price - cost;
+  return {
+    headline: `${usdCents(price)} price`,
+    details: [
+      `Cost: ${usdCents(cost)}`,
+      `Profit: ${usdCents(profit)}`,
+      `Markup on cost: ${percent(markup)}%`,
+      `Margin on price: ${percent(margin)}%`,
+      mode === 1
+        ? 'The percent you typed was a markup. Margin is profit divided by the price, so it is lower than the markup.'
+        : mode === 2
+          ? 'The percent you typed was a margin. Markup is profit divided by the cost, so it is higher than the margin.'
+          : 'Both percents were computed from the price and the cost. The percent box was not used.',
+      'A 50% markup on cost is a 33.33% margin on the resulting price. A 50% margin needs a 100% markup.'
+    ]
+  };
+}
+
+function downPaymentResult(v) {
+  const price = nonNegativeCents(v.price, 'home price');
+  if (!Number.isFinite(v.percent) || v.percent < 0 || v.percent > 100) throw new Error('Enter a down payment from 0 to 100 percent');
+  if (price === 0) throw new Error('Enter a home price above zero');
+  const down = Math.round(price * v.percent / 100);
+  const loan = price - down;
+  return {
+    headline: `${usdCents(down)} down`,
+    details: [
+      `Home price: ${usdCents(price)}`,
+      `Down payment: ${percent(v.percent)}%`,
+      `Loan amount: ${usdCents(loan)}`,
+      `Loan-to-value: ${percent(loan / price * 100)}%`,
+      v.percent < 20
+        ? 'This down payment is under 20%. Many conventional loans then look at mortgage insurance. This page does not price that insurance or the monthly payment.'
+        : 'This down payment is at least 20% of the price. The monthly principal-and-interest payment is a separate calculation on the loan amount.',
+      'Closing costs, earnest money already paid, and seller credits are not subtracted from the cash you need.'
+    ]
+  };
+}
+
+function australiaGstResult(v) {
+  const amount = nonNegativeCents(v.amount, 'amount');
+  const mode = Number(v.mode);
+  if (mode !== 1 && mode !== 2) throw new Error('Choose whether the amount is before GST or includes GST');
+  if (mode === 1) {
+    const gst = percentTaxCents(amount, 10);
+    return {
+      headline: `${audCents(amount + gst)} total`,
+      details: [
+        `GST: ${audCents(gst)}`,
+        `Price before GST: ${audCents(amount)}`,
+        'Rate: 10%. GST is one-eleventh of a GST-inclusive price and one-tenth of a GST-exclusive price.',
+        'The ATO’s GST rate is 10%. GST-free supplies, such as many basic foods, are not detected. Input tax credits are not estimated.'
+      ]
+    };
+  }
+  const net = priceBeforeRateCents(amount, 10);
+  const gst = amount - net;
+  return {
+    headline: `${audCents(net)} before GST`,
+    details: [
+      `GST inside the total: ${audCents(gst)}`,
+      `Total including GST: ${audCents(amount)}`,
+      'The price is the total divided by 1.1, rounded to the nearest cent. GST is then the remainder, which is one-eleventh of the total when the division is exact.',
+      'A tax invoice can round line by line. Rebuilding one total will not always match a receipt that rounded several lines.'
+    ]
+  };
 }
 
 // CPI-U, U.S. city average, all items, not seasonally adjusted, annual
