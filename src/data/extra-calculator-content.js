@@ -490,6 +490,7 @@ export const extraCalculatorContent = {
       { slug: 'alberta-take-home-pay-calculator', label: 'Alberta take-home pay calculator for 2026', note: 'The same federal tax, CPP, and EI. Alberta has no health premium. At $70,000 its annual take-home is $54,107.20, against $53,786.26 here.' },
       { slug: 'uk-take-home-pay-calculator', label: 'UK take-home pay for England, Wales and Northern Ireland', note: 'Pounds, for 2026/27, not Canadian dollars.' },
       { slug: 'scotland-take-home-pay-calculator', label: 'Scotland take-home pay calculator for 2026/27', note: 'Scottish income tax bands and UK National Insurance.' },
+      { slug: 'canada-gst-hst-calculator', label: 'Canada GST/HST calculator', note: 'Ontario HST is 13%, so $100 before tax is $113.00. That purchase tax is not withheld from this paycheck.' },
       { slug: 'australia-take-home-pay-calculator', label: 'Australia take-home pay calculator for 2026–27', note: 'A different tax year and a different currency.' }
     ]
   },
@@ -587,7 +588,8 @@ export const extraCalculatorContent = {
     relatedLinks: [
       { slug: 'ontario-take-home-pay-calculator', label: 'Ontario take-home pay calculator for 2026', note: 'Canadian dollars, CPP, EI, and Ontario tax. Not comparable one-for-one with an Australian salary.' },
       { slug: 'scotland-take-home-pay-calculator', label: 'Scotland take-home pay calculator for 2026/27', note: 'Pounds, Scottish income tax, and UK National Insurance.' },
-      { slug: 'hourly-to-salary-calculator', label: 'Hourly to salary calculator', note: 'Convert an hourly rate into the annual figure this page treats as taxable income.' }
+      { slug: 'hourly-to-salary-calculator', label: 'Hourly to salary calculator', note: 'Convert an hourly rate into the annual figure this page treats as taxable income.' },
+      { slug: 'australia-gst-calculator', label: 'Australia GST calculator', note: '$100 before GST becomes $110.00. GST is not the Medicare levy subtracted on this page.' },
     ]
   },
   'rent-affordability-calculator': {

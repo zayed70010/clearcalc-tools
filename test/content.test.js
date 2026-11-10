@@ -494,6 +494,45 @@ test('ten November 9 calculators are linked from the homepage and a related page
   assert.equal(compound.relatedLinks.some((link) => link.slug === 'inflation-calculator'), true);
 });
 
+test('ten November 10 calculators are linked from the homepage and a related page', () => {
+  const home = readFileSync('src/pages/index.astro', 'utf8');
+  const links = [
+    ['uk-vat-calculator', 'uk-take-home-pay-calculator'],
+    ['savings-goal-calculator', 'compound-interest-calculator'],
+    ['apr-calculator', 'loan-calculator'],
+    ['us-federal-income-tax-calculator', 'georgia-paycheck-calculator'],
+    ['canada-gst-hst-calculator', 'ontario-take-home-pay-calculator'],
+    ['weight-converter', 'length-converter'],
+    ['add-days-calculator', 'date-difference-calculator'],
+    ['markup-margin-calculator', 'percentage-calculator'],
+    ['down-payment-calculator', 'mortgage-calculator'],
+    ['australia-gst-calculator', 'australia-take-home-pay-calculator']
+  ];
+  for (const [slug, related] of links) {
+    assert.match(home, new RegExp(`calculators/${slug}/`));
+    assert.ok(calculatorContent[slug], slug);
+    assert.equal(
+      calculatorContent[related].relatedLinks.some((link) => link.slug === slug),
+      true,
+      related
+    );
+  }
+  const stamp = calculatorContent['england-stamp-duty-calculator'];
+  assert.match(stamp.h1, /How Much Stamp Duty Will I Pay/);
+  assert.match(stamp.table.heading, /common prices/i);
+  assert.equal(stamp.table.rows.length >= 19, true);
+  assert.match(stamp.table.rows.find((row) => row[0] === '£430,000')[1], /£11,500\.00/);
+  assert.match(stamp.extraSections[0].heading, /How stamp duty has changed/);
+  assert.match(stamp.extraSections[0].paragraphs.join(' '), /2018/);
+  assert.match(calculatorContent['sales-tax-calculator'].h1, /by State/);
+  assert.match(calculatorContent['sales-tax-calculator'].description, /8\.25%/);
+  assert.match(calculatorContent['georgia-paycheck-calculator'].h1, /Take-Home Pay/);
+  assert.match(calculatorContent['georgia-paycheck-calculator'].description, /4\.99%/);
+  assert.match(home, /calculators\/england-stamp-duty-calculator\//);
+  assert.match(home, /calculators\/scotland-lbtt-calculator\//);
+  assert.match(home, /calculators\/wales-land-transaction-tax-calculator\//);
+});
+
 test('length converter slug matches the page title', () => {
   const length = calculators.find((item) => item.slug === 'length-converter');
   assert.equal(length.title, 'Length Converter');

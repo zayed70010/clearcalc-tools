@@ -113,6 +113,28 @@ const jsonLd = JSON.stringify(schema).replaceAll('<', '\\u003c');
         </tbody>
       </table>
     </div>
+    {content.extraSections?.map((section) => (
+      <section>
+        <h2>{section.heading}</h2>
+        {section.paragraphs?.map((paragraph) => <p>{paragraph}</p>)}
+        {section.table ? (
+          <>
+            <h3>{section.table.heading}</h3>
+            <div class="table-wrap">
+              <table class="ref-table">
+                <caption>{section.table.caption}</caption>
+                <thead>
+                  <tr>{section.table.headers.map((header) => <th scope="col">{header}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {section.table.rows.map((row) => <tr>{row.map((cell) => <td>{cell}</td>)}</tr>)}
+                </tbody>
+              </table>
+            </div>
+          </>
+        ) : null}
+      </section>
+    ))}
     <h2>{content.limitsHeading}</h2>
     {content.limits.map((paragraph) => <p>{paragraph}</p>)}
     <h2>Frequently asked questions</h2>
