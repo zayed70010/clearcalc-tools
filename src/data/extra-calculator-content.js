@@ -980,7 +980,9 @@ export const extraCalculatorContent = {
     relatedLinks: [
       { slug: 'texas-paycheck-calculator', label: 'Texas paycheck calculator for 2026', note: 'Type the traditional deferral in dollars to see the effect on federal tax. The deferral does not reduce FICA.' },
       { slug: 'california-paycheck-calculator', label: 'California paycheck calculator for 2026', note: 'A traditional deferral reduces federal and California income tax in that estimate, not SDI.' },
-      { slug: 'compound-interest-calculator', label: 'Compound interest calculator', note: 'Project a balance from a starting amount and a monthly contribution after you know the annual deferral.' }
+      { slug: 'compound-interest-calculator', label: 'Compound interest calculator', note: 'Project a balance from a starting amount and a monthly contribution after you know the annual deferral.' },
+      { slug: 'roth-ira-calculator', label: 'Roth IRA calculator', note: 'The 2026 IRA cap is $7,500, or $8,600 at 50 or older, before the income phase-out. That is not the $24,500 elective deferral.' },
+      { slug: 'retirement-calculator', label: 'Retirement calculator', note: 'Projects a monthly contribution to a retirement age in today’s dollars. It does not apply the 401(k) limit.' }
     ]
   }
 };

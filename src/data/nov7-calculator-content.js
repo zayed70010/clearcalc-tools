@@ -195,8 +195,8 @@ export const nov7CalculatorContent = {
     ]
   },
   'percentage-change-calculator': {
-    title: 'Percentage Change Calculator: Increase or Decrease | ClearCalc',
-    h1: 'Percentage Change Calculator',
+    title: 'Percent Increase and Decrease Calculator | ClearCalc',
+    h1: 'Percent Increase and Decrease Calculator',
     description: 'Measure the percent increase or decrease from a starting value to a new value. From 80 to 100 is a 25.00% increase. From 100 to 80 is a 20.00% decrease. A starting value of zero is rejected.',
     intro: [
       'This percentage change calculator compares a starting value with a new value. The percent is (new − old) / old × 100. The headline also says whether the new value is an increase, a decrease, or no change. From 80 to 100 the difference is 20, and 20 / 80 × 100 is 25. The headline is 25.00% increase.',
@@ -284,12 +284,42 @@ export const nov7CalculatorContent = {
       {
         q: 'How is percent change different from part divided by whole?',
         a: 'Part 20 and whole 80 is 25% on the percentage calculator, with no direction. Percent change from 80 to 100 is 25.00% increase. Part 20 and whole 100 is 20%, while the change from 100 to 80 is −20.00% decrease. Use the page whose question you actually have.'
+      },
+      {
+        q: 'Does a 25% increase followed by a 25% decrease get back to the start?',
+        a: 'No. A 25% increase takes 80 to 100. A 25% decrease from 100 would land on 75, not on 80. The decrease that undoes a rise from 80 to 100 is 20%, because the base is now 100. The reverse of a 20% decrease from 100 to 80 is the 25% increase. The percents match only when you divide by the same base.'
+      },
+      {
+        q: 'How do I calculate a percent increase or a percent decrease?',
+        a: 'Subtract the starting value from the new value, divide by the starting value, and multiply by 100. A larger new value is an increase. A smaller new value is a decrease. From 50 to 75 is a 50.00% increase. From 75 back to 50 is a −33.33% decrease. A starting value of zero is rejected.'
+      }
+    ],
+    extraSections: [
+      {
+        heading: 'Why the reverse percent is not the same number',
+        paragraphs: [
+          'A percent increase and the percent decrease that undoes it use different bases. Going from 100 to 150 is a 50% increase. Getting back to 100 is a decrease of 50 on a base of 150, which is 33.33%, not 50%. The table uses this calculator’s headline for each pair.'
+        ],
+        table: {
+          heading: 'An increase and the decrease that reverses it',
+          caption: 'Each percent is (new − old) / old. The reverse row swaps the two values, so the base changes. A starting value of zero is not in the table because this calculator rejects it.',
+          headers: ['Change', 'Percent', 'Reverse change', 'Reverse percent'],
+          rows: [
+            ['80 to 100', '25.00% increase', '100 to 80', '−20.00% decrease'],
+            ['100 to 150', '50.00% increase', '150 to 100', '−33.33% decrease'],
+            ['50 to 75', '50.00% increase', '75 to 50', '−33.33% decrease'],
+            ['40 to 80', '100.00% increase', '80 to 40', '−50.00% decrease']
+          ]
+        }
       }
     ],
     relatedLinks: [
       { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'Part 25 and whole 200 is 12.5%. Part 20 and whole 80 is 25%, which matches the change from 80 to 100 only because those inputs line up. That page does not say increase or decrease.' },
       { slug: 'discount-calculator', label: 'Discount calculator', note: 'Twenty percent off $100 leaves $80.00. The change from 100 to 80 is −20.00% decrease here. The discount page is the one that subtracts the percent from a price.' },
-      { slug: 'roi-calculator', label: 'ROI calculator', note: 'A cost of $10,000 and a final value of $12,500 is a 25.00% return and $2,500.00 of profit. The percent matches the change from 10000 to 12500. The ROI page also rejects a zero cost and prints the dollars.' }
+      { slug: 'roi-calculator', label: 'ROI calculator', note: 'A cost of $10,000 and a final value of $12,500 is a 25.00% return and $2,500.00 of profit. The percent matches the change from 10000 to 12500. The ROI page also rejects a zero cost and prints the dollars.' },
+      { slug: 'fraction-calculator', label: 'Fraction calculator', note: 'Adds and divides mixed numbers. 1 1/2 + 2 1/3 is 3 5/6. It does not report a percent increase.' },
+      { slug: 'ratio-calculator', label: 'Ratio calculator', note: 'Simplifies 1920:1080 to 16:9. A ratio is not a percent change from an old value to a new one.' },
+      { slug: 'markup-margin-calculator', label: 'Markup and margin calculator', note: 'A 50% markup on a $40 cost is a $60 price and a 33.33% margin. The change from 40 to 60 is a 50.00% increase here.' }
     ]
   },
   'fahrenheit-to-celsius-calculator': {

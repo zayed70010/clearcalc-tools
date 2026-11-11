@@ -506,7 +506,9 @@ export const waveCalculatorContent = {
     relatedLinks: [
       { slug: 'length-converter', label: 'Length converter from meters', note: 'Metres to feet, inches, yards, or kilometres. It does not convert mpg or litres per 100 km.' },
       { slug: '5k-pace-calculator', label: '5K pace calculator', note: 'Minutes per kilometre and per mile from a finish time. A pace is not a fuel-economy rate. The mile is the same 1.609344 kilometre mile.' },
-      { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'Useful if you want the gap between two L/100 km figures as a percent after you have converted them here.' }
+      { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'Useful if you want the gap between two L/100 km figures as a percent after you have converted them here.' },
+      { slug: 'fuel-cost-calculator', label: 'Fuel cost calculator', note: '300 miles at 30 US mpg and $3.50 a US gallon is $35.00. This page converts the rate and does not price the trip.' },
+      { slug: 'pace-calculator', label: 'Pace calculator', note: 'Any running distance. A 25:00 5K is 5:00 per kilometre. A pace is still not a fuel-economy rate.' }
     ]
   }
 };

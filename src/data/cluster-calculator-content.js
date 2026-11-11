@@ -207,9 +207,9 @@ export const clusterCalculatorContent = {
     ]
   },
   'england-stamp-duty-calculator': {
-    title: 'Stamp Duty Calculator UK (England & NI) 2026 – How Much Will I Pay? | ClearCalc',
-    h1: 'Stamp Duty Calculator UK (England & NI) 2026: How Much Stamp Duty Will I Pay?',
-    description: 'Stamp duty calculator for England and Northern Ireland in 2026. See how much SDLT you pay on £190k, £430k, £850k and other prices, for a main home, a first-time buyer, or an additional property.',
+    title: 'Stamp Duty Calculator England: How Much Stamp Duty Will I Pay? | ClearCalc',
+    h1: 'Stamp Duty Calculator England: How Much Stamp Duty Will I Pay?',
+    description: 'Stamp duty calculator for England and Northern Ireland. See how much stamp duty you pay on a house at £190k, £430k, £850k and £1.1 million, for a standard buyer, a first-time buyer, or an additional property, using the rates from 1 April 2025.',
     intro: [
       'This stamp duty calculator answers how much Stamp Duty Land Tax you pay on a residential freehold in England or Northern Ireland. The price is sliced across bands. You do not pay one rate on the whole price. For a completion on or after 1 April 2025, the rates GOV.UK is still publishing in 2026 are 0% to £125,000, then 2% to £250,000, 5% to £925,000, 10% to £1.5 million, and 12% above that. On a £430,000 main home that is £11,500. A first-time buyer on the same price pays £6,500. An additional property pays £33,000.',
       'Choose whether the purchase replaces your main home, whether every buyer is a first-time buyer, or whether the higher rates for an additional dwelling apply. A separate choice adds the 2 percentage point non-UK resident surcharge on every band. The completion-period menu keeps the 2026 rates as the default and can switch to an earlier HMRC rate card, including the 2018 and 2019 bands and the pre-December 2014 slab. The sample price is £450,000 for someone replacing a main home and treated as a UK resident. Scotland charges Land and Buildings Transaction Tax instead, and Wales charges Land Transaction Tax. Neither of those systems is calculated here.',
@@ -220,7 +220,7 @@ export const clusterCalculatorContent = {
       'Choose the buyer. “Replacing your main home” uses the standard residential bands. “First-time buyer” uses the relief only when the price is £500,000 or less. “Additional property” uses the higher rates when the price is £40,000 or more.',
       'Choose UK resident or non-UK resident. Non-UK resident adds 2 percentage points to whichever bands the buyer type selected, from 1 April 2021 onward. Earlier periods say the surcharge was not in force and do not add it.',
       'Leave the completion period on “1 April 2025 onward” for a 2026 purchase. Pick an earlier row only when the completion date fell in that window. A 2018 or 2019 completion uses “22 Nov 2017 – 7 Jul 2020”. A question about the old slab uses the last row.',
-      'Press Calculate. The headline is the SDLT in pounds. The lines under it name the rate table, the effective rate, the price, and the completion period.'
+      'Press Calculate. The headline is the SDLT in pounds. The lines under it name the rate table, the effective rate, the price, and the completion period. A link such as ?price=430000 fills the price and runs the current rates without changing the canonical URL. You can still change the buyer and the completion period after that.'
     ],
     howHeading: 'How residential SDLT is sliced in 2026',
     howItWorks: [
@@ -270,7 +270,8 @@ export const clusterCalculatorContent = {
       }
     ],
     table: {
-      heading: 'Stamp duty on common prices',
+      heading: 'Stamp duty on common house prices',
+      anchor: 'common-house-prices',
       caption: 'UK resident, completion on or after 1 April 2025, the rates still used for a 2026 purchase. Standard means replacing a main home. First-time buyer relief is refused above £500,000, so those cells equal the standard column. Additional means the higher rates, 5 percentage points above standard, for a price of £40,000 or more. Each amount is what this calculator displays. A non-UK resident pays 2 percentage points more on each band.',
       headers: ['Price', 'Standard SDLT', 'First-time buyer', 'Additional property'],
       rows: [
@@ -297,7 +298,8 @@ export const clusterCalculatorContent = {
     },
     extraSections: [
       {
-        heading: 'How stamp duty has changed',
+        heading: 'How stamp duty rates have changed',
+        anchor: 'how-stamp-duty-rates-have-changed',
         paragraphs: [
           'The amount on a house depends on the completion date, not on the year somebody types into a search box. The bands below are the residential freehold tables HMRC published for England and Northern Ireland. They are the same tables the completion-period menu uses. Lease premiums, the net present value of rent, non-residential rates, multiple dwellings relief, and the flat 15% or 17% rate for certain company purchases are not in the menu. Scotland left SDLT on 1 April 2015, and Wales left on 1 April 2018, so a 2018 search about a Scottish or Welsh purchase is the wrong tax even when the English bands below are right.',
           'Before 4 December 2014, SDLT was a slab. One rate applied to the whole price. From 22 March 2012 until 3 December 2014 the residential slabs on GOV.UK were 0% up to £125,000, 1% over £125,000 to £250,000, 3% over £250,000 to £500,000, 4% over £500,000 to £1 million, 5% over £1 million to £2 million, and 7% over £2 million. Exactly £250,000 was £2,500. One pound more was 3% of the whole price, £7,500.03. There was no first-time buyer relief of the current kind and no additional-dwelling surcharge. The 15% rate for certain non-natural persons is a different charge and this calculator does not apply it.',
@@ -359,6 +361,22 @@ export const clusterCalculatorContent = {
       {
         q: 'How much was stamp duty in 2018 or 2019?',
         a: 'A completion from 22 November 2017 to 7 July 2020, which covers 2018 and 2019, used the same standard slices as 2026 up to £925,000. A £430,000 main home was £11,500.00 and a first-time buyer paid £6,500.00. The additional-property loading was 3 percentage points, not 5, so that £430,000 additional dwelling was £24,400.00 rather than today’s £33,000.00. Choose that completion period in the form. The pre-December 2014 slab is a different system: £250,001 was about £7,500, not £2,500. SDLT is not added to the monthly mortgage payment. The mortgage page estimates principal and interest in US dollars and does not add this sterling tax.'
+      },
+      {
+        q: 'How much stamp duty do I pay on a £430,000 house in England?',
+        a: '£11,500.00 if the purchase replaces your main home and you are a UK resident, at the rates in force from 1 April 2025. A first-time buyer on that price pays £6,500.00. An additional property pays £33,000.00. The £430,000 row in the common-house-price table is that trio. A 2018 or 2019 completion of an additional property on the same price was £24,400.00, because the extra-home loading was 3 points then.'
+      },
+      {
+        q: 'How much was stamp duty in the UK in 2017?',
+        a: 'A completion from 1 April 2016 to 21 November 2017 used the standard slices and a 3-point additional-dwelling loading, and first-time buyer relief had not started. Relief started on 22 November 2017. Choose the period that matches the completion date. The calculator’s default is the current rates from 1 April 2025, not the 2017 card. Scotland and Wales were already on their own taxes by 2018, so a 2017 question about a Scottish or Welsh purchase is not this SDLT table either.'
+      },
+      {
+        q: 'What are the stamp duty rates in England from 1 April 2025?',
+        a: 'Standard residential SDLT is 0% to £125,000, 2% to £250,000, 5% to £925,000, 10% to £1.5 million, and 12% above that. First-time buyers pay 0% to £300,000 and 5% to £500,000, and lose the relief above £500,000. Additional dwellings pay 5 points more on each band when the price is £40,000 or more. The calculator uses these rates unless you pick an earlier completion period. The history section is the record of the older cards. It does not change the default.'
+      },
+      {
+        q: 'How much is the stamp duty amount on £190,000, £900,000, and £1.1 million?',
+        a: 'At the current rates, a UK resident replacing a main home pays £1,300.00 on £190,000, £35,000.00 on £900,000, and £53,750.00 on £1.1 million. The first-time buyer pays nothing on £190,000 and pays the standard amount on £900,000 and £1.1 million, because both are over the £500,000 relief cap. The additional-property amounts are £10,800.00, £80,000.00, and £108,750.00. Each of those cells is in the common-house-price table.'
       }
     ],
     relatedLinks: [
@@ -369,6 +387,7 @@ export const clusterCalculatorContent = {
       { slug: 'uk-student-loan-repayment-calculator', label: 'UK student loan repayment calculator for 2026/27', note: 'Plan 1, Plan 2, Plan 4, Plan 5, or postgraduate. It is not deducted inside the SDLT figure.' },
       { slug: 'uk-working-days-calculator', label: 'UK working days calculator', note: 'Weekdays and bank holidays. England and Wales have 253 working days in 2026. It does not count the 14-day SDLT filing window as a tax.' },
       { slug: 'mortgage-calculator', label: 'Fixed-rate mortgage payment calculator', note: 'Principal and interest in US dollars. It does not add SDLT or convert pounds.' },
+      { slug: 'uk-mortgage-calculator', label: 'UK mortgage calculator', note: 'A repayment or interest-only payment in pounds. £200,000 at 4.5% for 25 years is £1,111.66 a month on repayment. SDLT is not added to that payment.' },
       { slug: 'nsw-stamp-duty-calculator', label: 'NSW stamp duty calculator for 2026/27', note: 'Transfer duty in Australian dollars, including the first home buyer concession. Not SDLT.' },
       { slug: 'uk-take-home-pay-calculator', label: '2026/27 take-home pay for England, Wales and Northern Ireland', note: 'Income tax and employee National Insurance on a salary, not the tax on a house.' },
       { slug: 'rent-affordability-calculator', label: 'Rent affordability calculator', note: 'Compares monthly rent with 30% of gross income. It is not a purchase tax.' }
@@ -473,7 +492,8 @@ export const clusterCalculatorContent = {
     ],
     relatedLinks: [
       { slug: 'gpa-calculator', label: 'Unweighted 4.0 GPA calculator', note: 'Averages four course grades after they exist. It does not solve for a final.' },
-      { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'A raw score such as 45 out of 60 is 75% on that page. Type a percent into this final-exam form only after the rest of the course is combined.' }
+      { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'A raw score such as 45 out of 60 is 75% on that page. Type a percent into this final-exam form only after the rest of the course is combined.' },
+      { slug: 'grade-calculator', label: 'Weighted grade calculator', note: 'Averages scores you already have. It does not solve for the final you still need.' }
     ]
   },
   'concrete-slab-calculator': {

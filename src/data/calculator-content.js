@@ -13,12 +13,13 @@ import { nov6CalculatorContent } from './nov6-calculator-content.js';
 import { nov7CalculatorContent } from './nov7-calculator-content.js';
 import { nov9CalculatorContent } from './nov9-calculator-content.js';
 import { nov10CalculatorContent } from './nov10-calculator-content.js';
+import { nov11CalculatorContent } from './nov11-calculator-content.js';
 
 export const calculatorContent = {
   'mortgage-calculator': {
-    title: 'Fixed-Rate Mortgage Payment Calculator | ClearCalc',
-    h1: 'Fixed-Rate Mortgage Payment Calculator',
-    description: 'Estimate the monthly principal-and-interest payment on a fixed-rate mortgage, plus total interest over the full term. Includes the amortization formula and examples.',
+    title: 'Mortgage Payment Calculator with Taxes, Insurance, and PMI | ClearCalc',
+    h1: 'Mortgage Payment Calculator with Taxes, Insurance, and PMI',
+    description: 'Estimate a monthly mortgage payment with principal and interest, plus property tax, homeowners insurance, and PMI. $300,000 at 6.5% for 30 years is $1,896.20 before those costs, and the page adds a year-by-year amortization summary.',
     intro: [
       'This fixed-rate mortgage calculator estimates the monthly principal-and-interest payment that pays a home loan down to zero over a set term. Enter the amount borrowed, the annual interest rate, and the length of the loan in years. The result assumes every payment is made on time and the rate never changes.',
       'The figure is only the loan payment. Property taxes, homeowners insurance, mortgage insurance, and HOA dues are real parts of a housing bill, but they are not part of the amortization formula, so this page does not guess them. Use the result to compare a rate or a shorter term before you talk with a lender. It is a planning estimate, not a Loan Estimate or an approval.',
@@ -33,7 +34,7 @@ export const calculatorContent = {
     howHeading: 'How a fixed-rate mortgage payment is calculated',
     howItWorks: [
       'The calculator converts the annual percentage rate into a monthly rate by dividing by 100 and then by 12. A 6.5% rate becomes 0.065 / 12. It then counts the payments as years times 12. Those two numbers, plus the principal, are the only inputs to the standard fully amortizing loan formula.',
-      'Each monthly payment covers that month\'s interest on the remaining balance and puts the rest toward principal. Early payments are mostly interest. Later payments retire principal faster. The tool does not print a full amortization schedule. It reports the level payment, the sum of every payment, and the interest portion of that sum.',
+      'Each monthly payment covers that month\'s interest on the remaining balance and puts the rest toward principal. Early payments are mostly interest. Later payments retire principal faster. On the $300,000 sample, year 1 is $3,353.18 of principal and $19,401.27 of interest, and the balance is $296,646.82. Year 15 still owes $217,677.42. Year 30 pays the balance down to $0.00. The amortization calculator lists every year and, if you ask, every month. This page keeps the three milestone years plus the totals.',
       'If the rate is exactly zero, there is no interest to compound. The payment is the principal divided by the number of months, and total interest is zero. Negative rates, extra principal payments, interest-only periods, and adjustable rates are outside what this form models.',
       'The affordability example is a check on the algebra, not a second payment. Enter 371795.43, 6.5, and 30 here and the payment is $2,350.00 / month, with total interest of $474,204.58. The 15-year loan that carries the same $2,350.00 under that cap is $269,771.57, and this page shows $153,228.43 of interest on it. The home price on that shorter term is $329,771.57, down from $431,795.43, because the monthly room did not grow. A $300,000 loan at 6.5% for 30 years remains $1,896.20 on this page whether or not it is under the $832,750 baseline.'
     ],
@@ -80,8 +81,8 @@ export const calculatorContent = {
     },
     limitsHeading: 'What this mortgage estimate leaves out',
     limits: [
-      'A real monthly housing payment often adds one-twelfth of the annual property tax and homeowners insurance, and sometimes mortgage insurance. Those amounts depend on the house, the down payment, and the insurer. Adding a round number yourself is more honest than hiding an assumed tax rate inside the formula.',
-      'The form also ignores discount points, origination fees, extra principal payments, biweekly schedules, interest-only periods, balloons, and adjustable rates. Paying extra principal would shorten the loan and reduce interest, but you would need an amortization schedule to see the new payoff date. This page cannot produce that schedule.',
+      'Property tax, homeowners insurance, and PMI are added only when you type them. Tax and insurance are annual amounts, divided by 12. PMI is a monthly amount. They sit on top of principal and interest. They do not change the interest or the balance. Leaving them at zero keeps the headline as principal and interest, which is $1,896.20 on the sample.',
+      'The form ignores discount points, origination fees, extra principal payments, biweekly schedules, interest-only periods, balloons, and adjustable rates. An extra monthly amount or a lump sum belongs on the mortgage payoff calculator. On this sample an extra $200 a month finishes in 277 months and saves $103,448.79 of interest. The full month-by-month grid is the amortization calculator.',
       'Lenders may round the payment to the cent using their own rule, so a quote can differ by a few cents from the figure here even when the rate, amount, and term match. Use a matching quote as a check, not as proof that either number is the contract payment.',
       'A payment in dollars also says nothing about tax taken out of a salary. If the income you would use to cover housing is taxed in England, Wales, or Northern Ireland, estimate that 2026/27 take-home pay separately and keep the currencies apart. This mortgage form does not convert pounds to dollars.'
     ],
@@ -110,6 +111,32 @@ export const calculatorContent = {
       {
         q: 'How does this payment relate to the 2026 conforming loan limit?',
         a: 'It does not apply the limit. FHFA’s 2026 baseline for a one-unit home in most of the United States is $832,750, and the high-cost ceiling is $1,249,125. A $300,000 loan at 6.5% for 30 years is under that baseline and the payment is still $1,896.20. The how-much-house page is the one that compares its solved loan with those 2026 limits. This page only amortizes the amount you type.'
+      },
+      {
+        q: 'How do I add property tax, insurance, and PMI to the mortgage payment?',
+        a: 'Type the annual property tax, the annual homeowners insurance, and the monthly PMI. The housing payment is principal and interest plus tax/12 plus insurance/12 plus PMI. On the $300,000, 6.5%, 30-year loan, $3,600 of tax and $1,800 of insurance and no PMI make the housing payment $2,346.20. Adding $150 of PMI makes it $2,496.20. Leave the three boxes at zero and the headline stays $1,896.20.'
+      },
+      {
+        q: 'What does the amortization summary show for a 30-year mortgage?',
+        a: 'Year 1, year 15, and the final year, using the unrounded principal-and-interest payment. On $300,000 at 6.5%, year 1 is $3,353.18 of principal, $19,401.27 of interest, and a balance of $296,646.82. Year 30 ends at $0.00. The amortization calculator prints every year and can print every month. Extra principal belongs on the payoff calculator.'
+      }
+    ],
+    extraSections: [
+      {
+        heading: 'Payment with tax, insurance, and PMI',
+        paragraphs: [
+          'Principal and interest on $300,000 at 6.5% for 30 years is $1,896.20. Annual tax and insurance are divided by 12 and added. PMI is already a monthly figure. None of the three is amortized, so the year-by-year balance does not change when you type them. The headline switches to the housing total only when at least one of them is above zero.'
+        ],
+        table: {
+          heading: 'Housing payment on the $300,000 sample',
+          caption: 'Principal and interest stays $1,896.20. Tax and insurance are annual amounts. PMI is monthly. The housing payment is what this calculator displays when those fields are filled.',
+          headers: ['Annual tax', 'Annual insurance', 'Monthly PMI', 'Housing payment'],
+          rows: [
+            ['$0', '$0', '$0', '$1,896.20'],
+            ['$3,600', '$1,800', '$0', '$2,346.20'],
+            ['$3,600', '$1,800', '$150', '$2,496.20']
+          ]
+        }
       }
     ],
     relatedLinks: [
@@ -147,6 +174,31 @@ export const calculatorContent = {
         slug: 'concrete-slab-calculator',
         label: 'Concrete slab calculator',
         note: 'Bags and cubic yards for a rectangular pour. It does not price the house or the mortgage.'
+      },
+      {
+        slug: 'mortgage-payoff-calculator',
+        label: 'Mortgage payoff calculator',
+        note: 'An extra $200 a month on the $300,000, 6.5%, 30-year loan pays it off in 277 months and saves $103,448.79 of interest.'
+      },
+      {
+        slug: 'amortization-calculator',
+        label: 'Amortization calculator',
+        note: 'Every year, or every month, for the same $1,896.20 payment. Year 1 principal is $3,353.18.'
+      },
+      {
+        slug: 'rent-vs-buy-calculator',
+        label: 'Rent vs buy calculator',
+        note: 'Compares ending wealth from buying and from renting. It is not this payment formula.'
+      },
+      {
+        slug: 'uk-mortgage-calculator',
+        label: 'UK mortgage calculator',
+        note: 'Repayment or interest-only in pounds. £200,000 at 4.5% for 25 years is £1,111.66 a month.'
+      },
+      {
+        slug: 'canada-mortgage-calculator',
+        label: 'Canada mortgage calculator',
+        note: 'Semi-annual compounding and an optional CMHC premium, in Canadian dollars.'
       }
     ]
   },
@@ -261,6 +313,16 @@ export const calculatorContent = {
         note: 'A $5,000 balance at 21.99% with a fixed $200 payment takes 34 months and $1,748.71 of interest. This loan page solves a payment from a term instead.'
       },
       {
+        slug: 'mortgage-payoff-calculator',
+        label: 'Mortgage payoff calculator',
+        note: 'Extra principal on a mortgage balance. An extra $200 a month on $300,000 at 6.5% for 30 years saves 83 months. This loan page does not apply an extra payment.'
+      },
+      {
+        slug: 'amortization-calculator',
+        label: 'Amortization calculator',
+        note: 'A year-by-year or month-by-month schedule for a fixed monthly loan.'
+      },
+      {
         slug: 'apr-calculator',
         label: 'APR calculator',
         note: '$10,000 at 7% for 36 months with $300 of prepaid charges has a $308.77 payment and a 9.069% APR. This loan page does not solve the APR.'
@@ -367,7 +429,10 @@ export const calculatorContent = {
     relatedLinks: [
       { slug: 'simple-interest-calculator', label: 'Simple interest calculator', note: '$10,000 at 5% for 3 years is $11,500.00 there, with $1,500.00 of interest. This page, with a $0 monthly deposit, compounds the same inputs to $11,614.72. The $114.72 gap is monthly compounding. The effective annual rate at 5% is 5.12%.' },
       { slug: 'inflation-calculator', label: 'Inflation calculator', note: '$100 of 2016 buying power is $134.14 in 2025 CPI-U dollars, a 34.14% rise. A constant 3% for 10 years prices the same $100 at $134.39. Neither figure is this investment balance.' },
-      { slug: 'savings-goal-calculator', label: 'Savings goal calculator', note: 'With $5,000 already saved, a $25,000 goal at 5% for 5 years needs $273.26 a month at month-end. This page projects the balance from a deposit you choose.' }
+      { slug: 'savings-goal-calculator', label: 'Savings goal calculator', note: 'With $5,000 already saved, a $25,000 goal at 5% for 5 years needs $273.26 a month at month-end. This page projects the balance from a deposit you choose.' },
+      { slug: 'investment-calculator', label: 'Investment calculator', note: 'The same monthly sample, plus yearly contributions and quarterly or annual compounding. End-of-month $250 at 7% for 10 years is still $63,367.82.' },
+      { slug: 'retirement-calculator', label: 'Retirement calculator', note: 'Adds an age, inflation, and a withdrawal rate. It is a teaching projection, not this balance alone.' },
+      { slug: 'cd-calculator', label: 'CD calculator', note: 'One deposit to a maturity date. $10,000 at 5% APR compounded monthly for 12 months is $10,511.62.' }
     ]
   },
   'bmi-calculator': {
@@ -466,7 +531,8 @@ export const calculatorContent = {
     relatedLinks: [
       { slug: 'ideal-weight-calculator', label: 'Ideal weight calculator', note: 'Devine, Robinson, and Miller from height and sex. A man at 175 cm has a Devine headline of 70.5 kg. Typing 70.5 kg and 175 cm here shows BMI 23, Healthy range. This page does not run those formulas.' },
       { slug: 'calorie-calculator', label: 'Daily calorie calculator', note: 'Mifflin–St Jeor from a weight you already have. BMI does not estimate calories, and a category is not a maintenance target.' },
-      { slug: 'body-fat-calculator', label: 'Body fat calculator', note: 'U.S. Navy circumferences. A man at 70 inches, neck 15, waist 34, and 180 lb is 17.51% body fat. That percent is not this BMI.' }
+      { slug: 'body-fat-calculator', label: 'Body fat calculator', note: 'U.S. Navy circumferences. A man at 70 inches, neck 15, waist 34, and 180 lb is 17.51% body fat. That percent is not this BMI.' },
+      { slug: 'bmr-calculator', label: 'BMR calculator', note: 'Resting calories from the same kilogram and centimetre measurements. BMI is not a calorie count.' }
     ]
   },
   'calorie-calculator': {
@@ -569,7 +635,9 @@ export const calculatorContent = {
       { slug: 'bmi-calculator', label: 'Adult BMI calculator', note: 'Weight in kilograms and height in centimeters, as a screening category. It does not estimate calories.' },
       { slug: 'ideal-weight-calculator', label: 'Ideal weight calculator', note: 'Devine, Robinson, and Miller from height. A man at 175 cm is 70.5 kg on the Devine headline. That page does not estimate calories, and it does not use this activity multiplier.' },
       { slug: '5k-pace-calculator', label: '5K pace calculator', note: 'Minutes per kilometre and per mile from a finish time. A 25:00 5K is 5:00 per kilometre. It does not estimate calories.' },
-      { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'Useful if you want a percent difference between two calorie figures you already have. It does not run Mifflin–St Jeor.' }
+      { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'Useful if you want a percent difference between two calorie figures you already have. It does not run Mifflin–St Jeor.' },
+      { slug: 'bmr-calculator', label: 'BMR calculator', note: 'The same Mifflin–St Jeor resting figure, plus revised Harris–Benedict. The sample man is 1,698.75 kcal before activity.' },
+      { slug: 'tdee-calculator', label: 'TDEE calculator', note: 'Named activity factors instead of a multiplier you type. Moderate activity on the sample man is the same 2,633 kcal/day.' }
     ]
   },
   'percentage-calculator': {
@@ -697,7 +765,10 @@ export const calculatorContent = {
       { slug: 'tip-calculator', label: 'Tip calculator', note: 'An 18% tip on $85 is $15.30. Part 15.30 and whole 85 on this page is 18%. The tip page also splits the bill.' },
       { slug: 'debt-to-income-ratio-calculator', label: 'Debt-to-income ratio calculator', note: 'On $8,000 of income, $2,200 of housing is 27.50% front-end and $2,600 of total debt is 32.50% back-end. Part 2200 and whole 8000 is 27.5% here, and part 2600 and whole 8000 is 32.5%.' },
       { slug: 'percentage-change-calculator', label: 'Percentage change calculator', note: 'From 80 to 100 is a 25.00% increase. This page has no old and new fields. Part 25 and whole 80 is 31.25%, which is a different question.' },
-      { slug: 'markup-margin-calculator', label: 'Markup and margin calculator', note: 'A 50% markup on a $40 cost is a $60 price and a 33.33% margin. Part 20 and whole 40 is 50% here. Part 20 and whole 60 is 33.33%.' }
+      { slug: 'markup-margin-calculator', label: 'Markup and margin calculator', note: 'A 50% markup on a $40 cost is a $60 price and a 33.33% margin. Part 20 and whole 40 is 50% here. Part 20 and whole 60 is 33.33%.' },
+      { slug: 'fraction-calculator', label: 'Fraction calculator', note: '1 1/2 + 2 1/3 is 3 5/6. It does not answer what percent one number is of another.' },
+      { slug: 'ratio-calculator', label: 'Ratio calculator', note: '1920:1080 simplifies to 16:9. A reduced ratio is not a percent of a whole.' },
+      { slug: 'random-number-generator', label: 'Random number generator', note: 'Uniform draws from a range, including both ends. Not a percent.' }
     ]
   },
   'tip-calculator': {
@@ -1201,7 +1272,8 @@ export const calculatorContent = {
     disclaimer: 'This GPA figure is an equal average of four numbers you typed, not an official transcript GPA or an admissions decision.',
     relatedLinks: [
       { slug: 'final-exam-grade-calculator', label: 'Final exam grade calculator', note: 'Solves for the score a weighted final needs. It does not average grade points.' },
-      { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'Turns a raw score into a percent before you convert that percent to grade points.' }
+      { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'Turns a raw score into a percent before you convert that percent to grade points.' },
+      { slug: 'grade-calculator', label: 'Weighted grade calculator', note: 'Averages category scores and assigns a 10-point letter. Scores of 90, 80, 70, and 100 at weights 40, 30, 20, and 10 are 84.00% B. It does not average grade points.' }
     ],
     faqs: [
       {
@@ -1481,7 +1553,8 @@ export const calculatorContent = {
   ...nov6CalculatorContent,
   ...nov7CalculatorContent,
   ...nov9CalculatorContent,
-  ...nov10CalculatorContent
+  ...nov10CalculatorContent,
+  ...nov11CalculatorContent
 };
 
 export function contentWordCount(entry) {

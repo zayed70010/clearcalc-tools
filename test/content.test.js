@@ -15,7 +15,7 @@ test('every calculator has unique long-form page content', () => {
     const entry = calculatorContent[calculator.slug];
     assert.ok(entry, `missing content for ${calculator.slug}`);
     assert.equal(contentWordCount(entry) >= 600, true, `${calculator.slug} is under 600 words`);
-    assert.equal(entry.faqs.length >= 4 && entry.faqs.length <= 6, true, `${calculator.slug} FAQ count`);
+    assert.equal(entry.faqs.length >= 4 && entry.faqs.length <= 10, true, `${calculator.slug} FAQ count`);
     assert.equal(entry.examples.length >= 3, true, `${calculator.slug} needs multiple examples`);
     assert.equal(entry.table.rows.length >= 2, true, `${calculator.slug} needs a reference table`);
     assert.equal(descriptions.has(entry.description), false, entry.description);
@@ -269,7 +269,7 @@ test('five november calculators are linked from the homepage and a related page'
   const mortgage = calculatorContent['mortgage-calculator'];
   assert.match(mortgage.intro[2], /\$832,750/);
   assert.match(mortgage.howItWorks.at(-1), /\$431,795\.43/);
-  assert.equal(mortgage.faqs.length, 6);
+  assert.equal(mortgage.faqs.length >= 6, true);
 });
 
 test('five November calculators are linked from the homepage and a related page', () => {
@@ -519,10 +519,10 @@ test('ten November 10 calculators are linked from the homepage and a related pag
   }
   const stamp = calculatorContent['england-stamp-duty-calculator'];
   assert.match(stamp.h1, /How Much Stamp Duty Will I Pay/);
-  assert.match(stamp.table.heading, /common prices/i);
+  assert.match(stamp.table.heading, /Stamp duty on common house prices/);
   assert.equal(stamp.table.rows.length >= 19, true);
   assert.match(stamp.table.rows.find((row) => row[0] === '£430,000')[1], /£11,500\.00/);
-  assert.match(stamp.extraSections[0].heading, /How stamp duty has changed/);
+  assert.match(stamp.extraSections[0].heading, /How stamp duty rates have changed/);
   assert.match(stamp.extraSections[0].paragraphs.join(' '), /2018/);
   assert.match(calculatorContent['sales-tax-calculator'].h1, /by State/);
   assert.match(calculatorContent['sales-tax-calculator'].description, /8\.25%/);

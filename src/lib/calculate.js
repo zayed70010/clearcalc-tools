@@ -1,3 +1,5 @@
+import { NOV11_SLUGS, calculateNov11 } from './nov11.js';
+
 const money = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(value);
 const gbp = (pence) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(pence / 100);
 const usdCents = (cents) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(cents / 100);
@@ -1696,7 +1698,8 @@ function canadaEmployeePayroll(salary) {
 
 export function calculate(slug, values) {
   const v = Object.fromEntries(Object.entries(values).map(([key, val]) => [key, key.includes('date') || key === 'preset' ? val : Number(val)]));
-  if (slug === 'mortgage-calculator' || slug === 'loan-calculator') {
+  if (slug === 'mortgage-calculator' || NOV11_SLUGS.has(slug)) return calculateNov11(slug, v);
+  if (slug === 'loan-calculator') {
     const months = v.years * 12;
     const r = v.rate / 1200;
     const payment = r === 0 ? v.principal / months : v.principal * r * (1 + r) ** months / ((1 + r) ** months - 1);
