@@ -891,7 +891,8 @@ export const nov10CalculatorContent = {
       { slug: 'house-affordability-calculator', label: 'How much house can I afford calculator', note: 'Starts from income, debts, tax, and insurance and solves a price. This page starts from the price.' },
       { slug: 'apr-calculator', label: 'APR calculator', note: 'Estimates an APR when prepaid charges sit on top of a note rate. It is not the down payment.' },
       { slug: 'rent-affordability-calculator', label: 'Rent affordability calculator', note: 'Compares rent with 30% of gross income. It does not split a purchase price.' },
-      { slug: 'england-stamp-duty-calculator', label: 'England and Northern Ireland stamp duty calculator', note: 'SDLT in pounds. It is not added to this dollar down payment.' }
+      { slug: 'england-stamp-duty-calculator', label: 'England and Northern Ireland stamp duty calculator', note: 'SDLT in pounds. It is not added to this dollar down payment.' },
+      { slug: 'rent-vs-buy-calculator', label: 'Rent vs buy calculator', note: 'Uses an $80,000 down payment on a $400,000 home as the sample and compares ending wealth with renting.' }
     ]
   },
   'australia-gst-calculator': {

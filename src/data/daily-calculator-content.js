@@ -500,7 +500,8 @@ export const dailyCalculatorContent = {
       { slug: 'calorie-calculator', label: 'Daily maintenance calorie calculator', note: 'Mifflin–St Jeor times an activity multiplier. The sample man at 1.55 is 2,633 calories/day. A 25:00 5K does not change that figure.' },
       { slug: 'bmi-calculator', label: 'Adult BMI calculator', note: 'Weight in kilograms and height in centimeters. It does not accept a finish time or produce a pace.' },
       { slug: 'length-converter', label: 'Length converter from meters', note: 'If a split was measured in meters, convert it before you type kilometres. This pace page does not convert meters itself.' },
-      { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'Useful if you already have two paces and want one as a percent of the other. It does not divide a finish time by a distance.' }
+      { slug: 'percentage-calculator', label: 'Percentage calculator', note: 'Useful if you already have two paces and want one as a percent of the other. It does not divide a finish time by a distance.' },
+      { slug: 'pace-calculator', label: 'Pace calculator', note: 'Any distance, or a time and a distance solved from a pace. A 25:00 5K is still 5:00 per kilometre and 8:02.8 per mile.' }
     ]
   }
 };

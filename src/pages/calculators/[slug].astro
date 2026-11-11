@@ -101,7 +101,7 @@ const jsonLd = JSON.stringify(schema).replaceAll('<', '\\u003c');
         {example.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
       </section>
     ))}
-    <h2>{content.table.heading}</h2>
+    <h2 id={content.table.anchor}>{content.table.heading}</h2>
     <div class="table-wrap">
       <table class="ref-table">
         <caption>{content.table.caption}</caption>
@@ -114,7 +114,7 @@ const jsonLd = JSON.stringify(schema).replaceAll('<', '\\u003c');
       </table>
     </div>
     {content.extraSections?.map((section) => (
-      <section>
+      <section id={section.anchor}>
         <h2>{section.heading}</h2>
         {section.paragraphs?.map((paragraph) => <p>{paragraph}</p>)}
         {section.table ? (
@@ -166,9 +166,7 @@ const jsonLd = JSON.stringify(schema).replaceAll('<', '\\u003c');
   <script>
     import { calculate } from '../../lib/calculate.js';
     const form = document.querySelector('.calculator');
-    form?.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const values = Object.fromEntries(new FormData(form).entries());
+    const show = (values) => {
       try {
         const result = calculate(form.dataset.slug, values);
         document.querySelector('#result-headline').textContent = result.headline;
@@ -176,6 +174,33 @@ const jsonLd = JSON.stringify(schema).replaceAll('<', '\\u003c');
       } catch {
         document.querySelector('#result-headline').textContent = 'Please check your inputs';
       }
+    };
+    const params = new URLSearchParams(location.search);
+    if (form?.dataset.slug === 'england-stamp-duty-calculator') {
+      const price = params.get('price');
+      const priceInput = form.querySelector('input[name="price"]');
+      if (price && priceInput) {
+        const cleaned = price.replace(/[£,\s]/g, '');
+        if (/^\d+(\.\d+)?$/.test(cleaned)) priceInput.value = cleaned;
+      }
+      for (const name of ['buyer', 'residence', 'period']) {
+        const value = params.get(name);
+        const field = form.querySelector(`[name="${name}"]`);
+        if (value && field) field.value = value;
+      }
+    }
+    form?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const values = Object.fromEntries(new FormData(form).entries());
+      show(values);
+      if (form.dataset.slug === 'england-stamp-duty-calculator') {
+        const url = new URL(location.href);
+        url.searchParams.set('price', values.price);
+        history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+      }
     });
+    if (form?.dataset.slug === 'england-stamp-duty-calculator' && params.get('price')) {
+      show(Object.fromEntries(new FormData(form).entries()));
+    }
   </script>
 </Layout>

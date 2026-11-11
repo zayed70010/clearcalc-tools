@@ -286,7 +286,8 @@ export const nov9CalculatorContent = {
     relatedLinks: [
       { slug: 'pregnancy-due-date-calculator', label: 'Pregnancy due date calculator', note: 'The same 1 January 2026 period and a 28-day cycle is due 8 October 2026. Conception on that page is 15 January, which matches this ovulation date only when the luteal phase is 14.' },
       { slug: 'date-difference-calculator', label: 'Date difference calculator', note: '1 January to 15 January 2026 is 14 elapsed days. That page does not subtract a luteal phase.' },
-      { slug: 'age-calculator', label: 'Age calculator', note: 'Completed years, months, and days. It does not estimate ovulation.' }
+      { slug: 'age-calculator', label: 'Age calculator', note: 'Completed years, months, and days. It does not estimate ovulation.' },
+      { slug: 'period-calculator', label: 'Period calculator', note: 'Lists the next period dates from the same cycle length. A 1 January 2026 start and a 28-day cycle is next due 29 January 2026.' }
     ]
   },
   'sleep-calculator': {
