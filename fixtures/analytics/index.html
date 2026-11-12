@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>BMI Calculator | ClearCalc Tools</title>
+  </head>
+  <body>
+    <form class="calculator" data-slug="bmi-calculator">
+      <label>Weight <input name="weight" value="180" /></label>
+      <label>Height <input name="height" value="70" /></label>
+      <button type="submit">Calculate</button>
+    </form>
+    <p id="result-headline">Enter values to begin</p>
+    <button type="button" id="analytics-choices" aria-controls="analytics-consent" aria-expanded="false">Analytics choices</button>
+    <div id="analytics-consent" role="dialog" aria-modal="false" aria-labelledby="analytics-consent-title" hidden>
+      <h2 id="analytics-consent-title">Analytics choice</h2>
+      <p id="analytics-consent-copy">Analytics stays off until you accept.</p>
+      <button type="button" id="analytics-reject">Reject analytics</button>
+      <button type="button" id="analytics-accept">Accept analytics</button>
+    </div>
+    <p id="analytics-consent-status" aria-live="polite"></p>
+    <script type="module" src="/boot.js"></script>
+  </body>
+</html>

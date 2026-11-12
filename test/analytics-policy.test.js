@@ -1,0 +1,57 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { existsSync, readFileSync } from 'node:fs';
+import { CAMPAIGN_PARAMS, CONSENT_STORAGE_KEY, GA_PROPERTY_ID, MEASUREMENT_ID } from '../src/lib/analytics-url.js';
+
+test('privacy policy describes the analytics choice and does not claim there is no analytics', () => {
+  const privacy = readFileSync('src/pages/privacy-policy.astro', 'utf8');
+  assert.match(privacy, /Last updated: November 12, 2026/);
+  assert.match(privacy, /MEASUREMENT_ID/);
+  assert.match(privacy, /GA_PROPERTY_ID/);
+  assert.match(privacy, /CONSENT_STORAGE_KEY/);
+  assert.match(privacy, /CAMPAIGN_PARAMS/);
+  assert.match(privacy, /CAMPAIGN_VALUE_MAX/);
+  assert.equal(MEASUREMENT_ID, 'G-Y33DR890GT');
+  assert.equal(GA_PROPERTY_ID, '564145027');
+  assert.equal(CONSENT_STORAGE_KEY, 'clearcalc-analytics-consent');
+  assert.match(privacy, /CAMPAIGN_PARAMS\.map/);
+  assert.equal(CAMPAIGN_PARAMS.includes('utm_source'), true);
+  assert.equal(CAMPAIGN_PARAMS.includes('utm_term'), false);
+  assert.match(privacy, /utm_term/);
+  assert.match(privacy, /gclid/);
+  assert.match(privacy, /Reject analytics/);
+  assert.match(privacy, /Accept analytics/);
+  assert.match(privacy, /Analytics choices/);
+  assert.match(privacy, /not a count of every person/);
+  assert.match(privacy, /does not prove that every remaining hit came from a person/);
+  assert.match(privacy, /https:\/\/support\.google\.com\/analytics\/answer\/7667196/);
+  assert.match(privacy, /https:\/\/support\.google\.com\/analytics\/answer\/11397207/);
+  assert.match(privacy, /https:\/\/policies\.google\.com\/technologies\/ads/);
+  assert.match(privacy, /https:\/\/adssettings\.google\.com/);
+  assert.match(privacy, /https:\/\/www\.aboutads\.info/);
+  assert.equal(privacy.includes('There is no Google Analytics'), false);
+  assert.equal(privacy.includes('do not include an analytics script'), false);
+  assert.equal(privacy.includes('adsbygoogle'), false);
+  assert.equal(existsSync('public/ads.txt'), false);
+  assert.equal(existsSync('ads.txt'), false);
+});
+
+test('the layout asks for consent and does not embed the Google tag', () => {
+  const layout = readFileSync('src/layouts/Layout.astro', 'utf8');
+  assert.match(layout, /id="analytics-accept"/);
+  assert.match(layout, /id="analytics-reject"/);
+  assert.match(layout, /id="analytics-choices"/);
+  assert.match(layout, /bootAnalyticsConsent/);
+  assert.equal(/<script[^>]+src="https:\/\/www\.googletagmanager\.com/.test(layout), false);
+  assert.equal(/<script[^>]+src="https:\/\/www\.google-analytics\.com/.test(layout), false);
+  assert.equal(layout.includes('adsbygoogle'), false);
+  assert.equal(layout.includes('googlesyndication'), false);
+
+  const worker = readFileSync('public/_worker.js', 'utf8');
+  assert.match(worker, /clearcalc-tools\.pages\.dev/);
+  assert.equal(worker.includes('googletagmanager'), false);
+  assert.equal(worker.includes('google-analytics'), false);
+  const redirects = readFileSync('public/_redirects', 'utf8');
+  assert.match(redirects, /^\/privacy\s+\/privacy-policy\/\s+301$/m);
+  assert.match(redirects, /^\/privacy\/\s+\/privacy-policy\/\s+301$/m);
+});
