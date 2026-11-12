@@ -261,6 +261,19 @@ function measurementFields(view) {
   return { page_location: pageLocation, page_referrer: pageReferrer };
 }
 
+export function readAnalyticsMode(doc) {
+  const meta = doc.querySelector?.('meta[name="clearcalc-analytics-mode"]');
+  return meta?.getAttribute?.('content') === 'auto' ? 'auto' : 'opt-in';
+}
+
+function describeAutomaticMeasurement(doc) {
+  const copy = doc.getElementById('analytics-consent-copy');
+  if (!copy) return;
+  const link = copy.querySelector?.('a');
+  copy.textContent = 'This visit is being measured with Google Analytics. Numbers you type into a calculator are not sent. You can turn this off. ';
+  if (link) copy.appendChild(link);
+}
+
 export function bootAnalyticsConsent(view = globalThis) {
   if (view.__clearcalcAnalyticsBooted) return;
   const doc = view.document;
@@ -375,11 +388,17 @@ export function bootAnalyticsConsent(view = globalThis) {
   });
 
   const choice = readConsent(storageOf(view));
-  if (choice === CONSENT_ACCEPTED) {
+  const mode = readAnalyticsMode(doc);
+  if (choice === CONSENT_REJECTED) {
+    hide();
+  } else if (choice === CONSENT_ACCEPTED) {
     enable();
     hide();
-  } else if (choice === CONSENT_REJECTED) {
-    hide();
+  } else if (mode === 'auto') {
+    describeAutomaticMeasurement(doc);
+    enable();
+    show();
+    announce('Analytics is measuring this visit. You can reject it. Calculator inputs are not sent.');
   } else {
     show();
   }

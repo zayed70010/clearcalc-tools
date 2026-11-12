@@ -67,20 +67,25 @@ function control() {
   };
 }
 
-function fakeWindow(storage) {
+function fakeWindow(storage, mode) {
   const doc = cookieDocument();
   const dialog = control();
   const accept = control();
   const reject = control();
   const reopen = control();
   const status = { textContent: '' };
+  const copy = { textContent: 'Analytics stays off until you accept.', querySelector() { return null; }, appendChild() {} };
   doc.nodes = {
     'analytics-consent': dialog,
     'analytics-accept': accept,
     'analytics-reject': reject,
     'analytics-choices': reopen,
-    'analytics-consent-status': status
+    'analytics-consent-status': status,
+    'analytics-consent-copy': copy
   };
+  doc.querySelector = (selector) => selector === 'meta[name="clearcalc-analytics-mode"]' && mode
+    ? { getAttribute: () => mode }
+    : null;
   const calls = [];
   const view = {
     document: doc,
@@ -206,6 +211,29 @@ test('a stored rejection loads no tag, and a stored acceptance loads one', () =>
   assert.equal(accepted.document.head.children.length, 1);
   assert.equal(accepted.document.head.children[0].src, analyticsScriptUrl());
   assert.equal(dataLayerEvents(accepted).filter((item) => item[1] === 'page_view').length, 1);
+});
+
+test('an automatic region measures without a click, and a saved rejection still blocks it', () => {
+  const automatic = fakeWindow(memoryStorage(), 'auto');
+  bootAnalyticsConsent(automatic);
+  assert.equal(readConsent(automatic.localStorage), null);
+  assert.equal(automatic.document.head.children.length, 1);
+  assert.equal(automatic.dialog.hidden, false);
+  assert.match(automatic.document.nodes['analytics-consent-copy'].textContent, /being measured/);
+  assert.equal(dataLayerEvents(automatic).filter((item) => item[1] === 'page_view').length, 1);
+  const hit = dataLayerEvents(automatic).find((item) => item[0] === 'event' && item[1] === 'page_view');
+  assert.equal(hit[2].page_location.includes('864213579'), false);
+  assert.equal(hit[2].page_location.includes('utm_source=newsletter'), true);
+
+  automatic.reject.click();
+  assert.equal(readConsent(automatic.localStorage), 'rejected');
+  automatic.fetch('https://www.google-analytics.com/g/collect?en=page_view&dl=' + encodeURIComponent(page));
+  assert.equal(automatic.calls.length, 0);
+
+  const returning = fakeWindow(memoryStorage({ 'clearcalc-analytics-consent': 'rejected' }), 'auto');
+  bootAnalyticsConsent(returning);
+  assert.equal(returning.document.head.children.length, 0);
+  assert.equal(returning.gtag, undefined);
 });
 
 test('unsaved or unreadable choices do not enable analytics', () => {
