@@ -22,7 +22,11 @@ test('privacy policy describes the analytics choice and does not claim there is 
   assert.match(privacy, /Reject analytics/);
   assert.match(privacy, /Accept analytics/);
   assert.match(privacy, /Analytics choices/);
+  assert.match(privacy, /Cloudflare provides the country of the connection/);
+  assert.match(privacy, /Saudi Arabia/);
   assert.match(privacy, /not a count of every person/);
+  assert.equal(privacy.includes('does not look up a country'), false);
+  assert.equal(privacy.includes('asks every visitor that question'), false);
   assert.match(privacy, /does not prove that every remaining hit came from a person/);
   assert.match(privacy, /https:\/\/support\.google\.com\/analytics\/answer\/7667196/);
   assert.match(privacy, /https:\/\/support\.google\.com\/analytics\/answer\/11397207/);
