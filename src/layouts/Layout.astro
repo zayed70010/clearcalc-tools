@@ -39,6 +39,21 @@ const socialImage = absoluteSiteUrl('/og-image.png');
       <nav aria-label="Main navigation"><a href={`${base}#calculators`}>Calculators</a><a href={`${base}about/`}>About</a></nav>
     </header>
     <main><slot /></main>
-    <footer><div><a class="brand footer-brand" href={base}>ClearCalc Tools</a><p>Useful answers, without the clutter.</p></div><nav aria-label="Footer"><a href={`${base}about/`}>About</a><a href={`${base}contact/`}>Contact</a><a href={`${base}privacy-policy/`}>Privacy Policy</a><a href={`${base}terms/`}>Terms</a></nav><small>© {new Date().getFullYear()} ClearCalc Tools</small></footer>
+    <footer><div><a class="brand footer-brand" href={base}>ClearCalc Tools</a><p>Useful answers, without the clutter.</p></div><nav aria-label="Footer"><a href={`${base}about/`}>About</a><a href={`${base}contact/`}>Contact</a><a href={`${base}privacy-policy/`}>Privacy Policy</a><a href={`${base}terms/`}>Terms</a><button type="button" class="analytics-choice" id="analytics-choices" aria-controls="analytics-consent" aria-expanded="false">Analytics choices</button></nav><small>© {new Date().getFullYear()} ClearCalc Tools</small></footer>
+    <div id="analytics-consent" class="analytics-consent" role="dialog" aria-modal="false" aria-labelledby="analytics-consent-title" aria-describedby="analytics-consent-copy" hidden>
+      <div class="analytics-consent-copy">
+        <h2 id="analytics-consent-title">Analytics choice</h2>
+        <p id="analytics-consent-copy">ClearCalc can count pages, engagement, and referral sources with Google Analytics. It stays off until you accept. Numbers you type into a calculator are not sent. You can change this choice at any time. <a href="/privacy-policy/">Privacy policy</a></p>
+      </div>
+      <div class="analytics-consent-actions">
+        <button type="button" class="analytics-reject" id="analytics-reject">Reject analytics</button>
+        <button type="button" class="analytics-accept" id="analytics-accept">Accept analytics</button>
+      </div>
+    </div>
+    <p id="analytics-consent-status" class="visually-hidden" aria-live="polite"></p>
+    <script>
+      import { bootAnalyticsConsent } from '../lib/analytics-consent.js';
+      bootAnalyticsConsent();
+    </script>
   </body>
 </html>
