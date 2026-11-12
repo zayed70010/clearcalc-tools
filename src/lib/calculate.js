@@ -1,4 +1,5 @@
 import { NOV11_SLUGS, calculateNov11 } from './nov11.js';
+import { NOV12_SLUGS, calculateNov12 } from './nov12.js';
 
 const money = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(value);
 const gbp = (pence) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(pence / 100);
@@ -1696,8 +1697,69 @@ function canadaEmployeePayroll(salary) {
   return { cppBase, cppFirst, cpp, cpp2, ei, taxable, basicPersonal, federalTax };
 }
 
+function percentageChangeResult(v) {
+  const mode = v.mode == null || Number.isNaN(Number(v.mode)) ? 1 : Number(v.mode);
+  if (![1, 2, 3].includes(mode)) throw new Error('Choose percent change, percent difference, or the original value');
+  if (mode === 2) {
+    if (!Number.isFinite(v.old) || !Number.isFinite(v.next)) throw new Error('Enter both values');
+    const base = (Math.abs(v.old) + Math.abs(v.next)) / 2;
+    if (base === 0) throw new Error('Percent difference needs at least one value other than zero.');
+    const difference = Math.abs(v.next - v.old) / base * 100;
+    return {
+      headline: `${percent(difference)}% difference`,
+      details: [
+        `First value: ${number(v.old, 4)}`,
+        `Second value: ${number(v.next, 4)}`,
+        `Absolute difference: ${number(Math.abs(v.next - v.old), 4)}`,
+        `Average of the absolute values: ${number(base, 4)}`,
+        'Percent difference = |new − old| / ((|old| + |new|) / 2) × 100. The result is never negative. It is not a percent change, because percent change divides by the starting value only and keeps a sign.',
+        'Swapping the two values does not change the percent difference. It does change a percent change, because the base moves.'
+      ]
+    };
+  }
+  if (mode === 3) {
+    if (!Number.isFinite(v.next)) throw new Error('Enter the new value');
+    if (!Number.isFinite(v.percent)) throw new Error('Enter the percent change');
+    if (v.percent <= -100) throw new Error('A percent change of −100% or lower cannot be reversed to a finite original. The divisor would be zero or negative.');
+    const original = v.next / (1 + v.percent / 100);
+    const check = original === 0 ? null : (v.next - original) / original * 100;
+    return {
+      headline: number(original, 4),
+      details: [
+        `New value: ${number(v.next, 4)}`,
+        `Percent change applied to the original: ${percent(v.percent)}%`,
+        `Original = new / (1 + percent / 100).`,
+        check == null
+          ? 'The original is zero, so the forward percent change is undefined.'
+          : `Check: the percent change from this original to the new value is ${percent(check)}%.`,
+        'This is the reverse of percent change, not of percent difference. A 25% increase that lands on 100 started at 80. A −20% change that lands on 80 started at 100.',
+        'The percent field is ignored for percent change and percent difference. Those modes use the two value boxes.'
+      ]
+    };
+  }
+  if (!Number.isFinite(v.old) || !Number.isFinite(v.next)) throw new Error('Enter a starting value and a new value');
+  if (v.old === 0) throw new Error('Percent change from zero is undefined. Enter a starting value other than zero.');
+  const change = (v.next - v.old) / v.old * 100;
+  const direction = v.next > v.old ? 'increase' : v.next < v.old ? 'decrease' : 'no change';
+  return {
+    headline: `${percent(change)}% ${direction}`,
+    details: [
+      `Starting value: ${number(v.old, 4)}`,
+      `New value: ${number(v.next, 4)}`,
+      `Difference: ${number(v.next - v.old, 4)}`,
+      `Direction: ${direction}. The new value is ${v.next === v.old ? 'equal to' : v.next > v.old ? 'greater than' : 'less than'} the starting value.`,
+      'Percent change = (new − old) / old × 100. The sign follows that division. When the starting value is negative, a rise in the value can still produce a negative percent, because the base is negative. The direction word follows the comparison of the two values, not the sign of the percent.',
+      v.old < 0
+        ? 'The starting value is negative. Read the direction word together with the percent.'
+        : 'The starting value is positive, so a positive percent is an increase and a negative percent is a decrease.',
+      'Percent difference uses the average of the two absolute values and has no sign. Finding the original from a new value and a percent uses the third choice on the form. This result is percent change.'
+    ]
+  };
+}
+
 export function calculate(slug, values) {
   const v = Object.fromEntries(Object.entries(values).map(([key, val]) => [key, key.includes('date') || key === 'preset' ? val : Number(val)]));
+  if (NOV12_SLUGS.has(slug)) return calculateNov12(slug, v);
   if (slug === 'mortgage-calculator' || NOV11_SLUGS.has(slug)) return calculateNov11(slug, v);
   if (slug === 'loan-calculator') {
     const months = v.years * 12;
@@ -4102,25 +4164,7 @@ export function calculate(slug, values) {
       ]
     };
   }
-  if (slug === 'percentage-change-calculator') {
-    if (!Number.isFinite(v.old) || !Number.isFinite(v.next)) throw new Error('Enter a starting value and a new value');
-    if (v.old === 0) throw new Error('Percent change from zero is undefined. Enter a starting value other than zero.');
-    const change = (v.next - v.old) / v.old * 100;
-    const direction = v.next > v.old ? 'increase' : v.next < v.old ? 'decrease' : 'no change';
-    return {
-      headline: `${percent(change)}% ${direction}`,
-      details: [
-        `Starting value: ${number(v.old, 4)}`,
-        `New value: ${number(v.next, 4)}`,
-        `Difference: ${number(v.next - v.old, 4)}`,
-        `Direction: ${direction}. The new value is ${v.next === v.old ? 'equal to' : v.next > v.old ? 'greater than' : 'less than'} the starting value.`,
-        'Percent change = (new − old) / old × 100. The sign follows that division. When the starting value is negative, a rise in the value can still produce a negative percent, because the base is negative. The direction word follows the comparison of the two values, not the sign of the percent.',
-        v.old < 0
-          ? 'The starting value is negative. Read the direction word together with the percent.'
-          : 'The starting value is positive, so a positive percent is an increase and a negative percent is a decrease.'
-      ]
-    };
-  }
+  if (slug === 'percentage-change-calculator') return percentageChangeResult(v);
   if (slug === 'fahrenheit-to-celsius-calculator') {
     const fahrenheit = v.temperature;
     if (!Number.isFinite(fahrenheit)) throw new Error('Enter a Fahrenheit temperature');

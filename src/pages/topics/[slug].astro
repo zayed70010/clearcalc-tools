@@ -1,0 +1,29 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import CalculatorCard from '../../components/CalculatorCard.astro';
+import { clusters } from '../../data/clusters.js';
+import { calculators } from '../../data/calculators.js';
+
+export function getStaticPaths() {
+  return clusters.map((cluster) => ({ params: { slug: cluster.id }, props: { cluster } }));
+}
+
+const { cluster } = Astro.props;
+const members = cluster.members
+  .map((slug) => calculators.find((item) => item.slug === slug))
+  .filter(Boolean);
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+const description = `${cluster.title}. ${cluster.description} ${members.length} ClearCalc calculators.`;
+---
+<Layout title={`${cluster.title} | ClearCalc Tools`} description={description}>
+  <section class="tool-hero">
+    <a href={base}>← All calculators</a>
+    <h1>{cluster.title}</h1>
+    <p>{cluster.description} Every calculator in this cluster is listed below.</p>
+  </section>
+  <section class="section">
+    <div class="card-grid">
+      {members.map((item) => <CalculatorCard item={item} />)}
+    </div>
+  </section>
+</Layout>

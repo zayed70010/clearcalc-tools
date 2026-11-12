@@ -15,7 +15,7 @@ const gbp = (cell) => cell.replace(/\s*\(no relief\)/, '');
 
 test('stamp duty common house prices match the calculator', () => {
   const table = calculatorContent['england-stamp-duty-calculator'].table;
-  assert.equal(table.heading, 'Stamp duty on common house prices');
+  assert.equal(table.heading, 'How much stamp duty on £X?');
   const buyers = { 1: 1, 2: 2, 3: 3 };
   for (const row of table.rows) {
     const price = Number(row[0].replace(/[£,]/g, ''));
@@ -30,10 +30,9 @@ test('stamp duty common house prices match the calculator', () => {
 
 test('stamp duty page keeps the current-rate default and a price query', () => {
   const page = calculatorContent['england-stamp-duty-calculator'];
-  assert.match(page.h1, /Stamp Duty Calculator England/);
-  assert.match(page.h1, /How Much Stamp Duty Will I Pay/);
-  assert.match(page.title, /Stamp Duty Calculator England/);
-  assert.match(page.extraSections[0].heading, /How stamp duty rates have changed/);
+  assert.match(page.h1, /Stamp Duty Calculator UK \(England & Northern Ireland\)/);
+  assert.match(page.title, /Stamp Duty Calculator UK \(England & Northern Ireland\)/);
+  assert.match(page.extraSections[0].heading, /Stamp duty rates in previous years/);
   assert.match(page.steps.at(-1), /\?price=430000/);
   const source = readFileSync('src/pages/calculators/[slug].astro', 'utf8');
   assert.match(source, /params\.get\('price'\)/);

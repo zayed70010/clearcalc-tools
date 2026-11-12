@@ -518,11 +518,11 @@ test('ten November 10 calculators are linked from the homepage and a related pag
     );
   }
   const stamp = calculatorContent['england-stamp-duty-calculator'];
-  assert.match(stamp.h1, /How Much Stamp Duty Will I Pay/);
-  assert.match(stamp.table.heading, /Stamp duty on common house prices/);
+  assert.match(stamp.h1, /Stamp Duty Calculator UK \(England & Northern Ireland\)/);
+  assert.match(stamp.table.heading, /How much stamp duty on £X/);
   assert.equal(stamp.table.rows.length >= 19, true);
   assert.match(stamp.table.rows.find((row) => row[0] === '£430,000')[1], /£11,500\.00/);
-  assert.match(stamp.extraSections[0].heading, /How stamp duty rates have changed/);
+  assert.match(stamp.extraSections[0].heading, /Stamp duty rates in previous years/);
   assert.match(stamp.extraSections[0].paragraphs.join(' '), /2018/);
   assert.match(calculatorContent['sales-tax-calculator'].h1, /by State/);
   assert.match(calculatorContent['sales-tax-calculator'].description, /8\.25%/);
