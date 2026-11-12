@@ -4,6 +4,7 @@ import CalculatorCard from '../../components/CalculatorCard.astro';
 import { calculators } from '../../data/calculators.js';
 import { calculatorContent } from '../../data/calculator-content.js';
 import { absoluteSiteUrl } from '../../data/site.js';
+import { clusterFor } from '../../data/clusters.js';
 
 export function getStaticPaths() {
   return calculators.map((calculator) => ({ params: { slug: calculator.slug }, props: { calculator } }));
@@ -14,10 +15,11 @@ const content = calculatorContent[calculator.slug];
 if (!content) throw new Error(`Missing page content for ${calculator.slug}`);
 
 const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
-const related = calculators
-  .filter((item) => item.slug !== calculator.slug)
-  .sort((a, b) => Number(b.category === calculator.category) - Number(a.category === calculator.category))
-  .slice(0, 3);
+const cluster = clusterFor(calculator.slug);
+const related = (cluster
+  ? calculators.filter((item) => cluster.members.includes(item.slug) && item.slug !== calculator.slug)
+  : calculators.filter((item) => item.category === calculator.category && item.slug !== calculator.slug)
+).slice(0, 6);
 const canonical = absoluteSiteUrl(`/calculators/${calculator.slug}/`);
 const schema = {
   '@context': 'https://schema.org',
@@ -161,6 +163,7 @@ const jsonLd = JSON.stringify(schema).replaceAll('<', '\\u003c');
   </article>
   <section class="section">
     <h2>Related calculators</h2>
+    {cluster ? <p class="category-note">More in <a href={`${base}topics/${cluster.id}/`}>{cluster.title}</a>.</p> : null}
     <div class="card-grid">{related.map((item) => <CalculatorCard item={item} />)}</div>
   </section>
   <script>
