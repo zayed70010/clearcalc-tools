@@ -579,7 +579,7 @@ test('trust pages name Zayed, the contact address, and the advertising disclosur
   assert.equal(contact.includes('<form'), false);
 
   const privacy = readFileSync('src/pages/privacy-policy.astro', 'utf8');
-  assert.match(privacy, /Last updated: November 12, 2026/);
+  assert.match(privacy, /Last updated: November 13, 2026/);
   assert.match(privacy, /https:\/\/policies\.google\.com\/technologies\/ads/);
   assert.match(privacy, /https:\/\/adssettings\.google\.com/);
   assert.match(privacy, /https:\/\/www\.aboutads\.info/);

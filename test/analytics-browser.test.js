@@ -44,27 +44,11 @@ async function openFromReferrer(browser, origin) {
   return { context, page, requests };
 }
 
-test('browser consent sends no Google requests until accept, then one tag and one page view', { timeout: 120000 }, async () => {
+test('a fresh visit sends one page view before any click, and rejection stops later hits', { timeout: 120000 }, async () => {
   const browser = await launchChrome();
   const server = await startStaticServer(async (pathname) => fixtureFile(pathname));
   try {
-    const rejected = await openFromReferrer(browser, server.origin);
-    await delay(1000);
-    assert.equal(googleRequests(rejected.requests).length, 0, explainHits(rejected.requests));
-    await rejected.page.click('#analytics-reject');
-    await delay(500);
-    assert.equal(googleRequests(rejected.requests).length, 0, explainHits(rejected.requests));
-    await rejected.page.reload({ waitUntil: 'domcontentloaded' });
-    await rejected.page.waitForSelector('#analytics-choices', { timeout: 10000 });
-    await delay(1000);
-    assert.equal(googleRequests(rejected.requests).length, 0, explainHits(rejected.requests));
-    assert.equal(await rejected.page.evaluate(() => localStorage.getItem('clearcalc-analytics-consent')), 'rejected');
-    await rejected.context.close();
-
     const accepted = await openFromReferrer(browser, server.origin);
-    await delay(800);
-    assert.equal(googleRequests(accepted.requests).length, 0, explainHits(accepted.requests));
-    await accepted.page.click('#analytics-accept');
     await accepted.page.waitForRequest(
       (request) => request.url().includes('/g/collect') && request.url().includes('en=page_view'),
       { timeout: 20000 }
@@ -80,6 +64,7 @@ test('browser consent sends no Google requests until accept, then one tag and on
     assert.match(decoded, /utm_medium=email/);
     assert.match(decoded, /utm_campaign=spring-2026/);
     assertNoSecrets(assert, accepted.requests, SECRETS);
+    assert.equal(await accepted.page.evaluate(() => localStorage.getItem('clearcalc-analytics-consent')), null);
 
     await accepted.page.click('#analytics-choices');
     await accepted.page.click('#analytics-accept');
@@ -110,7 +95,7 @@ test('browser consent sends no Google requests until accept, then one tag and on
   }
 });
 
-test('automatic region sends one page view before any click and stops after rejection', { timeout: 90000 }, async () => {
+test('a leftover opt-in marker still sends one page view before any click', { timeout: 90000 }, async () => {
   const browser = await launchChrome();
   const server = await startStaticServer(async (pathname) => fixtureFile(pathname));
   try {
