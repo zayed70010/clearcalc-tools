@@ -115,19 +115,14 @@ function dataLayerEvents(view) {
   return (view.dataLayer || []).map((args) => Array.from(args));
 }
 
-test('default is off, accept sends one sanitized page view, and withdrawal stops further hits', () => {
+test('a fresh visit sends one sanitized page view without a click, and withdrawal stops further hits', () => {
   const view = fakeWindow(memoryStorage());
   bootAnalyticsConsent(view);
   assert.equal(view.dialog.hidden, false);
-  assert.equal(view.gtag, undefined);
-  assert.equal(view[`ga-disable-${MEASUREMENT_ID}`], true);
-  assert.equal(view.document.head.children.length, 0);
+  assert.equal(view[`ga-disable-${MEASUREMENT_ID}`], false);
+  assert.equal(view.document.head.children.length, 1);
   assert.equal(readConsent(view.localStorage), null);
-
-  const early = 'https://www.google-analytics.com/g/collect?en=page_view&dl=' + encodeURIComponent(page);
-  view.fetch(early);
-  view.navigator.sendBeacon(early);
-  assert.equal(view.calls.length, 0);
+  assert.equal(dataLayerEvents(view).filter((item) => item[1] === 'page_view').length, 1);
 
   view.accept.click();
   assert.equal(readConsent(view.localStorage), 'accepted');
@@ -213,44 +208,49 @@ test('a stored rejection loads no tag, and a stored acceptance loads one', () =>
   assert.equal(dataLayerEvents(accepted).filter((item) => item[1] === 'page_view').length, 1);
 });
 
-test('an automatic region measures without a click, and a saved rejection still blocks it', () => {
-  const automatic = fakeWindow(memoryStorage(), 'auto');
+test('fresh visits measure without a click for every country signal, and a saved rejection is not reversed', () => {
+  for (const mode of [undefined, 'auto', 'opt-in', 'DE', 'SA', 'GB', 'CH', 'XX']) {
+    const fresh = fakeWindow(memoryStorage(), mode);
+    bootAnalyticsConsent(fresh);
+    assert.equal(readConsent(fresh.localStorage), null, String(mode));
+    assert.equal(fresh.document.head.children.length, 1, String(mode));
+    assert.equal(dataLayerEvents(fresh).filter((item) => item[1] === 'page_view').length, 1, String(mode));
+  }
+
+  const automatic = fakeWindow(memoryStorage(), 'opt-in');
   bootAnalyticsConsent(automatic);
-  assert.equal(readConsent(automatic.localStorage), null);
-  assert.equal(automatic.document.head.children.length, 1);
-  assert.equal(automatic.dialog.hidden, false);
-  assert.match(automatic.document.nodes['analytics-consent-copy'].textContent, /being measured/);
-  assert.equal(dataLayerEvents(automatic).filter((item) => item[1] === 'page_view').length, 1);
   const hit = dataLayerEvents(automatic).find((item) => item[0] === 'event' && item[1] === 'page_view');
   assert.equal(hit[2].page_location.includes('864213579'), false);
   assert.equal(hit[2].page_location.includes('utm_source=newsletter'), true);
-
   automatic.reject.click();
   assert.equal(readConsent(automatic.localStorage), 'rejected');
   automatic.fetch('https://www.google-analytics.com/g/collect?en=page_view&dl=' + encodeURIComponent(page));
   assert.equal(automatic.calls.length, 0);
 
-  const returning = fakeWindow(memoryStorage({ 'clearcalc-analytics-consent': 'rejected' }), 'auto');
-  bootAnalyticsConsent(returning);
-  assert.equal(returning.document.head.children.length, 0);
-  assert.equal(returning.gtag, undefined);
+  for (const mode of [undefined, 'auto', 'opt-in']) {
+    const returning = fakeWindow(memoryStorage({ 'clearcalc-analytics-consent': 'rejected' }), mode);
+    bootAnalyticsConsent(returning);
+    assert.equal(returning.document.head.children.length, 0, String(mode));
+    assert.equal(returning.gtag, undefined, String(mode));
+  }
 });
 
-test('unsaved or unreadable choices do not enable analytics', () => {
+test('an unrecognized saved value is not a rejection, and a failed save does not store acceptance', () => {
   const odd = fakeWindow(memoryStorage({ 'clearcalc-analytics-consent': 'yes' }));
   bootAnalyticsConsent(odd);
-  assert.equal(odd.dialog.hidden, false);
-  assert.equal(odd.document.head.children.length, 0);
+  assert.equal(odd.document.head.children.length, 1);
+  assert.equal(readConsent(odd.localStorage), null);
 
   const broken = fakeWindow({
     getItem() { return null; },
     setItem() { throw new Error('storage blocked'); }
   });
   bootAnalyticsConsent(broken);
+  assert.equal(broken.document.head.children.length, 1);
   broken.accept.click();
-  assert.equal(broken.document.head.children.length, 0);
-  assert.equal(broken.gtag, undefined);
-  assert.match(broken.status.textContent, /stayed off/);
+  assert.equal(readConsent(broken.localStorage), null);
+  broken.reject.click();
+  assert.equal(broken[`ga-disable-${MEASUREMENT_ID}`], true);
 });
 
 test('cookie deletion removes analytics names on the host and parent domain', () => {

@@ -5,7 +5,7 @@ import { CAMPAIGN_PARAMS, CONSENT_STORAGE_KEY, GA_PROPERTY_ID, MEASUREMENT_ID } 
 
 test('privacy policy describes the analytics choice and does not claim there is no analytics', () => {
   const privacy = readFileSync('src/pages/privacy-policy.astro', 'utf8');
-  assert.match(privacy, /Last updated: November 12, 2026/);
+  assert.match(privacy, /Last updated: November 13, 2026/);
   assert.match(privacy, /MEASUREMENT_ID/);
   assert.match(privacy, /GA_PROPERTY_ID/);
   assert.match(privacy, /CONSENT_STORAGE_KEY/);
@@ -22,8 +22,9 @@ test('privacy policy describes the analytics choice and does not claim there is 
   assert.match(privacy, /Reject analytics/);
   assert.match(privacy, /Accept analytics/);
   assert.match(privacy, /Analytics choices/);
-  assert.match(privacy, /Cloudflare provides the country of the connection/);
+  assert.match(privacy, /same in every country/);
   assert.match(privacy, /Saudi Arabia/);
+  assert.match(privacy, /does not claim that starting before a click satisfies every country's law/);
   assert.match(privacy, /not a count of every person/);
   assert.equal(privacy.includes('does not look up a country'), false);
   assert.equal(privacy.includes('asks every visitor that question'), false);

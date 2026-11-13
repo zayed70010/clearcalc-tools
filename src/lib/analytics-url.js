@@ -1,5 +1,5 @@
 // Google Analytics 4 for clearcalctools.com.
-// Measurement is opt-in. Hits keep a page path and a short campaign allowlist.
+// Measurement starts unless this browser has rejected it. Hits keep a page path and a short campaign allowlist.
 // Calculator fields, fragments, and advertising click ids are not measurement data.
 export const MEASUREMENT_ID = 'G-Y33DR890GT';
 export const GA_PROPERTY_ID = '564145027';
