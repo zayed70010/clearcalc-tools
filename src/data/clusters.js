@@ -26,7 +26,9 @@ export const clusters = [
       "minnesota-paycheck-calculator",
       "tennessee-paycheck-calculator",
       "indiana-paycheck-calculator",
-      "maryland-paycheck-calculator"
+      "maryland-paycheck-calculator",
+      "commission-calculator",
+      "pay-raise-calculator"
     ]
   },
   {
@@ -71,7 +73,8 @@ export const clusters = [
       "uk-capital-gains-tax-calculator",
       "uk-dividend-tax-calculator",
       "uk-national-insurance-calculator",
-      "us-federal-income-tax-calculator"
+      "us-federal-income-tax-calculator",
+      "us-capital-gains-tax-calculator"
     ]
   },
   {
@@ -99,7 +102,10 @@ export const clusters = [
       "student-loan-repayment-calculator",
       "home-equity-loan-calculator",
       "net-worth-calculator",
-      "50-30-20-budget-calculator"
+      "50-30-20-budget-calculator",
+      "auto-lease-calculator",
+      "heloc-calculator",
+      "rental-property-calculator"
     ]
   },
   {
@@ -117,7 +123,9 @@ export const clusters = [
       "inflation-calculator",
       "irs-rmd-calculator",
       "canada-rrsp-tax-savings-calculator",
-      "australia-superannuation-guarantee-calculator"
+      "australia-superannuation-guarantee-calculator",
+      "annuity-calculator",
+      "canada-tfsa-calculator"
     ]
   },
   {
@@ -140,7 +148,9 @@ export const clusters = [
       "macro-calculator",
       "protein-intake-calculator",
       "one-rep-max-calculator",
-      "heart-rate-zone-calculator"
+      "heart-rate-zone-calculator",
+      "calories-burned-calculator",
+      "lean-body-mass-calculator"
     ]
   },
   {
@@ -156,7 +166,9 @@ export const clusters = [
       "time-card-hours-calculator",
       "add-days-calculator",
       "day-of-the-week-calculator",
-      "week-number-calculator"
+      "week-number-calculator",
+      "hours-calculator",
+      "time-zone-converter"
     ]
   },
   {
@@ -168,7 +180,8 @@ export const clusters = [
       "fuel-economy-converter",
       "celsius-to-fahrenheit-calculator",
       "fahrenheit-to-celsius-calculator",
-      "weight-converter"
+      "weight-converter",
+      "speed-converter"
     ]
   },
   {
@@ -185,7 +198,11 @@ export const clusters = [
       "ratio-calculator",
       "area-calculator",
       "grade-calculator",
-      "markup-margin-calculator"
+      "markup-margin-calculator",
+      "average-calculator",
+      "standard-deviation-calculator",
+      "pythagorean-theorem-calculator",
+      "volume-calculator"
     ]
   },
   {
@@ -202,7 +219,9 @@ export const clusters = [
       "drywall-calculator",
       "wallpaper-calculator",
       "fence-calculator",
-      "btu-calculator"
+      "btu-calculator",
+      "roofing-calculator",
+      "stair-calculator"
     ]
   },
   {
@@ -214,7 +233,8 @@ export const clusters = [
       "discount-calculator",
       "electricity-cost-calculator",
       "fuel-cost-calculator",
-      "sales-tax-calculator"
+      "sales-tax-calculator",
+      "bill-split-calculator"
     ]
   }
 ];
