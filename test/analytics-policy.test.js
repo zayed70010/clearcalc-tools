@@ -5,7 +5,7 @@ import { CAMPAIGN_PARAMS, CONSENT_STORAGE_KEY, GA_PROPERTY_ID, MEASUREMENT_ID } 
 
 test('privacy policy describes the analytics choice and does not claim there is no analytics', () => {
   const privacy = readFileSync('src/pages/privacy-policy.astro', 'utf8');
-  assert.match(privacy, /Last updated: November 13, 2026/);
+  assert.match(privacy, /Last updated: November 14, 2026/);
   assert.match(privacy, /MEASUREMENT_ID/);
   assert.match(privacy, /GA_PROPERTY_ID/);
   assert.match(privacy, /CONSENT_STORAGE_KEY/);
@@ -36,7 +36,9 @@ test('privacy policy describes the analytics choice and does not claim there is 
   assert.match(privacy, /https:\/\/www\.aboutads\.info/);
   assert.equal(privacy.includes('There is no Google Analytics'), false);
   assert.equal(privacy.includes('do not include an analytics script'), false);
-  assert.equal(privacy.includes('adsbygoogle'), false);
+  assert.equal(privacy.includes('<script'), false);
+  assert.match(privacy, /ca-pub-5883602323439295/);
+  assert.equal(privacy.includes('approved or that it has started earning'), true);
   assert.equal(existsSync('public/ads.txt'), false);
   assert.equal(existsSync('ads.txt'), false);
 });
@@ -49,8 +51,9 @@ test('the layout asks for consent and does not embed the Google tag', () => {
   assert.match(layout, /bootAnalyticsConsent/);
   assert.equal(/<script[^>]+src="https:\/\/www\.googletagmanager\.com/.test(layout), false);
   assert.equal(/<script[^>]+src="https:\/\/www\.google-analytics\.com/.test(layout), false);
-  assert.equal(layout.includes('adsbygoogle'), false);
-  assert.equal(layout.includes('googlesyndication'), false);
+  const loader = '<script is:inline async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5883602323439295" crossorigin="anonymous"></script>';
+  assert.equal(layout.split(loader).length - 1, 1);
+  assert.equal(layout.split('google-adsense-account').length - 1, 1);
   assert.equal(layout.split('google-adsense-account').length - 1, 1);
   assert.match(layout, /<meta name="google-adsense-account" content="ca-pub-5883602323439295" \/>/);
 

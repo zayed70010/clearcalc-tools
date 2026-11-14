@@ -579,13 +579,14 @@ test('trust pages name Zayed, the contact address, and the advertising disclosur
   assert.equal(contact.includes('<form'), false);
 
   const privacy = readFileSync('src/pages/privacy-policy.astro', 'utf8');
-  assert.match(privacy, /Last updated: November 13, 2026/);
+  assert.match(privacy, /Last updated: November 14, 2026/);
   assert.match(privacy, /https:\/\/policies\.google\.com\/technologies\/ads/);
   assert.match(privacy, /https:\/\/adssettings\.google\.com/);
   assert.match(privacy, /https:\/\/www\.aboutads\.info/);
   assert.match(privacy, /mailto:zayed70010@gmail.com/);
   assert.match(privacy, /in your browser/);
-  assert.equal(privacy.includes('adsbygoogle'), false);
+  assert.equal(privacy.includes('<script'), false);
+  assert.match(privacy, /adsbygoogle\.js/);
   assert.equal(existsSync('src/pages/privacy.astro'), false);
 
   const terms = readFileSync('src/pages/terms.astro', 'utf8');
@@ -598,8 +599,8 @@ test('trust pages name Zayed, the contact address, and the advertising disclosur
   assert.match(layout, /href=\{`\$\{base\}privacy-policy\/`\}>Privacy Policy/);
   assert.match(layout, /href=\{`\$\{base\}terms\/`\}>Terms/);
   assert.equal(layout.includes('privacy/'), false);
-  assert.equal(layout.includes('adsbygoogle'), false);
-  assert.equal(layout.includes('googlesyndication'), false);
+  assert.equal(layout.split('adsbygoogle.js?client=ca-pub-5883602323439295').length - 1, 1);
+  assert.equal(layout.split('googlesyndication.com').length - 1, 1);
   assert.equal(existsSync('public/ads.txt'), false);
 
   const redirects = readFileSync('public/_redirects', 'utf8');
