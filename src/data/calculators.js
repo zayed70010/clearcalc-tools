@@ -1,5 +1,6 @@
 import { SALES_TAX_PRESETS } from '../lib/calculate.js';
 import { nov14Calculators } from './nov14-calculators.js';
+import { nov15Calculators } from './nov15-calculators.js';
 
 const salesTaxOptions = SALES_TAX_PRESETS.map(([code, name, rate]) => [
   code,
@@ -175,6 +176,7 @@ export const calculators = [
   { slug:'bill-split-calculator', icon:'Split', category:'Everyday', title:'Bill Split Calculator', description:'Split a bill and a tip by unequal shares. Cents are assigned so the shares add up to the total.', fields:[['bill','Bill before tip','number',120,'USD'],['tip','Tip','number',20,'%'],['shares','Share weights, separated by commas','text','2, 1, 1','']] },
   { slug:'us-capital-gains-tax-calculator', icon:'CG', category:'Work & Pay', title:'US Capital Gains Tax Calculator', description:'Estimate 2026 federal tax on a long-term or short-term capital gain stacked on other taxable income.', fields:[['status','Filing status','select','1','',[['1','Single'],['2','Married filing jointly']]],['holding','The gain is','select','1','',[['1','Long-term, held more than one year'],['2','Short-term, held one year or less']]],['gain','Net gain','number',20000,'USD'],['other','Other taxable income, before this gain','number',40000,'USD']] },
   { slug:'canada-tfsa-calculator', icon:'TFSA', category:'Finance', title:'Canada TFSA Calculator', description:'Estimate unused 2026 TFSA room from CRA dollar limits, or from the contribution-room worksheet.', fields:[['mode','How you want to count','select','1','',[['1','Room since the first year you were eligible'],['2','CRA worksheet from 2025 room']]],['firstyear','First year of room, 2009 to 2026','number',2009,''],['contributed','All contributions, including 2026','number',0,'CAD'],['withdrawn','Withdrawals in 2025 and earlier','number',0,'CAD'],['roomprev','TFSA room on 1 January 2025','number',7000,'CAD'],['contribprev','Contributions during 2025','number',3000,'CAD'],['withdrawprev','Withdrawals during 2025','number',1000,'CAD'],['contribnow','Contributions already made in 2026','number',1500,'CAD']] },
-  ...nov14Calculators.map(({ cluster, ...calculator }) => calculator)
+  ...nov14Calculators.map(({ cluster, ...calculator }) => calculator),
+  ...nov15Calculators.map(({ cluster, ...calculator }) => calculator)
 ];
 export const categories = [...new Set(calculators.map((item) => item.category))];

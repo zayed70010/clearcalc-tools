@@ -106,8 +106,8 @@ test('every new calculator is clustered, linked from the homepage, and linked fr
   for (const slug of NEW_SLUGS) assert.equal(addedSlugs.has(slug), true, slug);
   const counts = coverageCounts();
   assert.equal(counts.sitemapLocs, 222);
-  assert.equal(counts.added, 61);
-  assert.equal(counts.stillMissing, 50);
+  assert.equal(counts.added, 108);
+  assert.equal(counts.stillMissing, 1);
   assert.equal(readFileSync('src/pages/index.astro', 'utf8').includes('ads.txt'), false);
   assert.equal(readFileSync('public/_worker.js', 'utf8').includes('clearcalctools.com'), true);
 });

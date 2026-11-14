@@ -2,6 +2,7 @@ import { NOV11_SLUGS, calculateNov11 } from './nov11.js';
 import { NOV12_SLUGS, calculateNov12 } from './nov12.js';
 import { NOV13_SLUGS, calculateNov13 } from './nov13.js';
 import { NOV14_SLUGS, calculateNov14 } from './nov14.js';
+import { NOV15_SLUGS, calculateNov15 } from './nov15.js';
 
 const money = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(value);
 const gbp = (pence) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(pence / 100);
@@ -1760,6 +1761,7 @@ function percentageChangeResult(v) {
 }
 
 export function calculate(slug, values) {
+  if (NOV15_SLUGS.has(slug)) return calculateNov15(slug, values);
   if (NOV14_SLUGS.has(slug)) return calculateNov14(slug, values);
   if (NOV13_SLUGS.has(slug)) return calculateNov13(slug, values);
   const v = Object.fromEntries(Object.entries(values).map(([key, val]) => [key, key.includes('date') || key === 'preset' ? val : Number(val)]));
