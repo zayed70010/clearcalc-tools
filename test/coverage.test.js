@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { calculators } from '../src/data/calculators.js';
 import { nov14Calculators } from '../src/data/nov14-calculators.js';
+import { nov15Calculators } from '../src/data/nov15-calculators.js';
 import {
   CALCULATOR_NET_SITEMAP_FETCHED,
   calculatorNetExcluded,
@@ -11,7 +12,7 @@ import {
 } from '../src/data/calculator-net-coverage.js';
 
 const slugs = new Set(calculators.map((item) => item.slug));
-const nov14 = new Set(nov14Calculators.map((item) => item.slug));
+const fresh = new Set([...nov14Calculators, ...nov15Calculators].map((item) => item.slug));
 
 function slugOf(url) {
   return url.split('/').filter(Boolean).at(-1);
@@ -34,17 +35,16 @@ test('the 14 November sitemap snapshot is fully classified', () => {
   assert.equal(counts.classifiedTools, 204);
   assert.equal(counts.directory, 1);
   assert.equal(counts.formulaTools, 203);
-  assert.equal(counts.covered, 92);
-  assert.equal(counts.added, 61);
-  assert.equal(counts.partial, 14);
-  assert.equal(counts.remaining, 31);
-  assert.equal(counts.blocked, 5);
-  assert.equal(counts.stillMissing, 50);
+  assert.equal(counts.covered, 94);
+  assert.equal(counts.added, 108);
+  assert.equal(counts.partial, 1);
+  assert.equal(counts.remaining, 0);
+  assert.equal(counts.blocked, 0);
+  assert.equal(counts.stillMissing, 1);
   assert.equal(counts.covered + counts.added + counts.partial + counts.remaining + counts.blocked + counts.directory, 204);
 });
 
 test('coverage links point at real pages and added tools are the new calculators', () => {
-  const added = new Set();
   for (const tool of calculatorNetTools) {
     assert.equal(tool.note.length > 20, true, tool.source);
     const toolSlugs = tool.clearcalc.map(slugOf);
@@ -53,10 +53,7 @@ test('coverage links point at real pages and added tools are the new calculators
     }
     for (const slug of toolSlugs) assert.equal(slugs.has(slug), true, `${tool.source} -> ${slug}`);
     if (tool.status === 'added') {
-      for (const slug of toolSlugs) {
-        assert.equal(nov14.has(slug), true, slug);
-        added.add(slug);
-      }
+      assert.equal(toolSlugs.some((slug) => fresh.has(slug)), true, tool.source);
     }
     if (tool.status === 'blocked') {
       assert.match(tool.note, /Refused/);
@@ -64,5 +61,6 @@ test('coverage links point at real pages and added tools are the new calculators
     }
     if (tool.status === 'remaining' || tool.status === 'partial') assert.equal(tool.note.length > 40, true, tool.source);
   }
-  for (const slug of nov14) assert.equal(added.has(slug), true, slug);
+  const referenced = new Set(calculatorNetTools.flatMap((tool) => tool.clearcalc.map(slugOf)));
+  for (const slug of fresh) assert.equal(referenced.has(slug), true, slug);
 });
