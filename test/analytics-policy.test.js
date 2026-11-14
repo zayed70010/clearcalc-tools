@@ -51,6 +51,8 @@ test('the layout asks for consent and does not embed the Google tag', () => {
   assert.equal(/<script[^>]+src="https:\/\/www\.google-analytics\.com/.test(layout), false);
   assert.equal(layout.includes('adsbygoogle'), false);
   assert.equal(layout.includes('googlesyndication'), false);
+  assert.equal(layout.split('google-adsense-account').length - 1, 1);
+  assert.match(layout, /<meta name="google-adsense-account" content="ca-pub-5883602323439295" \/>/);
 
   const worker = readFileSync('public/_worker.js', 'utf8');
   assert.match(worker, /clearcalc-tools\.pages\.dev/);

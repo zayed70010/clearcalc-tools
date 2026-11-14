@@ -56,6 +56,11 @@ test('built site keeps calculator behavior and gates one analytics page view', {
   assert.equal(privacy.includes('There is no Google Analytics'), false);
   assert.equal(privacy.includes('adsbygoogle'), false);
   assert.equal(stamp.includes('adsbygoogle'), false);
+  const adsenseMeta = '<meta name="google-adsense-account" content="ca-pub-5883602323439295">';
+  for (const html of [home, privacy, stamp]) {
+    assert.equal(html.split(adsenseMeta).length - 1, 1);
+    assert.equal(html.includes('adsbygoogle'), false);
+  }
 
   const browser = await launchChrome();
   const server = await startStaticServer(async (pathname) => distFile(pathname));
