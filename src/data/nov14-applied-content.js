@@ -235,7 +235,7 @@ export const nov14AppliedContent = {
     relatedLinks: [
       { slug: 'volume-calculator', label: 'Volume calculator', note: 'Volume of a box, cylinder, sphere, or cone. This density page starts after you already know the volume.' },
       { slug: 'weight-converter', label: 'Weight converter', note: 'Kilograms, pounds, and stone with the international pound of 0.45359237 kg. No density and no volume.' },
-      { slug: 'unit-converter', label: 'Unit converter', note: '1 inch is 2.54 centimetres, and the six dimensions include volume and mass. It does not divide mass by volume.' }
+      { slug: 'measurement-converter', label: 'Unit converter', note: '1 inch is 2.54 centimetres, and the six dimensions include volume and mass. It does not divide mass by volume.' }
     ]
   }),
 
@@ -534,7 +534,7 @@ export const nov14AppliedContent = {
     relatedLinks: [
       { slug: 'length-converter', label: 'Length converter', note: 'Converts a length you already have. It does not split a tire code into sidewall and rim.' },
       { slug: 'speed-converter', label: 'Speed converter', note: 'Changes mph, km/h, m/s, or knots. The tire page’s speedometer percent is a circumference ratio, not a unit conversion.' },
-      { slug: 'unit-converter', label: 'Unit converter', note: '1 inch is exactly 2.54 centimetres, which is the 25.4 millimetres this page uses for each inch of rim.' }
+      { slug: 'measurement-converter', label: 'Unit converter', note: '1 inch is exactly 2.54 centimetres, which is the 25.4 millimetres this page uses for each inch of rim.' }
     ]
   }),
 
@@ -654,7 +654,7 @@ export const nov14AppliedContent = {
     relatedLinks: [
       { slug: 'bandwidth-calculator', label: 'Bandwidth and download time calculator', note: '100 decimal MB at 100 Mbit/s is 8 seconds. A transfer time is not a subnet mask.' },
       { slug: 'password-generator', label: 'Password generator', note: 'A 12-character password from 62 symbols has 71.45 bits of entropy. It is not an IPv4 address.' },
-      { slug: 'unit-converter', label: 'Unit converter', note: 'Converts length, temperature, area, volume, mass, and time. An IPv4 prefix is none of those six dimensions.' }
+      { slug: 'measurement-converter', label: 'Unit converter', note: 'Converts length, temperature, area, volume, mass, and time. An IPv4 prefix is none of those six dimensions.' }
     ]
   }),
 
@@ -712,13 +712,13 @@ export const nov14AppliedContent = {
     ],
     relatedLinks: [
       { slug: 'ipv4-subnet-calculator', label: 'IPv4 subnet calculator', note: '192.168.1.40/24 has 254 usable hosts. An address prefix does not time a download.' },
-      { slug: 'unit-converter', label: 'Unit converter', note: 'Length, temperature, area, volume, mass, and time. It does not convert megabits to megabytes or time a file.' },
+      { slug: 'measurement-converter', label: 'Unit converter', note: 'Length, temperature, area, volume, mass, and time. It does not convert megabits to megabytes or time a file.' },
       { slug: 'speed-converter', label: 'Speed converter', note: 'Miles per hour, kilometres per hour, metres per second, and knots. A road speed is not a bit rate.' }
     ]
   }),
 
-  'unit-converter': page({
-    slug: 'unit-converter',
+  'measurement-converter': page({
+    slug: 'measurement-converter',
     title: 'Unit Converter | ClearCalc',
     h1: 'Unit Converter',
     description: '1 inch is 2.54 centimetres, from the exact definition 1 inch = 0.0254 metres.',
@@ -1010,7 +1010,7 @@ export const nov14AppliedContent = {
       { q: 'Will this page subtract a card markup from €90.00?', a: 'No. No fee, spread, or card markup is subtracted. A bank will not match a mid-market rate you type. Type the all-in rate if that is the rate you want multiplied.' }
     ],
     relatedLinks: [
-      { slug: 'unit-converter', label: 'Unit converter', note: '1 inch is 2.54 centimetres by an exact definition. A currency rate is not an exact definition. You have to type it.' },
+      { slug: 'measurement-converter', label: 'Unit converter', note: '1 inch is 2.54 centimetres by an exact definition. A currency rate is not an exact definition. You have to type it.' },
       { slug: 'cagr-calculator', label: 'CAGR calculator', note: 'From 100 to 200 in 10 years is 7.1773% per year. That is a growth rate between two values, not an exchange rate.' },
       { slug: 'simple-interest-calculator', label: 'Simple interest calculator', note: 'Principal times rate times time. The interest rate is not a foreign-exchange rate, and this currency page does not compute interest.' }
     ]
