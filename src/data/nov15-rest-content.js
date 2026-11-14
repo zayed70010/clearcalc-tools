@@ -902,9 +902,9 @@ export const nov15RestContent = {
 
   'name-entertainment-score': page({
     slug: 'name-entertainment-score',
-    title: 'Name Score | ClearCalc',
-    h1: 'Name Score',
-    description: 'Ada and Ben score 43 out of 100. The number is an arbitrary function of the letters. The same names always give the same number. It has no scientific validity and it is not a measure of a relationship.',
+    title: 'Entertainment Name Score | ClearCalc',
+    h1: 'Entertainment Name Score',
+    description: 'Entertainment only. Ada and Ben score 43 out of 100. The number is an arbitrary function of the letters, it has no scientific validity, and it is not a measure of a relationship.',
     intro: [
       'Ada and Ben produce 43 out of 100. The number is an arbitrary function of the letters in the order you type them. It is entertainment only. It has no scientific validity. It does not measure affection, compatibility, or a relationship, and it is not advice about any person.',
       'The same two names always produce the same number, so the result can be checked. It is not a new random draw on each visit. The page lowercases both names before the function runs, so ada and Ben is also 43. Swapping the order can change the number, because the two strings are joined in the order typed. Ben and Ada is 39 out of 100. Mia and Leo is 30 out of 100, which shows that a different pair is a different input and can land on a different remainder.',
@@ -940,7 +940,7 @@ export const nov15RestContent = {
       caption: 'Each headline is this calculator. Matching spellings match. None of the numbers measures a relationship.',
       headers: ['Names', 'Score']
     },
-    limitsHeading: 'What the name score does not measure',
+    limitsHeading: 'What this entertainment score does not measure',
     limits: [
       'It has no scientific validity. It is an arbitrary function of the letters you type.',
       'It is not a measure of a relationship, of compatibility, or of affection. A repeated number only means the spelling was repeated.',

@@ -29,7 +29,7 @@ export function attachNov15Context(content) {
     ['us-federal-income-tax-calculator', 'marriage-tax-calculator', 'Marriage tax calculator', 'Two wages taxed as two single returns, compared with one joint return, using the 2026 standard deductions.'],
     ['us-federal-income-tax-calculator', 'us-tax-balance-calculator', 'US tax balance calculator', 'Compares 2026 income tax, or self-employment tax plus income tax, with the withholding you type.'],
     ['us-federal-income-tax-calculator', 'estate-tax-calculator', 'Federal estate tax calculator', 'A 2026 estate of $15,100,000 is $40,000 of tax above the $15,000,000 basic exclusion. Income tax is a different statute.'],
-    ['roth-ira-calculator', 'traditional-ira-estimator', 'Traditional IRA estimator', 'The 2026 dollar limit is $7,500, or $8,600 at 50 or older. The deduction phase-out is not applied.'],
+    ['roth-ira-calculator', 'traditional-ira-estimator', '2026 IRA, SEP, and SIMPLE limits', 'Publication 590-A’s covered joint example at modified AGI $129,500 deducts $7,320 of $7,500. The Roth phase-out is a different table.'],
     ['credit-card-payoff-calculator', 'debt-payoff-calculator', 'Debt payoff calculator', 'Two or more debts, with the extra payment aimed at the smallest balance or the highest rate.'],
     ['mortgage-calculator', 'fha-loan-calculator', 'FHA loan calculator', 'Adds the 1.75% upfront premium and the annual MIP from Mortgagee Letter 2023-05. A conventional payment does not.'],
     ['mortgage-calculator', 'va-loan-calculator', 'VA loan calculator', 'Adds the VA funding fee from the chart effective 7 April 2023. An exemption sets that fee to zero.'],
@@ -47,7 +47,7 @@ export function attachNov15Context(content) {
     ['area-calculator', 'matrix-2x2-calculator', '2 by 2 matrix calculator', 'The determinant of [[1, 2], [3, 4]] is −2. Area is not a matrix.'],
     ['ohms-law-calculator', 'voltage-drop-calculator', 'Voltage drop calculator', 'A round trip on copper, not Ohm’s law for a single resistor and not a code certificate.'],
     ['pace-calculator', 'golf-differential-calculator', 'Golf score differential', 'One World Handicap System differential. A pace is a run, and one differential is not a Handicap Index.'],
-    ['tip-calculator', 'name-entertainment-score', 'Name score', 'Ada and Ben score 43 out of 100. The number has no scientific validity. A tip is a bill, not a name.'],
+    ['tip-calculator', 'name-entertainment-score', 'Entertainment name score', 'Entertainment only. Ada and Ben score 43 out of 100. The number has no scientific validity. A tip is a bill, not a name.'],
     ['calorie-calculator', 'unofficial-points-estimator', 'Unofficial food points estimator', 'Calories, fat, and fiber through an old public approximation. Not a Weight Watchers value, and not a calorie target.']
   ];
   for (const row of links) add(...row);

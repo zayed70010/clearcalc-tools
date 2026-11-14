@@ -618,22 +618,157 @@ function lumpPresentValue(v) {
   ]);
 }
 
-function traditionalIra(v) {
-  const catchUp = choice(v.catchup, [0, 1], 'Choose an age');
+// 2026 traditional IRA, SEP, and SIMPLE dollar limits.
+// IRA deduction phase-out: IRS Notice 2025-67 and IR-2025-111, computed with
+// Publication 590-A (2026) Worksheet 1-2, including the two illustrated examples.
+// SEP and SIMPLE dollar caps: IRS COLA table and Notice 2025-67.
+const IRA_BASE = 7500;
+const IRA_CATCHUP = 1100;
+const SEP_DOLLAR = 72000;
+const SEP_COMP_CAP = 360000;
+const SEP_MIN_COMP = 800;
+
+function iraDollarCap(ageBand) {
+  return IRA_BASE + (ageBand === 0 ? 0 : IRA_CATCHUP);
+}
+
+function roundWorksheetDeduction(amount) {
+  if (amount < 200) return 200;
+  const cents = Math.round(amount * 100);
+  if (cents % 100 === 0) return cents / 100;
+  return Math.ceil(cents / 1000) * 10;
+}
+
+function traditionalDeduction(v) {
+  const ageBand = choice(v.catchup, [0, 1, 2], 'Choose an age');
+  const filing = choice(v.filing, [1, 2, 3, 4, 5], 'Choose a filing status');
+  const coverage = choice(v.coverage, [1, 2, 3], 'Choose workplace coverage');
+  const magi = nonNegative(v.magi, 'modified AGI');
+  const compensation = nonNegative(v.compensation, 'your compensation');
+  const spouseCompensation = nonNegative(v.spousecompensation, 'spouse compensation');
+  const spouseIra = nonNegative(v.spouseira, 'spouse IRA contributions');
   const wanted = nonNegative(v.contribution, 'contribution');
+  const cap = iraDollarCap(ageBand);
+  const livedApart = filing === 5;
+  const filingForPhaseout = livedApart ? 1 : filing;
+  if (coverage === 3 && (filing === 1 || filing === 3 || livedApart)) {
+    throw new Error('A spouse’s workplace plan is a joint-return phase-out. Single, head of household, qualifying surviving spouse, and a married person who did not live with a spouse are not that row. A person who lived apart and files separately is treated as single.');
+  }
+  if ((filing === 2 || filing === 4) && spouseIra > spouseCompensation) {
+    throw new Error('The spouse’s IRA contributions cannot exceed the spouse’s compensation in the Kay Bailey Hutchison limit');
+  }
+  let line5 = compensation;
+  if ((filing === 2 || filing === 4) && compensation < spouseCompensation) {
+    line5 = compensation + Math.max(0, spouseCompensation - spouseIra);
+  }
+  const contribution = Math.min(wanted, cap, line5);
+  if (coverage === 1 || (coverage === 3 && filingForPhaseout === 1)) {
+    return { cap, contribution, deductible: contribution, line4: null, note: 'Neither you nor a spouse is covered by a workplace retirement plan, or a spouse’s plan does not apply to this filing status, so the 2026 deduction phase-out does not apply.' };
+  }
+  const youCovered = coverage === 2;
+  const jointLike = filingForPhaseout === 2 || filingForPhaseout === 3;
+  let top;
+  let label;
+  if (youCovered && filingForPhaseout === 1) { top = 91000; label = 'single or head of household, and you are covered'; }
+  else if (youCovered && jointLike) { top = 149000; label = 'married filing jointly or qualifying surviving spouse, and you are covered'; }
+  else if (youCovered && filingForPhaseout === 4) { top = 10000; label = 'married filing separately, you lived with your spouse, and you are covered'; }
+  else if (!youCovered && jointLike) { top = 252000; label = 'married filing jointly, you are not covered, and your spouse is'; }
+  else if (!youCovered && filingForPhaseout === 4) { top = 10000; label = 'married filing separately, you lived with your spouse, you are not covered, and your spouse is'; }
+  else throw new Error('That coverage and filing status combination is not a 2026 phase-out row');
+  if (magi >= top) {
+    return { cap, contribution, deductible: 0, line4: 0, note: `Modified AGI is at or above $${top.toLocaleString('en-US')}, the top of the 2026 phase-out for ${label}. The deduction is zero.` };
+  }
+  const line3 = top - magi;
+  const fullWidth = youCovered && jointLike ? 20000 : 10000;
+  if (line3 >= fullWidth) {
+    return { cap, contribution, deductible: contribution, line4: null, note: `Modified AGI is at or below the start of the 2026 phase-out for ${label}. The deduction is not reduced.` };
+  }
+  const older = ageBand !== 0;
+  const percent = youCovered && jointLike ? (older ? 0.43 : 0.375) : (older ? 0.86 : 0.75);
+  const line4 = roundWorksheetDeduction(line3 * percent);
+  const deductible = Math.min(line4, line5, wanted, cap);
+  return { cap, contribution: Math.min(wanted, cap, line5), deductible, line4, note: `Publication 590-A Worksheet 1-2 for 2026. Line 3 is $${line3.toLocaleString('en-US')}. Multiplied by ${percent}. The worksheet result before compensation is ${usd(line4)}.` };
+}
+
+function traditionalIra(v) {
+  const plan = choice(v.plan, [1, 2, 3], 'Choose traditional, SEP, or SIMPLE');
   const rate = nonNegative(v.marginal, 'marginal tax rate');
   const growth = nonNegative(v.growth, 'annual return');
   const years = whole(v.years, 1, 50, 'years');
   if (rate > 50) throw new Error('Enter a marginal rate from 0 to 50 percent');
-  const cap = 7500 + (catchUp ? 1100 : 0);
-  const contribution = Math.min(wanted, cap);
-  const saved = contribution * rate / 100;
-  const end = contribution * ((1 + growth / 100) ** years);
+  if (plan === 2) return sepLimit(v, growth, years);
+  if (plan === 3) return simpleLimit(v, growth, years);
+  const figured = traditionalDeduction(v);
+  const saved = figured.deductible * rate / 100;
+  const end = figured.contribution * (1 + growth / 100) ** years;
   return result(`${usd(saved)} of tax at the rate you typed`, [
-    `2026 traditional IRA dollar limit ${usd(cap)}, from IRS IR-2025-111. The contribution used is ${usd(contribution)}.`,
-    `One year of growth at ${loose(growth)}% on that contribution ends at ${usd(end)}. Later years are that same contribution compounded, with no new deposits.`,
-    'The deduction phase-out for a workplace retirement plan is not applied. If your MAGI is inside a phase-out, the deductible amount can be lower than this dollar limit. Type the amount you are actually allowed to deduct.',
-    'SEP and SIMPLE plans have different limits and are not this page. A Roth limit is the Roth IRA calculator. Tax on the way out is not subtracted.'
+    `2026 traditional IRA dollar limit ${usd(figured.cap)}. There is no maximum age for a contribution. The amount that can go in, before the deduction phase-out, is ${usd(figured.contribution)}, limited by the dollar cap and by compensation.`,
+    `Deductible amount ${usd(figured.deductible)}. ${figured.note}`,
+    `The deductible amount compounded at ${loose(growth)}% for ${years} year${years === 1 ? '' : 's'}, with no new deposits, is ${usd(figured.deductible * (1 + growth / 100) ** years)}. The contribution that was allowed to be made, which can include a nondeductible part, compounds to ${usd(end)}.`,
+    'Modified AGI is the figure you type. Publication 590-A Appendix B can change it when you receive Social Security benefits. This page does not recompute that worksheet.',
+    'This is the 2026 deduction only. It is not a tax return, and a Roth contribution limit is a different phase-out on the Roth IRA page.'
+  ]);
+}
+
+function sepLimit(v, growth, years) {
+  const role = choice(v.seprole, [1, 2], 'Choose employee compensation or self-employed net profit');
+  const pay = nonNegative(v.compensation, 'compensation or net profit');
+  const planRate = nonNegative(v.seprate, 'plan contribution rate');
+  if (planRate <= 0 || planRate > 25) throw new Error('Enter a SEP plan rate above 0 and at most 25 percent');
+  if (role === 1) {
+    const counted = Math.min(pay, SEP_COMP_CAP);
+    const limit = Math.min(counted * planRate / 100, SEP_DOLLAR);
+    const eligible = pay >= SEP_MIN_COMP;
+    return result(`${usd(limit)} employer contribution`, [
+      `2026 SEP dollar cap ${usd(SEP_DOLLAR)}. Compensation counted is ${usd(counted)}, after the ${usd(SEP_COMP_CAP)} compensation cap. The plan rate is ${loose(planRate)}%.`,
+      eligible
+        ? `Compensation is at least the 2026 SEP minimum compensation of ${usd(SEP_MIN_COMP)} from the IRS COLA table.`
+        : `Compensation is below ${usd(SEP_MIN_COMP)}. Under the 2026 SEP employee-coverage test, an employer generally does not have to contribute for an employee below that minimum. A self-employed owner uses the other choice.`,
+      'The common eligibility test also requires age 21 and service in three of the last five years, unless the plan is less restrictive. This page does not know that history.',
+      `A balance of this contribution after ${years} years at ${loose(growth)}% with no new deposits is ${usd(limit * (1 + growth / 100) ** years)}.`,
+      'Source: IRS retirement-plan COLA table for 2026 and Notice 2025-67. This is not a Form 5305-SEP.'
+    ]);
+  }
+  const seBase = pay * 0.9235;
+  const ss = Math.min(seBase, SS_WAGE_BASE) * 0.124;
+  const medicare = seBase * 0.029;
+  const half = (ss + medicare) / 2;
+  const net = Math.max(0, pay - half);
+  const reduced = (planRate / 100) / (1 + planRate / 100);
+  const countedNet = Math.min(net, SEP_COMP_CAP);
+  const limit = Math.min(countedNet * reduced, SEP_DOLLAR);
+  return result(`${usd(limit)} self-employed contribution`, [
+    `Net profit ${usd(pay)}. Deductible half of self-employment tax ${usd(half)}, using 92.35 percent of profit and the 12.4 percent Social Security plus 2.9 percent Medicare rates, with the ${usd(SS_WAGE_BASE)} Social Security wage base.`,
+    `Publication 560 rate for a ${loose(planRate)}% plan is ${loose(reduced, 4)}. Applied to net profit minus half the self-employment tax, and not above the ${usd(SEP_COMP_CAP)} compensation cap.`,
+    `The 2026 dollar cap is ${usd(SEP_DOLLAR)}.`,
+    'Additional Medicare tax is not in the half that is subtracted. A loss, a partner’s Schedule K-1, and employees you must cover are not computed.'
+  ]);
+}
+
+function simpleLimit(v, growth, years) {
+  const ageBand = choice(v.catchup, [0, 1, 2], 'Choose an age');
+  const kind = choice(v.simplekind, [1, 2], 'Choose an ordinary or applicable SIMPLE');
+  const compensation = nonNegative(v.compensation, 'compensation');
+  const ordinary = kind === 1 ? 17000 : 18100;
+  const catchUp = ageBand === 0 ? 0 : ageBand === 2 ? 5250 : kind === 1 ? 4000 : 3850;
+  const dollar = ordinary + catchUp;
+  const limit = Math.min(dollar, compensation);
+  const ageNote = ageBand === 0
+    ? 'Under 50, so no catch-up.'
+    : ageBand === 2
+      ? 'Age 60, 61, 62, or 63 in 2026 uses the higher SIMPLE catch-up of $5,250 instead of the age-50 catch-up.'
+      : kind === 1
+        ? 'Age 50 or older, and not 60 through 63, uses the 2026 ordinary SIMPLE catch-up of $4,000.'
+        : 'Age 50 or older, and not 60 through 63, uses the 2026 applicable-SIMPLE catch-up of $3,850.';
+  return result(`${usd(limit)} employee deferral`, [
+    kind === 1
+      ? `2026 ordinary SIMPLE salary-reduction limit ${usd(17000)}, from the IRS SIMPLE contribution page and Notice 2025-67.`
+      : `2026 applicable SIMPLE limit ${usd(18100)}, the higher SECURE 2.0 amount in IR-2025-111. This is not the ordinary $17,000 plan. The plan document has to be the applicable kind.`,
+    ageNote,
+    `Dollar total before compensation ${usd(dollar)}. Compensation ${usd(compensation)} caps the deferral at ${usd(limit)}.`,
+    'A SIMPLE plan generally must cover an employee who received at least $5,000 in any two preceding years and is expected to receive at least $5,000 this year, unless the employer uses a less restrictive rule. This page does not know prior years.',
+    'An employer match or 2 percent nonelective contribution is not added. Elective deferrals to other plans share the $24,500 elective-deferral cap and are not combined here.',
+    `This one deferral after ${years} years at ${loose(growth)}% is ${usd(limit * (1 + growth / 100) ** years)}.`
   ]);
 }
 
