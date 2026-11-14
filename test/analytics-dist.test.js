@@ -52,14 +52,13 @@ test('built site keeps calculator behavior and gates one analytics page view', {
   assert.match(privacy, /564145027/);
   assert.match(privacy, /clearcalc-analytics-consent/);
   for (const name of CAMPAIGN_PARAMS) assert.match(privacy, new RegExp(name));
-  assert.match(privacy, /Last updated: November 13, 2026/);
+  assert.match(privacy, /Last updated: November 14, 2026/);
   assert.equal(privacy.includes('There is no Google Analytics'), false);
-  assert.equal(privacy.includes('adsbygoogle'), false);
-  assert.equal(stamp.includes('adsbygoogle'), false);
   const adsenseMeta = '<meta name="google-adsense-account" content="ca-pub-5883602323439295">';
+  const adsenseLoader = '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5883602323439295" crossorigin="anonymous"></script>';
   for (const html of [home, privacy, stamp]) {
     assert.equal(html.split(adsenseMeta).length - 1, 1);
-    assert.equal(html.includes('adsbygoogle'), false);
+    assert.equal(html.split(adsenseLoader).length - 1, 1);
   }
 
   const browser = await launchChrome();
@@ -90,7 +89,8 @@ test('built site keeps calculator behavior and gates one analytics page view', {
     const scripts = googleRequests(requests).filter((entry) => entry.url.includes('/gtag/js') && entry.url.includes('id=G-Y33DR890GT'));
     assert.ok(scripts.length >= 1, explainHits(requests));
     assert.equal(countEvent(requests, 'page_view'), 1, explainHits(requests));
-    assert.equal(googleRequests(requests).some((entry) => /doubleclick|googleadservices|googlesyndication/.test(entry.url)), false, explainHits(requests));
+    const adRequests = googleRequests(requests).filter((entry) => /doubleclick|googleadservices|googlesyndication/.test(entry.url));
+    assert.equal(adRequests.every((entry) => entry.url.startsWith('https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5883602323439295')), true, explainHits(requests));
     const decoded = decodeURIComponent(googleRequests(requests).map((entry) => `${entry.url}\n${entry.post}`).join('\n'));
     assert.match(decoded, /utm_source=newsletter/);
     assert.match(decoded, /utm_medium=email/);
@@ -109,16 +109,17 @@ test('built site keeps calculator behavior and gates one analytics page view', {
       { name: '_ga', value: 'GA1.1.123.456', url: server.origin },
       { name: '_ga_Y33DR890GT', value: 'GS1.1.secret', url: server.origin }
     );
-    const beforeWithdraw = googleRequests(requests).length;
+    const measurementRequests = () => googleRequests(requests).filter((entry) => !entry.url.startsWith('https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js'));
+    const beforeWithdraw = measurementRequests().length;
     await page.click('#analytics-choices');
     await page.click('#analytics-reject');
     await delay(500);
     const cookies = await page.cookies(server.origin);
     assert.equal(cookies.some((cookie) => cookie.name === '_ga' || cookie.name === '_ga_Y33DR890GT'), false);
-    assert.equal(googleRequests(requests).length, beforeWithdraw, explainHits(requests));
+    assert.equal(measurementRequests().length, beforeWithdraw, explainHits(requests));
     await page.reload({ waitUntil: 'domcontentloaded' });
     await delay(1000);
-    assert.equal(googleRequests(requests).length, beforeWithdraw, explainHits(requests));
+    assert.equal(measurementRequests().length, beforeWithdraw, explainHits(requests));
     assert.equal(await page.evaluate(() => localStorage.getItem('clearcalc-analytics-consent')), 'rejected');
     await context.close();
   } finally {

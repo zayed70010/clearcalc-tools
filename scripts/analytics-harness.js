@@ -30,12 +30,39 @@ export function chromeExecutable() {
   return found;
 }
 
-export function launchChrome() {
-  return puppeteer.launch({
+const ADSENSE_LOADER = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
+
+async function abortAdsenseLoader(page) {
+  await page.setRequestInterception(true);
+  page.on('request', (request) => {
+    if (request.url().startsWith(ADSENSE_LOADER)) {
+      request.abort('blockedbyclient').catch(() => {});
+      return;
+    }
+    request.continue().catch(() => {});
+  });
+  return page;
+}
+
+function interceptPages(target) {
+  const native = target.newPage.bind(target);
+  target.newPage = async (...args) => abortAdsenseLoader(await native(...args));
+}
+
+export async function launchChrome() {
+  const browser = await puppeteer.launch({
     executablePath: chromeExecutable(),
     headless: true,
     args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
   });
+  interceptPages(browser);
+  const nativeContext = browser.createBrowserContext.bind(browser);
+  browser.createBrowserContext = async (...args) => {
+    const context = await nativeContext(...args);
+    interceptPages(context);
+    return context;
+  };
+  return browser;
 }
 
 function contained(root, candidate) {
