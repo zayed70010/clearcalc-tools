@@ -30,8 +30,56 @@ test('2026 statutes and published formulas match the continuation calculators', 
   assert.match(calculatorContent['circumference-ratio-calculator'].disclaimer, /not an attractiveness|not a body-type|appearance|diagnosis/i);
   assert.match(calculatorContent['bmi-calculator'].intro.join(' '), /not an anorexia calculator/i);
   assert.match(calculatorContent['fuel-cost-calculator'].limits.join(' '), /not a driving distance/i);
-  assert.equal(calculate('traditional-ira-estimator', { catchup: 0, contribution: 7500, marginal: 22, growth: 0, years: 1 }).headline, '$1,650.00 of tax at the rate you typed');
-  assert.match(calculate('traditional-ira-estimator', { catchup: 0, contribution: 7500, marginal: 22, growth: 0, years: 1 }).details.join(' '), /phase-out/i);
+  const ira = (overrides) => calculate('traditional-ira-estimator', {
+    plan: 1,
+    catchup: 0,
+    filing: 1,
+    coverage: 1,
+    magi: 50000,
+    compensation: 80000,
+    spousecompensation: 0,
+    spouseira: 0,
+    contribution: 7500,
+    marginal: 22,
+    growth: 0,
+    years: 1,
+    seprole: 1,
+    seprate: 25,
+    simplekind: 1,
+    ...overrides
+  });
+  assert.equal(ira({}).headline, '$1,650.00 of tax at the rate you typed');
+  assert.match(ira({}).details.join(' '), /phase-out does not apply/i);
+  assert.match(ira({ filing: 2, coverage: 2, magi: 129500, compensation: 66000, spousecompensation: 54500 }).details.join(' '), /\$7,320\.00/);
+  assert.equal(ira({ filing: 2, coverage: 2, magi: 129500, compensation: 66000, spousecompensation: 54500 }).headline, '$1,610.40 of tax at the rate you typed');
+  assert.match(ira({ filing: 2, coverage: 3, magi: 244500, compensation: 0, spousecompensation: 50000, spouseira: 7500 }).details.join(' '), /\$5,625\.00/);
+  assert.match(ira({ filing: 2, coverage: 2, magi: 244500, compensation: 50000 }).details.join(' '), /\$0\.00/);
+  assert.match(ira({ coverage: 2, magi: 81000 }).details.join(' '), /\$7,500\.00/);
+  assert.match(ira({ coverage: 2, magi: 91000 }).details.join(' '), /\$0\.00/);
+  assert.match(ira({ coverage: 2, magi: 90999 }).details.join(' '), /\$200\.00/);
+  assert.match(ira({ coverage: 2, magi: 85000 }).details.join(' '), /\$4,500\.00/);
+  assert.match(ira({ coverage: 2, magi: 90184.8 }).details.join(' '), /\$620\.00/);
+  assert.match(ira({ catchup: 1, filing: 2, coverage: 2, magi: 129500, contribution: 8600, compensation: 80000 }).details.join(' '), /\$8,385\.00/);
+  assert.equal(ira({ compensation: 1000 }).headline, '$220.00 of tax at the rate you typed');
+  assert.match(ira({ filing: 5, coverage: 2, magi: 81000 }).details.join(' '), /\$7,500\.00/);
+  assert.match(ira({ filing: 5, coverage: 2, magi: 91000 }).details.join(' '), /\$0\.00/);
+  assert.match(ira({ filing: 3, coverage: 2, magi: 129000 }).details.join(' '), /not reduced/);
+  assert.match(ira({ filing: 4, coverage: 2, magi: 0 }).details.join(' '), /not reduced/);
+  assert.match(ira({ filing: 4, coverage: 2, magi: 10000 }).details.join(' '), /\$0\.00/);
+  assert.throws(() => ira({ filing: 2, spouseira: 1 }), /Kay Bailey Hutchison/);
+  assert.throws(() => ira({ filing: 1, coverage: 3 }), /joint-return phase-out/);
+  assert.equal(ira({ plan: 2, compensation: 100000 }).headline, '$25,000.00 employer contribution');
+  assert.equal(ira({ plan: 2, compensation: 400000 }).headline, '$72,000.00 employer contribution');
+  assert.match(ira({ plan: 2, compensation: 500 }).details.join(' '), /below/);
+  assert.equal(ira({ plan: 2, seprole: 2, compensation: 100000 }).headline, '$18,587.05 self-employed contribution');
+  assert.equal(ira({ plan: 3, catchup: 1 }).headline, '$21,000.00 employee deferral');
+  assert.equal(ira({ plan: 3, catchup: 2 }).headline, '$22,250.00 employee deferral');
+  assert.equal(ira({ plan: 3, catchup: 1, simplekind: 2 }).headline, '$21,950.00 employee deferral');
+  assert.equal(ira({ plan: 3, catchup: 2, simplekind: 2 }).headline, '$23,350.00 employee deferral');
+  assert.equal(ira({ plan: 3, compensation: 10000 }).headline, '$10,000.00 employee deferral');
+  assert.match(ira({ catchup: 2, contribution: 8600 }).details.join(' '), /\$8,600\.00/);
+  assert.match(calculatorContent['name-entertainment-score'].h1, /Entertainment Name Score/);
+  assert.match(calculatorContent['traditional-ira-estimator'].disclaimer, /2026/);
   assert.equal(calculate('golf-differential-calculator', { score: 90, rating: 72, slope: 113 }).headline, '18');
   assert.equal(calculate('base64-converter', { mode: 1, text: 'Cat' }).headline, 'Q2F0');
   assert.equal(calculate('url-encoding-converter', { mode: 1, text: 'a b' }).headline, 'a%20b');

@@ -35,12 +35,12 @@ test('the 14 November sitemap snapshot is fully classified', () => {
   assert.equal(counts.classifiedTools, 204);
   assert.equal(counts.directory, 1);
   assert.equal(counts.formulaTools, 203);
-  assert.equal(counts.covered, 94);
-  assert.equal(counts.added, 108);
-  assert.equal(counts.partial, 1);
+  assert.equal(counts.covered, 92);
+  assert.equal(counts.added, 107);
+  assert.equal(counts.partial, 3);
   assert.equal(counts.remaining, 0);
-  assert.equal(counts.blocked, 0);
-  assert.equal(counts.stillMissing, 1);
+  assert.equal(counts.blocked, 1);
+  assert.equal(counts.stillMissing, 4);
   assert.equal(counts.covered + counts.added + counts.partial + counts.remaining + counts.blocked + counts.directory, 204);
 });
 
@@ -63,4 +63,22 @@ test('coverage links point at real pages and added tools are the new calculators
   }
   const referenced = new Set(calculatorNetTools.flatMap((tool) => tool.clearcalc.map(slugOf)));
   for (const slug of fresh) assert.equal(referenced.has(slug), true, slug);
+  const bySource = new Map(calculatorNetTools.map((tool) => [tool.source, tool]));
+  const mileage = bySource.get('https://www.calculator.net/mileage-calculator.html');
+  assert.equal(mileage.status, 'partial');
+  assert.match(mileage.note, /not a road-route lookup/);
+  assert.match(mileage.note, /OSRM/);
+  assert.match(mileage.note, /FOSSGIS/);
+  const body = bySource.get('https://www.calculator.net/body-type-calculator.html');
+  assert.equal(body.status, 'partial');
+  assert.match(body.note, /not a body-shape label/);
+  const points = bySource.get('https://www.calculator.net/weight-watchers-points-calculator.html');
+  assert.equal(points.status, 'partial');
+  assert.match(points.note, /not Weight Watchers/);
+  const anorexia = bySource.get('https://www.calculator.net/anorexic-bmi-calculator.html');
+  assert.equal(anorexia.status, 'blocked');
+  assert.equal(anorexia.clearcalc.length, 0);
+  assert.match(anorexia.note, /Refused/);
+  assert.equal(bySource.get('https://www.calculator.net/ira-calculator.html').status, 'added');
+  assert.match(bySource.get('https://www.calculator.net/love-calculator.html').note, /Entertainment only/);
 });

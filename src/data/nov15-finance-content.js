@@ -156,7 +156,7 @@ export const nov15FinanceContent = {
     ],
     relatedLinks: [
       { slug: 'compound-interest-calculator', label: 'Compound interest calculator', note: '$10,000 at 7% for 10 years with no deposit grows to $20,096.61. That projection does not reduce the yield by a tax rate.' },
-      { slug: 'traditional-ira-estimator', label: 'Traditional IRA estimator', note: 'Caps one 2026 contribution at $7,500, or $8,600 at age 50, and estimates tax at a rate you type. It does not tax a monthly yield.' },
+      { slug: 'traditional-ira-estimator', label: '2026 IRA, SEP, and SIMPLE limits', note: 'A covered joint filer at modified AGI $129,500 deducts $7,320 of a $7,500 traditional contribution. This savings page does not apply that phase-out.' },
       { slug: 'roth-ira-calculator', label: 'Roth IRA calculator', note: 'A 2026 contribution cap and an income phase-out, then growth. A Roth yield is not given the taxable-account haircut this page applies.' }
     ]
   }),
@@ -264,7 +264,7 @@ export const nov15FinanceContent = {
     relatedLinks: [
       { slug: 'us-federal-income-tax-calculator', label: '2026 federal income tax calculator', note: 'Tax on one wage after the standard deduction. At $65,000 single the federal income tax is $5,620.00. It does not compare two returns with one joint return.' },
       { slug: 'estate-tax-calculator', label: 'Federal estate tax calculator', note: 'A 2026 estate of $15,100,000 is $40,000.00 of tax, which is 40% of the $100,000 above the $15,000,000 basic exclusion. That is estate tax, not income tax.' },
-      { slug: 'traditional-ira-estimator', label: 'Traditional IRA estimator', note: 'A $7,500 contribution at a 22% rate you type is $1,650.00 of tax. The income phase-out is not applied there, and this marriage page does not include a retirement deduction either.' }
+      { slug: 'traditional-ira-estimator', label: '2026 IRA, SEP, and SIMPLE limits', note: 'Publication 590-A’s 2026 joint example deducts $7,320. This marriage page does not subtract an IRA deduction.' },
     ]
   }),
   'estate-tax-calculator': page({
@@ -424,7 +424,7 @@ export const nov15FinanceContent = {
     relatedLinks: [
       { slug: 'pension-choice-calculator', label: 'Pension lump sum calculator', note: '$600 a month for 20 years at a 5% discount rate is worth $90,915.19 today. That is a pension you type, not a Social Security PIA.' },
       { slug: 'annuity-payout-calculator', label: 'Annuity payout calculator', note: '$100,000 at 5% for 20 years pays $659.96 a month until the balance is zero. A Social Security benefit is not amortized to zero on this PIA page.' },
-      { slug: 'traditional-ira-estimator', label: 'Traditional IRA estimator', note: 'The 2026 dollar limit is $7,500, plus $1,100 at age 50. The deduction phase-out is not applied. That estimate is separate from a Social Security benefit.' }
+      { slug: 'traditional-ira-estimator', label: '2026 IRA, SEP, and SIMPLE limits', note: 'The traditional deduction phase-out is separate from a Social Security primary insurance amount. This benefit page does not deduct an IRA.' },
     ]
   }),
   'annuity-payout-calculator': page({
@@ -1173,54 +1173,54 @@ export const nov15FinanceContent = {
   }),
   'traditional-ira-estimator': page({
     slug: 'traditional-ira-estimator',
-    title: 'Traditional IRA Estimator | ClearCalc',
-    h1: 'Traditional IRA Estimator',
-    description: 'A 2026 traditional IRA contribution capped at the IRS dollar limit, and tax at a rate you type. $7,500 at 22% is $1,650.00. The deduction phase-out is not applied.',
+    title: '2026 IRA, SEP, and SIMPLE Limits | ClearCalc',
+    h1: '2026 Traditional IRA, SEP, and SIMPLE Limits',
+    description: '2026 traditional IRA deduction using Publication 590-A Worksheet 1-2. A covered joint filer at modified AGI $129,500 deducts $7,320.00 of a $7,500 contribution. SEP and SIMPLE use the IRS dollar caps.',
     intro: [
-      'The 2026 traditional IRA dollar limit used here is $7,500, plus $1,100 if you mark age 50 or older, from IRS IR-2025-111. The contribution used is the smaller of the amount you want to deduct and that dollar limit. Tax is the contribution used times the marginal rate you type. The sample is $7,500 at 22%, which is $1,650.00.',
-      'The deduction phase-out for a workplace retirement plan is not applied. If your modified adjusted gross income is inside a phase-out, the deductible amount can be lower than this dollar limit. Type the amount you are actually allowed to deduct. The page will not reduce it for income.',
-      'The ending balance is that one contribution compounded for the years you type, with no new deposits. $7,500 at 6% for 10 years is $13,431.36. A detail line describes the figure as one year of growth. The power in the calculation uses the years box, so ten years is 7,500 × 1.06^10. Tax on the way out is not subtracted.'
+      'This page is the 2026 traditional IRA deduction, the SEP contribution cap, and the SIMPLE employee deferral. The traditional dollar limit is $7,500, plus $1,100 at age 50 or older, from IRS IR-2025-111 and Notice 2025-67. There is no maximum age. The contribution still cannot exceed compensation, including the Kay Bailey Hutchison spousal amount when you file jointly and your own compensation is the smaller one.',
+      'If you are covered by a workplace plan, the 2026 deduction phases out from $81,000 to $91,000 for single or head of household, from $129,000 to $149,000 for married filing jointly or a qualifying surviving spouse, and from $0 to $10,000 for married filing separately if you lived with your spouse. If you are not covered and your spouse is, a joint return phases out from $242,000 to $252,000. If nobody is covered, income does not reduce the deduction. Those ranges are Notice 2025-67 and the IRS news release IR-2025-111. The arithmetic is Publication 590-A Worksheet 1-2 for 2026.',
+      'The publication’s own joint example is modified AGI $129,500, you covered, under 50, compensation $66,000, contribution $7,500. Line 3 is $19,500. Times 37.5 percent is $7,312.50, and the illustrated worksheet rounds that to $7,320.00. A whole-dollar product such as $5,625 in the second illustration is kept. A product with cents is rounded up to the next $10, and a product under $200 becomes $200. Social Security benefits can change modified AGI in Appendix B. This page uses the modified AGI you type and does not recompute that appendix.'
     ],
     steps: [
-      'Choose under 50, or 50 or older. Age 50 or older raises the dollar limit from $7,500 to $8,600.',
-      'Enter the contribution you want to deduct and the marginal tax rate. The sample is $7,500 and 22%. The rate is capped at 50%.',
-      'Enter the annual return and the years to compound that one contribution. The sample is 6% and 10 years. No later deposit is added.',
-      'Press Calculate. The headline is the tax at the rate you typed, on the contribution after the dollar cap.'
+      'Choose traditional IRA, SEP, or SIMPLE. The sample is a traditional IRA with nobody covered by a workplace plan, so the phase-out does not apply and $7,500 at 22% is $1,650.00 of tax.',
+      'For a traditional deduction, choose age, filing status, and who is covered by a workplace plan. Enter modified AGI, your compensation, and, on a joint return where your compensation is smaller, your spouse’s compensation and IRA contributions.',
+      'Enter the contribution, the marginal rate, and the years of growth. SEP uses the compensation or net-profit box and a plan rate of at most 25 percent. SIMPLE uses ordinary $17,000 or applicable $18,100, plus the age catch-up.',
+      'Press Calculate. The traditional headline is tax on the deductible amount. SEP and SIMPLE headlines are the contribution limits.'
     ],
-    howHeading: 'How the dollar cap and the tax are applied',
+    howHeading: 'How the 2026 deduction and the plan limits are figured',
     howItWorks: [
-      'The cap is $7,500, or $7,500 + $1,100 when the age switch is on. The contribution used is the minimum of the amount you typed and that cap. Typing $10,000 while under 50 still uses $7,500.00, and the tax at 22% is still $1,650.00. The extra $2,500 is not given a partial deduction and it is not carried anywhere. The phase-out is a separate limit, based on income and a workplace plan, and this page does not apply it.',
-      'The ending balance is contribution × (1 + annual return / 100)^years. There is no loop of new deposits. Age 50 or older with an $8,600 contribution at 22% has a tax headline of $1,892.00, and 10 years at 6% ends at $15,401.29. SEP and SIMPLE plans have different limits and are not this page. A Roth limit, including its income phase-out, is the Roth IRA calculator.'
+      'Worksheet 1-2 subtracts modified AGI from the top of the range. If that remainder is at least $10,000, or at least $20,000 when you are covered and file jointly or as a qualifying surviving spouse, the deduction is not reduced. At or above the top, the deduction is zero. Inside the range, a covered joint filer under 50 multiplies by 37.5 percent, and by 43 percent at 50 or older. Every other partial row multiplies by 75 percent, or 86 percent at 50 or older. The deductible amount is the smallest of that worksheet result, compensation, the contribution, and the dollar cap.',
+      'A SEP employer contribution is the plan rate, at most 25 percent, times compensation, after the $360,000 compensation cap, and not above $72,000. An employee under the $800 minimum compensation is flagged. A self-employed net profit uses the Publication 560 reduced rate, plan rate divided by one plus the plan rate, after subtracting half of self-employment tax. A SIMPLE deferral is $17,000, or $18,100 if you mark the applicable SECURE 2.0 plan, plus $4,000, $3,850, or $5,250 for the age row. It cannot exceed compensation. A Roth phase-out is a different calculator.'
     ],
-    formula: 'Dollar limit = $7,500, plus $1,100 at age 50 or older\nContribution used = the smaller of the amount typed and the dollar limit\nTax = contribution used × marginal rate / 100\nEnding balance = contribution used × (1 + return / 100)^years\nThe deduction phase-out is not applied\nSource of the dollar limit: IRS IR-2025-111',
+    formula: '2026 traditional dollar limit = $7,500 + $1,100 at age 50 or older\nCovered single or head of household: $81,000 to $91,000\nCovered joint or qualifying surviving spouse: $129,000 to $149,000\nCovered married filing separately, lived together: $0 to $10,000\nNot covered, spouse covered, joint: $242,000 to $252,000\nLived apart and filing separately: treated as single\nPartial deduction uses Publication 590-A Worksheet 1-2\nSEP 2026: lesser of plan rate times compensation and $72,000; compensation cap $360,000; minimum compensation $800\nSIMPLE 2026 ordinary deferral $17,000; applicable $18,100; catch-up $4,000, applicable age-50 catch-up $3,850, age 60–63 catch-up $5,250',
     formulaNotes: [
-      'The phase-out is deliberately skipped. A workplace retirement plan can reduce the deductible traditional IRA contribution as income rises. If that applies, type the deductible amount you are allowed, not the wish and not the dollar cap alone.',
-      '$7,500 × 1.06^10 = $13,431.36. The detail line’s phrase “one year of growth” is the same ending balance. The exponent is the years field. One actual year at 6% on $7,500 would be $7,950.'
+      'Publication 590-A example 1 is $7,320.00. Example 2 for the spouse who is not covered, at modified AGI $244,500, is $5,625.00. A single covered filer at $81,000 still has a full deduction. At $91,000 the deduction is zero. At $90,999 the worksheet’s under-$200 rule produces $200.00.',
+      'Modified AGI is an input. Appendix B of Publication 590-A, for Social Security recipients, is not recalculated here. SEP eligibility also depends on age 21 and three of five years of service, which this page does not know.'
     ],
     examplesHeading: 'Worked traditional IRA examples',
     samples: [
-      { title: '$7,500 at 22%, under age 50', overrides: {}, blurb: 'The amount typed equals the dollar limit, so the cap does not bind. Tax is 22% of $7,500. The phase-out is not consulted. Ten years of growth is on this one contribution only.' },
-      { title: 'Age 50 or older, $8,600', overrides: { catchup: 1, contribution: 8600 }, blurb: 'The dollar limit is $7,500 + $1,100. The contribution used is the full $8,600. Tax at the sample 22% rate is the headline, and the ending balance compounds that larger contribution.' },
-      { title: 'A $10,000 request under age 50', overrides: { contribution: 10000 }, blurb: 'The dollar limit holds the contribution at $7,500. The tax matches the first example. The phase-out is still not applied. The cap here is the dollar limit only.' }
+      { title: 'No workplace plan, $7,500 at 22%', overrides: {}, blurb: 'Nobody is covered, so modified AGI does not reduce the deduction. The contribution is the $7,500 dollar limit. Tax at 22% is the headline. Ten years of growth uses this one contribution.' },
+      { title: 'Publication 590-A example, joint and covered', overrides: { filing: 2, coverage: 2, magi: 129500, compensation: 66000, spousecompensation: 54500, contribution: 7500, growth: 0, years: 1 }, blurb: 'You are covered. Modified AGI $129,500 is inside $129,000 to $149,000. The worksheet’s illustrated result is a $7,320.00 deduction. The spouse who is not covered is a separate calculation and is not inside the $242,000 spouse phase-out.' },
+      { title: 'Ordinary SIMPLE at age 60 through 63', overrides: { plan: 3, catchup: 2, compensation: 80000 }, blurb: 'The ordinary 2026 deferral is $17,000 plus the $5,250 higher catch-up, which is $22,250.00. Compensation of $80,000 does not reduce it. This is not the applicable SIMPLE $18,100 plan.' }
     ],
-    table: { heading: 'Tax at 22% after the dollar limit', caption: 'Each headline is this calculator. The deduction phase-out is not applied. Growth uses one contribution and the years you type.', headers: ['Contribution', 'Tax'] },
-    limitsHeading: 'What this IRA estimate leaves out',
+    table: { heading: '2026 limits this page returns', caption: 'Each headline is this calculator. The joint row is Publication 590-A’s $7,320 illustration. The SIMPLE row is the ordinary age 60–63 deferral.', headers: ['Case', 'Headline'] },
+    limitsHeading: 'What the 2026 retirement limits leave out',
     limits: [
-      'The deduction phase-out is not applied. Income, a workplace retirement plan, and filing status can reduce the deductible amount below the dollar limit. Type the amount you are allowed to deduct.',
-      'SEP and SIMPLE plans are not this dollar limit. A Roth IRA, including the income phase-out on contributions, is the Roth IRA calculator.',
-      'The ending balance is one contribution compounded. It does not add another $7,500 in each later year, and it does not subtract tax on the withdrawal.',
-      'The marginal rate is a number from 0 to 50 percent that you type. It is not looked up from the 2026 brackets.'
+      'Modified AGI is typed. Publication 590-A Appendix B, for people who receive Social Security benefits, is not recomputed. A workplace plan means covered for any part of the year, which you have to know. This page cannot see a Form W-2 retirement-plan box.',
+      'A whole-dollar worksheet product is kept, which is how the publication prints $5,625. A product with cents is rounded up to the next $10, which is how $7,312.50 becomes $7,320 and how the worksheet’s $611.40 example becomes $620. A product under $200 becomes $200.',
+      'SEP age 21 and three-of-five-years service are not known here. SIMPLE prior-year $5,000 tests are not known here. An employer match or 2 percent nonelective SIMPLE contribution is not added. Other plans’ elective deferrals are not combined with the $24,500 cap.',
+      'The marginal rate is a number you type, from 0 to 50 percent. It is not looked up from the 2026 income-tax brackets. Tax on a later withdrawal is not subtracted. A Roth contribution phase-out is the Roth IRA calculator.'
     ],
-    disclaimer: 'The 2026 dollar limit is $7,500 plus $1,100 at age 50, from IRS IR-2025-111. The deduction phase-out is not applied. This is not a deductible amount for a workplace-plan phase-out.',
+    disclaimer: 'Figures are for 2026 from IRS Notice 2025-67, IR-2025-111, Publication 590-A Worksheet 1-2, and the IRS SEP and SIMPLE COLA tables. This is not a tax return or a plan document.',
     faqs: [
-      { q: 'Why is the sample tax $1,650.00?', a: 'The contribution used is $7,500, the 2026 dollar limit for someone under 50. The marginal rate you typed is 22%. 7,500 × 0.22 = 1,650. The phase-out is not applied, so income does not reduce that $7,500 on this page.' },
-      { q: 'What is the age-50 catch-up?', a: 'An additional $1,100, from IR-2025-111. The dollar limit becomes $8,600. At 22%, the tax on $8,600 is $1,892.00. Ten years at 6% on that one contribution ends at $15,401.29.' },
-      { q: 'Is the income phase-out applied?', a: 'No. The only cap is the dollar limit. If a workplace plan puts your modified adjusted gross income inside the phase-out, the deductible amount can be lower. Type that lower amount. The page will not compute it.' },
-      { q: 'Why does typing $10,000 still show $1,650.00?', a: 'Under age 50 the contribution used is the smaller of $10,000 and $7,500. The tax is 22% of $7,500. The extra $2,500 is not deducted and is not added to the ending balance.' },
-      { q: 'Is $13,431.36 one year of growth?', a: 'It is $7,500 × 1.06^10, the sample contribution compounded for the 10 years in the years box, with no new deposits. One year at 6% would be $7,950. The detail line uses the words “one year of growth” for this full-term balance.' }
+      { q: 'Why does the Publication 590-A joint example deduct $7,320.00?', a: 'Modified AGI $129,500 subtracted from $149,000 leaves $19,500. Times 37.5 percent is $7,312.50. The illustrated worksheet rounds that to $7,320.00. At 22%, the tax headline on that deduction is $1,610.40. The spouse who is not covered is not in that phase-out at this income.' },
+      { q: 'What traditional IRA deduction remains at the 2026 single phase-out edges?', a: 'A covered single filer at modified AGI $81,000 still deducts a full $7,500 contribution. At $91,000 the deduction is $0.00. At $90,999 the under-$200 rule makes the worksheet result $200.00.' },
+      { q: 'What are the 2026 SEP and SIMPLE dollar limits?', a: 'SEP is the lesser of the plan rate times compensation and $72,000, with compensation counted only up to $360,000 and a $800 minimum for the employee-coverage test. An ordinary SIMPLE deferral is $17,000, plus $4,000 at 50 or $5,250 at ages 60 through 63. An applicable SIMPLE starts at $18,100, with a $3,850 age-50 catch-up or the same $5,250 at 60 through 63.' },
+      { q: 'Does a workplace plan always reduce a traditional IRA deduction?', a: 'No. If neither you nor your spouse is covered, the phase-out does not apply at any income. If you lived apart all year and file separately, you are treated as single. A spouse’s plan matters on a joint return when you are not covered, from $242,000 to $252,000.' },
+      { q: 'Is there an age limit for a 2026 traditional IRA contribution?', a: 'No maximum age. The $1,100 catch-up applies if you are 50 or older at the end of 2026, including ages 60 through 63. The contribution still cannot exceed compensation. A SIMPLE age 60 through 63 catch-up is a different, larger add-on and does not change the traditional IRA catch-up.' }
     ],
     relatedLinks: [
-      { slug: 'roth-ira-calculator', label: 'Roth IRA calculator', note: 'A 2026 Roth contribution cap and an income phase-out, then growth. This traditional page skips the phase-out and uses a marginal rate you type.' },
+      { slug: 'roth-ira-calculator', label: 'Roth IRA calculator', note: 'A 2026 Roth contribution cap and the Roth income phase-out. The traditional deduction phase-out on this page is a different table.' },
       { slug: 'compound-interest-calculator', label: 'Compound interest calculator', note: '$10,000 plus $250 a month at 7% for 10 years is $63,367.82. That allows new deposits. The IRA ending balance here is one contribution only.' },
       { slug: 'us-federal-income-tax-calculator', label: '2026 federal income tax calculator', note: 'Tax on a wage after the standard deduction. At $65,000 single the tax is $5,620.00. It does not cap an IRA contribution or apply IR-2025-111.' }
     ]
