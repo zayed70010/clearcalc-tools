@@ -170,12 +170,23 @@ const jsonLd = JSON.stringify(schema).replaceAll('<', '\\u003c');
     import { calculate } from '../../lib/calculate.js';
     const form = document.querySelector('.calculator');
     const show = (values) => {
+      const headline = document.querySelector('#result-headline');
+      const details = document.querySelector('#result-details');
+      const write = (lines) => {
+        details.replaceChildren();
+        for (const line of lines) {
+          const paragraph = document.createElement('p');
+          paragraph.textContent = line;
+          details.appendChild(paragraph);
+        }
+      };
       try {
         const result = calculate(form.dataset.slug, values);
-        document.querySelector('#result-headline').textContent = result.headline;
-        document.querySelector('#result-details').innerHTML = result.details.map((line) => `<p>${line}</p>`).join('');
-      } catch {
-        document.querySelector('#result-headline').textContent = 'Please check your inputs';
+        headline.textContent = result.headline;
+        write(result.details);
+      } catch (error) {
+        headline.textContent = 'Please check your inputs';
+        write([error instanceof Error ? error.message : 'Check the values and try again.']);
       }
     };
     const params = new URLSearchParams(location.search);

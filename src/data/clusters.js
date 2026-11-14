@@ -1,3 +1,5 @@
+import { nov14ClusterMembers } from './nov14-calculators.js';
+
 export const clusters = [
   {
     id: 'paychecks-and-wages',
@@ -234,10 +236,27 @@ export const clusters = [
       "electricity-cost-calculator",
       "fuel-cost-calculator",
       "sales-tax-calculator",
-      "bill-split-calculator"
+      "bill-split-calculator",
+      "dice-roller",
+      "password-generator",
+      "gas-mileage-calculator"
     ]
+  },
+  {
+    id: 'science-and-measurement',
+    title: 'Science and measurement',
+    description: 'Electrical, weather, density, speed, tires, and network arithmetic.',
+    members: []
   }
 ];
+
+for (const [id, slugs] of Object.entries(nov14ClusterMembers)) {
+  const cluster = clusters.find((item) => item.id === id);
+  if (!cluster) throw new Error(`Missing cluster ${id}`);
+  for (const slug of slugs) {
+    if (!cluster.members.includes(slug)) cluster.members.push(slug);
+  }
+}
 
 const bySlug = new Map();
 for (const cluster of clusters) {
