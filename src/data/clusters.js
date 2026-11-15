@@ -1,5 +1,6 @@
 import { nov14ClusterMembers } from './nov14-calculators.js';
 import { nov15ClusterMembers } from './nov15-calculators.js';
+import { daily15ClusterMembers } from './daily15-calculators.js';
 
 export const clusters = [
   {
@@ -252,6 +253,14 @@ export const clusters = [
 ];
 
 for (const [id, slugs] of Object.entries({ ...nov14ClusterMembers, ...Object.fromEntries(Object.entries(nov15ClusterMembers).map(([id, slugs]) => [id, [...(nov14ClusterMembers[id] ?? []), ...slugs]])) })) {
+  const cluster = clusters.find((item) => item.id === id);
+  if (!cluster) throw new Error(`Missing cluster ${id}`);
+  for (const slug of slugs) {
+    if (!cluster.members.includes(slug)) cluster.members.push(slug);
+  }
+}
+
+for (const [id, slugs] of Object.entries(daily15ClusterMembers)) {
   const cluster = clusters.find((item) => item.id === id);
   if (!cluster) throw new Error(`Missing cluster ${id}`);
   for (const slug of slugs) {
