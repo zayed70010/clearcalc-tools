@@ -18,6 +18,7 @@ import { attachNov12Links, nov12CalculatorContent } from './nov12-calculator-con
 import { applyNov13Deepening, attachNov13Links, nov13CalculatorContent } from './nov13-calculator-content.js';
 import { attachNov14Links, nov14CalculatorContent } from './nov14-calculator-content.js';
 import { attachNov15Context, nov15CalculatorContent } from './nov15-calculator-content.js';
+import { applyDaily15Deepening, attachDaily15Links, daily15CalculatorContent } from './daily15-calculator-content.js';
 
 export const calculatorContent = {
   'mortgage-calculator': {
@@ -1562,7 +1563,8 @@ export const calculatorContent = {
   ...nov12CalculatorContent,
   ...nov13CalculatorContent,
   ...nov14CalculatorContent,
-  ...nov15CalculatorContent
+  ...nov15CalculatorContent,
+  ...daily15CalculatorContent
 };
 
 attachNov12Links(calculatorContent);
@@ -1570,6 +1572,8 @@ applyNov13Deepening(calculatorContent);
 attachNov13Links(calculatorContent);
 attachNov14Links(calculatorContent);
 attachNov15Context(calculatorContent);
+applyDaily15Deepening(calculatorContent);
+attachDaily15Links(calculatorContent);
 
 export function contentWordCount(entry) {
   const chunks = [
