@@ -4,6 +4,7 @@ import { NOV13_SLUGS, calculateNov13 } from './nov13.js';
 import { NOV14_SLUGS, calculateNov14 } from './nov14.js';
 import { NOV15_SLUGS, calculateNov15 } from './nov15.js';
 import { DAILY15_SLUGS, calculateDaily15 } from './daily15.js';
+import { DAILY19_SLUGS, calculateDaily19 } from './daily19.js';
 
 const money = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(value);
 const gbp = (pence) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(pence / 100);
@@ -1762,6 +1763,7 @@ function percentageChangeResult(v) {
 }
 
 export function calculate(slug, values) {
+  if (DAILY19_SLUGS.has(slug)) return calculateDaily19(slug, values);
   if (DAILY15_SLUGS.has(slug)) return calculateDaily15(slug, values);
   if (NOV15_SLUGS.has(slug)) return calculateNov15(slug, values);
   if (NOV14_SLUGS.has(slug)) return calculateNov14(slug, values);
