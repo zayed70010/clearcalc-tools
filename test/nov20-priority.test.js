@@ -203,8 +203,8 @@ test('consent space is reserved before the deferred script, and ads and analytic
   assert.equal(layout.split('adsbygoogle.js?client=ca-pub-5883602323439295').length - 1, 1);
   assert.match(layout, /google-adsense-account" content="ca-pub-5883602323439295"/);
   assert.equal(layout.includes('gtag/js'), false);
-  assert.match(css, /html\.analytics-consent-pending body,body\.analytics-consent-open\{padding-bottom:10rem\}/);
-  assert.match(css, /padding-bottom:18rem/);
+  assert.equal(css.includes('analytics-consent-open'), false);
+  assert.match(css, /\.analytics-consent\{position:sticky;bottom:0/);
   assert.match(css, /html\.analytics-consent-known #analytics-consent\{display:none !important\}/);
   assert.match(consent, /analytics-consent-pending/);
   assert.match(consent, /CONSENT_ACCEPTED/);

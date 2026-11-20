@@ -288,14 +288,12 @@ export function bootAnalyticsConsent(view = globalThis) {
     dialog.hidden = false;
     doc.documentElement?.classList?.add('analytics-consent-pending');
     doc.documentElement?.classList?.remove('analytics-consent-known');
-    doc.body?.classList?.add('analytics-consent-open');
     reopen.setAttribute('aria-expanded', 'true');
   };
   const hide = () => {
     dialog.hidden = true;
     doc.documentElement?.classList?.remove('analytics-consent-pending');
     doc.documentElement?.classList?.add('analytics-consent-known');
-    doc.body?.classList?.remove('analytics-consent-open');
     reopen.setAttribute('aria-expanded', 'false');
   };
 
