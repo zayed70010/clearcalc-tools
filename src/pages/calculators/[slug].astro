@@ -73,7 +73,7 @@ const jsonLd = JSON.stringify(schema).replaceAll('<', '\\u003c');
                 {(fieldOptions || calculator.options).map(([optionValue, optionLabel]) => <option value={optionValue} selected={String(optionValue) === String(value)}>{optionLabel}</option>)}
               </select>
             ) : (
-              <input name={name} type={type} value={value} required={value !== ''} />
+              <input name={name} type={type} value={value} required={value !== ''} step={type === 'number' ? 'any' : undefined} />
             )}
             {suffix && <span>{suffix}</span>}
           </div>
@@ -139,6 +139,19 @@ const jsonLd = JSON.stringify(schema).replaceAll('<', '\\u003c');
     ))}
     <h2>{content.limitsHeading}</h2>
     {content.limits.map((paragraph) => <p>{paragraph}</p>)}
+    {content.sources?.length ? (
+      <>
+        <h2>Sources</h2>
+        <ul class="missing-list">
+          {content.sources.map((source) => (
+            <li>
+              <a href={source.href}>{source.label}</a>
+              {source.note ? ` ${source.note}` : ''}
+            </li>
+          ))}
+        </ul>
+      </>
+    ) : null}
     <h2>Frequently asked questions</h2>
     {content.faqs.map((faq) => (
       <section class="faq">
@@ -167,9 +180,9 @@ const jsonLd = JSON.stringify(schema).replaceAll('<', '\\u003c');
     <div class="card-grid">{related.map((item) => <CalculatorCard item={item} />)}</div>
   </section>
   <script>
-    import { calculate } from '../../lib/calculate.js';
+    import { calculateForPage } from '../../lib/client-calculate.js';
     const form = document.querySelector('.calculator');
-    const show = (values) => {
+    const show = async (values) => {
       const headline = document.querySelector('#result-headline');
       const details = document.querySelector('#result-details');
       const write = (lines) => {
@@ -181,7 +194,7 @@ const jsonLd = JSON.stringify(schema).replaceAll('<', '\\u003c');
         }
       };
       try {
-        const result = calculate(form.dataset.slug, values);
+        const result = await calculateForPage(form.dataset.slug, values);
         headline.textContent = result.headline;
         write(result.details);
       } catch (error) {

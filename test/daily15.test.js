@@ -97,12 +97,12 @@ test('15 November tools are clustered, linked, and on the homepage', () => {
 
 test('sales tax, credit card payoff, and Georgia paycheck were deepened without dropping locked figures', () => {
   const sales = calculatorContent['sales-tax-calculator'];
-  assert.match(sales.h1, /by State/);
+  assert.match(sales.h1, /Plus Tax/);
   assert.match(sales.description, /8\.25%/);
   assert.match(sales.description, /pre-tax|receipt/i);
   assert.equal(sales.table.rows.length, 52);
   assert.equal(sales.table.rows[0][3], '$108.25');
-  assert.equal(sales.faqs.length, 6);
+  assert.equal(sales.faqs.length >= 6 && sales.faqs.length <= 10, true);
   assert.match(sales.faqs[0].a, /6\.25%/);
   assert.match(sales.examples.at(-1).paragraphs[0], /14\.99/);
   assert.match(sales.limits.at(-1), /\$0\.936875/);

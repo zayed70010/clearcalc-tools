@@ -32,12 +32,17 @@
 .analytics-accept{background:var(--lime);color:var(--ink);border:2px solid var(--lime)}
 .analytics-consent-actions button:focus-visible,footer .analytics-choice:focus-visible{outline:3px solid var(--lime);outline-offset:3px}
 footer .analytics-choice{background:transparent;border:0;padding:0;color:inherit;font:inherit;font-weight:650;text-decoration:underline;cursor:pointer}
-body.analytics-consent-open{padding-bottom:8.5rem}
+html.analytics-consent-pending body,body.analytics-consent-open{padding-bottom:10rem}
+html.analytics-consent-pending #analytics-consent[hidden]{display:flex !important}
+html.analytics-consent-known #analytics-consent{display:none !important}
+html.analytics-consent-known body{padding-bottom:0}
 @media(max-width:760px){
   .analytics-consent{flex-direction:column;align-items:stretch}
   .analytics-consent-actions{display:grid;grid-template-columns:1fr 1fr}
   .analytics-consent-actions button{min-width:0}
+  html.analytics-consent-pending body,body.analytics-consent-open{padding-bottom:18rem}
 }
 @media print{
   .analytics-consent,footer .analytics-choice{display:none !important}
+  html.analytics-consent-pending body,body.analytics-consent-open{padding-bottom:0 !important}
 }

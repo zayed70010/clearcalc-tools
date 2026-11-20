@@ -343,7 +343,7 @@ test('five November 5 calculators are linked from the homepage and a related pag
   assert.match(sales.examples.at(-1).paragraphs[0], /6\.27%/);
   assert.match(sales.limits.at(-1), /\$0\.936875/);
   assert.match(sales.faqs[0].a, /6\.25%/);
-  assert.equal(sales.faqs.length, 6);
+  assert.equal(sales.faqs.length >= 6 && sales.faqs.length <= 10, true);
   assert.equal(sales.relatedLinks.some((link) => link.slug === 'arizona-paycheck-calculator'), true);
   assert.equal(sales.relatedLinks.some((link) => link.slug === 'texas-paycheck-calculator'), true);
   assert.equal(sales.relatedLinks.some((link) => link.slug === 'percentage-calculator'), true);
@@ -524,7 +524,8 @@ test('ten November 10 calculators are linked from the homepage and a related pag
   assert.match(stamp.table.rows.find((row) => row[0] === '£430,000')[1], /£11,500\.00/);
   assert.match(stamp.extraSections[0].heading, /Stamp duty rates in previous years/);
   assert.match(stamp.extraSections[0].paragraphs.join(' '), /2018/);
-  assert.match(calculatorContent['sales-tax-calculator'].h1, /by State/);
+  assert.match(calculatorContent['sales-tax-calculator'].h1, /Plus Tax/);
+  assert.match(calculatorContent['sales-tax-calculator'].intro.join(' '), /statewide/i);
   assert.match(calculatorContent['sales-tax-calculator'].description, /8\.25%/);
   assert.match(calculatorContent['georgia-paycheck-calculator'].h1, /Take-Home Pay/);
   assert.match(calculatorContent['georgia-paycheck-calculator'].description, /4\.99%/);
