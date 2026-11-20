@@ -5,6 +5,17 @@ import { NOV14_SLUGS, calculateNov14 } from './nov14.js';
 import { NOV15_SLUGS, calculateNov15 } from './nov15.js';
 import { DAILY15_SLUGS, calculateDaily15 } from './daily15.js';
 import { DAILY19_SLUGS, calculateDaily19 } from './daily19.js';
+import {
+  calculateApr,
+  calculateCreditCard,
+  calculateDownPayment,
+  calculateLoan,
+  calculateRent,
+  calculateSalesTax,
+  calculateTip
+} from './priority-math.js';
+
+export { SALES_TAX_PRESETS } from './sales-tax-presets.js';
 
 const money = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(value);
 const gbp = (pence) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(pence / 100);
@@ -1286,69 +1297,6 @@ function formatRunClock(totalSeconds) {
   return `${minutes}:${sec}`;
 }
 
-// Statewide general rates as of 1 July 2026 from the Tax Foundation state-rate
-// column. Minnesota, Missouri, and New Jersey are kept at the statutory
-// figures that column rounds (6.875%, 4.225%, and 6.625%). California 7.25%
-// includes the 1.25% mandatory statewide local add-on, Utah 6.10% includes
-// its 1.25% statewide local add-on, and Virginia 5.30% includes its 1%
-// statewide local add-on. City and county rates are not in this list.
-export const SALES_TAX_PRESETS = [
-  ['custom', 'Use the percent I type', null],
-  ['AL', 'Alabama', 4],
-  ['AK', 'Alaska', 0],
-  ['AZ', 'Arizona', 5.6],
-  ['AR', 'Arkansas', 6.5],
-  ['CA', 'California', 7.25],
-  ['CO', 'Colorado', 2.9],
-  ['CT', 'Connecticut', 6.35],
-  ['DE', 'Delaware', 0],
-  ['DC', 'District of Columbia', 6],
-  ['FL', 'Florida', 6],
-  ['GA', 'Georgia', 4],
-  ['HI', 'Hawaii', 4],
-  ['ID', 'Idaho', 6],
-  ['IL', 'Illinois', 6.25],
-  ['IN', 'Indiana', 7],
-  ['IA', 'Iowa', 6],
-  ['KS', 'Kansas', 6.5],
-  ['KY', 'Kentucky', 6],
-  ['LA', 'Louisiana', 5],
-  ['ME', 'Maine', 5.5],
-  ['MD', 'Maryland', 6],
-  ['MA', 'Massachusetts', 6.25],
-  ['MI', 'Michigan', 6],
-  ['MN', 'Minnesota', 6.875],
-  ['MS', 'Mississippi', 7],
-  ['MO', 'Missouri', 4.225],
-  ['MT', 'Montana', 0],
-  ['NE', 'Nebraska', 5.5],
-  ['NV', 'Nevada', 6.85],
-  ['NH', 'New Hampshire', 0],
-  ['NJ', 'New Jersey', 6.625],
-  ['NM', 'New Mexico', 4.88],
-  ['NY', 'New York', 4],
-  ['NC', 'North Carolina', 4.75],
-  ['ND', 'North Dakota', 5],
-  ['OH', 'Ohio', 5.75],
-  ['OK', 'Oklahoma', 4.5],
-  ['OR', 'Oregon', 0],
-  ['PA', 'Pennsylvania', 6],
-  ['RI', 'Rhode Island', 7],
-  ['SC', 'South Carolina', 6],
-  ['SD', 'South Dakota', 4.2],
-  ['TN', 'Tennessee', 7],
-  ['TX', 'Texas', 6.25],
-  ['UT', 'Utah', 6.1],
-  ['VT', 'Vermont', 6],
-  ['VA', 'Virginia', 5.3],
-  ['WA', 'Washington', 6.5],
-  ['WV', 'West Virginia', 6],
-  ['WI', 'Wisconsin', 5],
-  ['WY', 'Wyoming', 4]
-];
-
-const SALES_TAX_BY_CODE = Object.fromEntries(SALES_TAX_PRESETS.map(([code, name, rate]) => [code, { name, rate }]));
-
 // Tax year 2026 New Jersey gross income tax. Rates are the Division of
 // Taxation schedule labeled "2020 and After", still the 2026 NJ-1040-ES
 // tables: Table A for single, Table B for married filing jointly. Rates are
@@ -1660,32 +1608,6 @@ function countPhrase(value, singular) {
 
 const POUND_KG = 0.45359237;
 
-function salesTaxRate(preset, typedRate) {
-  const chosen = SALES_TAX_BY_CODE[preset];
-  if (!chosen) throw new Error('Choose a statewide rate or type your own');
-  if (chosen.rate == null) {
-    if (!Number.isFinite(typedRate) || typedRate < 0 || typedRate > 30) throw new Error('Enter a sales tax rate from 0 to 30 percent');
-    return { rate: typedRate, note: 'Rate source: the percent you typed. It is not looked up from a state.' };
-  }
-  const extra = preset === 'AK'
-    ? ' Alaska has no statewide sales tax, and many boroughs and cities still charge a local tax.'
-    : preset === 'DE' || preset === 'MT' || preset === 'NH' || preset === 'OR'
-      ? ` ${chosen.name} has no general statewide sales tax.`
-      : preset === 'CA'
-        ? ' The 7.25% includes California’s 1.25% mandatory statewide local add-on. District taxes can still be higher.'
-        : preset === 'UT'
-          ? ' The 6.10% includes Utah’s 1.25% mandatory statewide local add-on. Additional local tax can still apply.'
-          : preset === 'VA'
-            ? ' The 5.30% includes Virginia’s 1% statewide local add-on. Some regions add more.'
-            : preset === 'NJ'
-              ? ' Most of New Jersey charges 6.625%. Some Urban Enterprise Zone areas collect less.'
-              : '';
-  return {
-    rate: chosen.rate,
-    note: `Rate source: ${chosen.name} statewide rate of ${rateText(chosen.rate)}% as of 1 July 2026.${extra} City and county tax on top of that rate is not included. The percent typed in the other field was not used.`
-  };
-}
-
 function canadaEmployeePayroll(salary) {
   const pensionable = Math.min(salary, 7_460_000);
   const contributory = Math.max(0, pensionable - 350_000);
@@ -1771,13 +1693,7 @@ export function calculate(slug, values) {
   const v = Object.fromEntries(Object.entries(values).map(([key, val]) => [key, key.includes('date') || key === 'preset' ? val : Number(val)]));
   if (NOV12_SLUGS.has(slug)) return calculateNov12(slug, v);
   if (slug === 'mortgage-calculator' || NOV11_SLUGS.has(slug)) return calculateNov11(slug, v);
-  if (slug === 'loan-calculator') {
-    const months = v.years * 12;
-    const r = v.rate / 1200;
-    const payment = r === 0 ? v.principal / months : v.principal * r * (1 + r) ** months / ((1 + r) ** months - 1);
-    const total = payment * months;
-    return { headline: `${money(payment)} / month`, details: [`Total repayment: ${money(total)}`, `Total interest: ${money(total - v.principal)}`] };
-  }
+  if (slug === 'loan-calculator') return calculateLoan(v);
   if (slug === 'compound-interest-calculator') {
     if (!Number.isFinite(v.principal) || v.principal < 0) throw new Error('Enter an initial investment of zero or more');
     if (!Number.isFinite(v.monthly) || v.monthly < 0) throw new Error('Enter a monthly contribution of zero or more');
@@ -1860,33 +1776,7 @@ export function calculate(slug, values) {
     };
   }
   if (slug === 'percentage-calculator') return { headline: `${number(v.part / v.whole * 100)}%`, details: [`${number(v.part)} is ${number(v.part / v.whole * 100)}% of ${number(v.whole)}.`] };
-  if (slug === 'tip-calculator') {
-    if (!Number.isFinite(v.bill) || v.bill < 0) throw new Error('Enter a bill of zero or more');
-    if (!Number.isFinite(v.tip) || v.tip < 0) throw new Error('Enter a tip percent of zero or more');
-    if (!Number.isInteger(v.people) || v.people < 1) throw new Error('Enter a whole number of people, at least 1');
-    const tipAmount = v.bill * v.tip / 100;
-    const total = v.bill + tipAmount;
-    const share = total / v.people;
-    const roundedShareCents = Math.round(share * 100);
-    const roundedTotalCents = Math.round(total * 100);
-    const summedShares = roundedShareCents * v.people;
-    const gap = summedShares - roundedTotalCents;
-    const gapNote = gap === 0
-      ? `The displayed shares add back to the displayed total. ${v.people} × ${usdCents(roundedShareCents)} = ${usdCents(summedShares)}.`
-      : `The displayed shares miss the displayed total by ${usdCents(Math.abs(gap))}. ${v.people} × ${usdCents(roundedShareCents)} = ${usdCents(summedShares)}, and the total displays as ${usdCents(roundedTotalCents)}. Each line was rounded on its own.`;
-    return {
-      headline: `${money(share)} per person`,
-      details: [
-        `Tip: ${money(tipAmount)}`,
-        `Total bill: ${money(total)}`,
-        `Unrounded tip: ${number(tipAmount, 4)}`,
-        `Unrounded total: ${number(total, 4)}`,
-        `Unrounded share: ${number(share, 4)}`,
-        gapNote,
-        'Tip = bill × tip percent / 100. The total is the bill plus that tip. The share is the total divided by the number of people. Tax is not added. A service charge already on the bill is not detected.'
-      ]
-    };
-  }
+  if (slug === 'tip-calculator') return calculateTip(v);
   if (slug === 'age-calculator') {
     const birth = new Date(`${v.birthdate}T00:00:00`), target = v.targetdate ? new Date(`${v.targetdate}T00:00:00`) : new Date();
     let years = target.getFullYear() - birth.getFullYear(), months = target.getMonth() - birth.getMonth(), days = target.getDate() - birth.getDate();
@@ -1994,24 +1884,7 @@ export function calculate(slug, values) {
       ]
     };
   }
-  if (slug === 'rent-affordability-calculator') {
-    const rent = nonNegativeCents(v.rent, 'rent');
-    const income = nonNegativeCents(v.income, 'income');
-    if (income <= 0) throw new Error('Enter a gross monthly income above zero');
-    const share = rent / income * 100;
-    const limit = Math.round(income * 30 / 100);
-    const gap = limit - rent;
-    const position = gap > 0 ? `${usdCents(gap)} under the 30% guideline` : gap < 0 ? `${usdCents(-gap)} over the 30% guideline` : 'At the 30% guideline';
-    return {
-      headline: `${percent(share)}% of gross income`,
-      details: [
-        position,
-        `Rent at 30% of this income: ${usdCents(limit)} / month`,
-        `Annual rent: ${usdCents(rent * 12)}`,
-        `Annual gross income: ${usdCents(income * 12)}`
-      ]
-    };
-  }
+  if (slug === 'rent-affordability-calculator') return calculateRent(v);
   if (slug === 'hourly-to-salary-calculator') {
     const rate = nonNegativeCents(v.rate, 'hourly pay');
     const hours = v.hours;
@@ -3358,73 +3231,7 @@ export function calculate(slug, values) {
       ]
     };
   }
-  if (slug === 'credit-card-payoff-calculator') {
-    const balance = nonNegativeCents(v.balance, 'balance');
-    const payment = nonNegativeCents(v.payment, 'monthly payment');
-    const apr = v.apr;
-    if (balance <= 0) throw new Error('Enter a balance above zero');
-    if (payment <= 0) throw new Error('Enter a monthly payment above zero');
-    if (!Number.isFinite(apr) || apr < 0 || apr > 100) throw new Error('Enter an APR from 0 to 100 percent');
-    const firstInterest = Math.round(balance * apr / 1200);
-    if (payment <= firstInterest) {
-      const gap = firstInterest - payment;
-      return {
-        headline: 'Balance does not fall',
-        details: [
-          `Interest in the first month: ${usdCents(firstInterest)}`,
-          gap === 0
-            ? 'The payment equals that interest, so the balance is unchanged after month one.'
-            : `The payment is short by ${usdCents(gap)}, so the balance grows by that amount in month one.`,
-          `Balance after the first payment: ${usdCents(balance + gap)}`,
-          `APR used: ${percent(apr)}%`,
-          'Interest each month is the balance times the APR divided by 12, rounded to the nearest cent, then the payment is applied. A payment has to exceed that interest before the balance can fall.'
-        ]
-      };
-    }
-    let remaining = balance;
-    let interestPaid = 0;
-    let paid = 0;
-    let months = 0;
-    while (remaining > 0 && months < 600) {
-      const interest = Math.round(remaining * apr / 1200);
-      const due = remaining + interest;
-      const pay = Math.min(payment, due);
-      remaining = due - pay;
-      interestPaid += interest;
-      paid += pay;
-      months += 1;
-    }
-    if (remaining > 0) {
-      return {
-        headline: 'Not paid off in 50 years',
-        details: [
-          `Balance still owed after 600 payments: ${usdCents(remaining)}`,
-          `Interest charged over those 600 months: ${usdCents(interestPaid)}`,
-          `Total paid over those 600 months: ${usdCents(paid)}`,
-          `Starting balance: ${usdCents(balance)}`,
-          `Interest in the first month: ${usdCents(firstInterest)}`,
-          'The count stops at 600 months. Raise the payment if you need a payoff date inside that window.'
-        ]
-      };
-    }
-    const years = Math.floor(months / 12);
-    const extraMonths = months % 12;
-    const yearLabel = years === 1 ? '1 year' : `${years} years`;
-    const monthLabel = extraMonths === 1 ? '1 month' : `${extraMonths} months`;
-    const span = years === 0 ? monthLabel : extraMonths === 0 ? yearLabel : `${yearLabel} and ${monthLabel}`;
-    return {
-      headline: months === 1 ? '1 month' : `${number(months, 0)} months`,
-      details: [
-        `Payoff time: ${span}`,
-        `Total interest: ${usdCents(interestPaid)}`,
-        `Total paid: ${usdCents(paid)}`,
-        `Starting balance: ${usdCents(balance)}`,
-        `Interest in the first month: ${usdCents(firstInterest)}`,
-        `Final payment: ${usdCents(paid - payment * (months - 1))}`,
-        `APR used: ${percent(apr)}%. Each month the interest is the unpaid balance times that APR divided by 12, rounded to the nearest cent. The fixed payment is then applied. This is not a daily periodic rate and it is not a minimum-payment formula.`
-      ]
-    };
-  }
+  if (slug === 'credit-card-payoff-calculator') return calculateCreditCard(v);
   if (slug === 'house-affordability-calculator') {
     const income = nonNegativeCents(v.income, 'income');
     const debts = nonNegativeCents(v.debts, 'monthly debt');
@@ -3633,42 +3440,7 @@ export function calculate(slug, values) {
       ]
     };
   }
-  if (slug === 'sales-tax-calculator') {
-    const amount = nonNegativeCents(v.amount, 'amount');
-    const mode = Number(v.mode);
-    if (mode !== 1 && mode !== 2) throw new Error('Choose whether the amount is before tax or already includes tax');
-    const { rate, note } = salesTaxRate(String(v.preset), v.rate);
-    if (mode === 1) {
-      const tax = Math.round(amount * rate / 100);
-      const total = amount + tax;
-      return {
-        headline: `${usdCents(total)} total`,
-        details: [
-          `Sales tax: ${usdCents(tax)}`,
-          `Price before tax: ${usdCents(amount)}`,
-          `Rate used: ${rateText(rate)}%`,
-          amount === 0 ? 'Tax as a share of the price: the price is zero, so that share is undefined.' : `Tax as a share of the price: ${percent(tax / amount * 100)}%`,
-          total === 0 ? 'Tax as a share of the total: the total is zero.' : `Tax as a share of the total: ${percent(tax / total * 100)}%`,
-          note,
-          'The tax is the price times the rate, rounded to the nearest cent, then added. Half a cent rounds away from zero with the usual nearest-cent rule. Groceries, clothing, and prepared food can be exempt or taxed at a different rate. This form uses one rate on the whole amount.'
-        ]
-      };
-    }
-    const preTax = Math.round(amount / (1 + rate / 100));
-    const tax = amount - preTax;
-    return {
-      headline: `${usdCents(preTax)} before tax`,
-      details: [
-        `Sales tax inside the total: ${usdCents(tax)}`,
-        `Tax-inclusive total: ${usdCents(amount)}`,
-        `Rate used: ${rateText(rate)}%`,
-        preTax === 0 ? 'Tax as a share of the price: the price before tax rounds to zero.' : `Tax as a share of the price: ${percent(tax / preTax * 100)}%`,
-        amount === 0 ? 'Tax as a share of the total: the total is zero.' : `Tax as a share of the total: ${percent(tax / amount * 100)}%`,
-        note,
-        'The price before tax is the total divided by 1 plus the rate, rounded to the nearest cent. The tax is the total minus that price. On a total that was built by this same rounding, the reverse returns the price the forward calculation started from.'
-      ]
-    };
-  }
+  if (slug === 'sales-tax-calculator') return calculateSalesTax(v);
   if (slug === 'new-jersey-paycheck-calculator') {
     const status = filingStatusCode(v.status);
     const periods = payPeriodCount(v.periods);
@@ -4387,13 +4159,13 @@ export function calculate(slug, values) {
   if (slug === 'fence-calculator') return fenceResult(v);
   if (slug === 'uk-vat-calculator') return ukVatResult(v);
   if (slug === 'savings-goal-calculator') return savingsGoalResult(v);
-  if (slug === 'apr-calculator') return aprResult(v);
+  if (slug === 'apr-calculator') return calculateApr(v);
   if (slug === 'us-federal-income-tax-calculator') return federalIncomeTaxResult(v);
   if (slug === 'canada-gst-hst-calculator') return canadaGstResult(v);
   if (slug === 'weight-converter') return weightResult(v);
   if (slug === 'add-days-calculator') return addDaysResult(v);
   if (slug === 'markup-margin-calculator') return markupMarginResult(v);
-  if (slug === 'down-payment-calculator') return downPaymentResult(v);
+  if (slug === 'down-payment-calculator') return calculateDownPayment(v);
   if (slug === 'australia-gst-calculator') return australiaGstResult(v);
   throw new Error('Unsupported calculator');
 }
@@ -4504,51 +4276,6 @@ function savingsGoalResult(v) {
         ? 'Each deposit is added at the beginning of the month, so it earns that month’s interest.'
         : 'Each deposit is added at the end of the month, so it does not earn that month’s interest.',
       'The return is a constant monthly rate, annual percent divided by 12. It is not a forecast.'
-    ]
-  };
-}
-
-function loanPaymentDollars(principal, annualPercent, months) {
-  const r = annualPercent / 1200;
-  if (r === 0) return principal / months;
-  const growth = (1 + r) ** months;
-  return principal * r * growth / (growth - 1);
-}
-
-function aprResult(v) {
-  const principal = nonNegativeCents(v.principal, 'amount');
-  const fees = nonNegativeCents(v.fees, 'prepaid finance charges');
-  if (!Number.isFinite(v.rate) || v.rate < 0 || v.rate > 36) throw new Error('Enter a note rate from 0 to 36 percent');
-  if (!Number.isInteger(v.months) || v.months < 1 || v.months > 480) throw new Error('Enter a whole term from 1 to 480 months');
-  if (fees > principal) throw new Error('Prepaid finance charges cannot be larger than the amount you repay');
-  const payment = loanPaymentDollars(principal / 100, v.rate, v.months);
-  const amountFinanced = (principal - fees) / 100;
-  const pvAt = (monthly) => monthly === 0
-    ? payment * v.months
-    : payment * (1 - (1 + monthly) ** -v.months) / monthly;
-  let low = 0;
-  let high = 0.05;
-  while (pvAt(high) > amountFinanced && high < 5) high *= 2;
-  for (let i = 0; i < 80; i += 1) {
-    const mid = (low + high) / 2;
-    if (pvAt(mid) > amountFinanced) low = mid;
-    else high = mid;
-  }
-  const apr = ((low + high) / 2) * 1200;
-  const aprText = new Intl.NumberFormat('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(apr);
-  const interest = payment * v.months - principal / 100;
-  return {
-    headline: `${aprText}% APR`,
-    details: [
-      `Monthly payment on the note: ${money(payment)}`,
-      `Amount financed, after prepaid charges: ${usdCents(principal - fees)}`,
-      `Note rate: ${percent(v.rate)}%`,
-      `Finance charge, interest plus prepaid charges: ${money(interest + fees / 100)}`,
-      `Term: ${v.months} monthly payments`,
-      fees === 0
-        ? 'With no prepaid finance charge, this APR matches the note rate. It is the nominal annual rate, not the effective annual rate.'
-        : 'The APR is the constant monthly rate that makes the payment’s present value equal the amount financed. Prepaid charges raise it above the note rate.',
-      'This is the actuarial payment method for a fixed monthly loan. It is not a lender’s disclosed APR if the lender uses a different payment schedule, odd days, or a mortgage with mortgage insurance.'
     ]
   };
 }
@@ -4754,27 +4481,6 @@ function markupMarginResult(v) {
           ? 'The percent you typed was a margin. Markup is profit divided by the cost, so it is higher than the margin.'
           : 'Both percents were computed from the price and the cost. The percent box was not used.',
       'A 50% markup on cost is a 33.33% margin on the resulting price. A 50% margin needs a 100% markup.'
-    ]
-  };
-}
-
-function downPaymentResult(v) {
-  const price = nonNegativeCents(v.price, 'home price');
-  if (!Number.isFinite(v.percent) || v.percent < 0 || v.percent > 100) throw new Error('Enter a down payment from 0 to 100 percent');
-  if (price === 0) throw new Error('Enter a home price above zero');
-  const down = Math.round(price * v.percent / 100);
-  const loan = price - down;
-  return {
-    headline: `${usdCents(down)} down`,
-    details: [
-      `Home price: ${usdCents(price)}`,
-      `Down payment: ${percent(v.percent)}%`,
-      `Loan amount: ${usdCents(loan)}`,
-      `Loan-to-value: ${percent(loan / price * 100)}%`,
-      v.percent < 20
-        ? 'This down payment is under 20%. Many conventional loans then look at mortgage insurance. This page does not price that insurance or the monthly payment.'
-        : 'This down payment is at least 20% of the price. The monthly principal-and-interest payment is a separate calculation on the loan amount.',
-      'Closing costs, earnest money already paid, and seller credits are not subtracted from the cash you need.'
     ]
   };
 }

@@ -20,6 +20,7 @@ import { attachNov14Links, nov14CalculatorContent } from './nov14-calculator-con
 import { attachNov15Context, nov15CalculatorContent } from './nov15-calculator-content.js';
 import { applyDaily15Deepening, attachDaily15Links, daily15CalculatorContent } from './daily15-calculator-content.js';
 import { applyDaily19Deepening, daily19CalculatorContent } from './daily19-calculator-content.js';
+import { applyNov20PriorityContent } from './nov20-priority-content.js';
 
 export const calculatorContent = {
   'mortgage-calculator': {
@@ -1577,6 +1578,7 @@ attachNov15Context(calculatorContent);
 applyDaily15Deepening(calculatorContent);
 attachDaily15Links(calculatorContent);
 applyDaily19Deepening(calculatorContent);
+applyNov20PriorityContent(calculatorContent);
 
 export function contentWordCount(entry) {
   const chunks = [
@@ -1605,7 +1607,8 @@ export function contentWordCount(entry) {
     ]),
     ...entry.limits,
     entry.disclaimer,
-    ...entry.faqs.flatMap((faq) => [faq.q, faq.a])
+    ...entry.faqs.flatMap((faq) => [faq.q, faq.a]),
+    ...(entry.sources ?? []).flatMap((source) => [source.label, source.note])
   ];
   return chunks.join(' ').trim().split(/\s+/).filter(Boolean).length;
 }
