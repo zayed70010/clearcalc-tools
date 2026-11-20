@@ -180,9 +180,12 @@ const jsonLd = JSON.stringify(schema).replaceAll('<', '\\u003c');
     <div class="card-grid">{related.map((item) => <CalculatorCard item={item} />)}</div>
   </section>
   <script>
-    import { calculateForPage } from '../../lib/client-calculate.js';
+    import { calculateForPage, claimCalculation, isLatestCalculation, releaseCalculation } from '../../lib/client-calculate.js';
     const form = document.querySelector('.calculator');
+    const calcState = { calculation: 0, inFlightKey: '' };
     const show = async (values) => {
+      const ticket = claimCalculation(calcState, values);
+      if (!ticket) return;
       const headline = document.querySelector('#result-headline');
       const details = document.querySelector('#result-details');
       const write = (lines) => {
@@ -195,11 +198,15 @@ const jsonLd = JSON.stringify(schema).replaceAll('<', '\\u003c');
       };
       try {
         const result = await calculateForPage(form.dataset.slug, values);
+        if (!isLatestCalculation(calcState, ticket)) return;
         headline.textContent = result.headline;
         write(result.details);
       } catch (error) {
+        if (!isLatestCalculation(calcState, ticket)) return;
         headline.textContent = 'Please check your inputs';
         write([error instanceof Error ? error.message : 'Check the values and try again.']);
+      } finally {
+        releaseCalculation(calcState, ticket);
       }
     };
     const params = new URLSearchParams(location.search);

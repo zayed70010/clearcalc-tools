@@ -15,6 +15,22 @@ function coerce(values) {
   ]));
 }
 
+export function claimCalculation(state, values) {
+  const key = JSON.stringify(values);
+  if (key === state.inFlightKey) return null;
+  state.calculation += 1;
+  state.inFlightKey = key;
+  return { id: state.calculation, key };
+}
+
+export function isLatestCalculation(state, ticket) {
+  return ticket != null && ticket.id === state.calculation;
+}
+
+export function releaseCalculation(state, ticket) {
+  if (isLatestCalculation(state, ticket)) state.inFlightKey = '';
+}
+
 export async function calculateForPage(slug, values) {
   if (PRIORITY[slug]) {
     const math = await import('./priority-math.js');

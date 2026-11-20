@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { calculate } from '../src/lib/calculate.js';
-import { calculateForPage } from '../src/lib/client-calculate.js';
+import { calculateForPage, claimCalculation, isLatestCalculation, releaseCalculation } from '../src/lib/client-calculate.js';
+import { clusterFor } from '../src/data/clusters.js';
 import { calculatorContent } from '../src/data/calculator-content.js';
 import { calculators } from '../src/data/calculators.js';
 import { absoluteSiteUrl } from '../src/data/site.js';
@@ -209,4 +210,56 @@ test('consent space is reserved before the deferred script, and ads and analytic
   assert.match(consent, /CONSENT_ACCEPTED/);
   assert.match(consent, /CONSENT_REJECTED/);
   assert.equal(readFileSync('public/_worker.js', 'utf8').includes('clearcalc-tools.pages.dev'), true);
+});
+
+test('every calculator form resolves through the page loader to the same result', async () => {
+  const random = new Set(['random-number-generator', 'dice-roller', 'password-generator']);
+  const seen = new Set();
+  for (const calculator of calculators) {
+    assert.ok(clusterFor(calculator.slug), calculator.slug);
+    seen.add(clusterFor(calculator.slug).id);
+    const values = {};
+    for (const [name, , , value] of calculator.fields) values[name] = value == null ? '' : String(value);
+    let server;
+    let page;
+    let serverError;
+    let pageError;
+    try { server = calculate(calculator.slug, values); } catch (error) { serverError = error.message; }
+    try { page = await calculateForPage(calculator.slug, values); } catch (error) { pageError = error.message; }
+    assert.equal(pageError, serverError, calculator.slug);
+    if (serverError) continue;
+    if (random.has(calculator.slug)) {
+      assert.equal(typeof page.headline, 'string');
+      assert.equal(typeof server.headline, 'string');
+      continue;
+    }
+    assert.deepEqual(page, server, calculator.slug);
+  }
+  assert.equal(seen.size, 11);
+  assert.equal(calculators.length, 302);
+});
+
+test('a second identical submit does not start another calculation, and a newer submit wins', () => {
+  const state = { calculation: 0, inFlightKey: '' };
+  const first = claimCalculation(state, { amount: '100' });
+  assert.equal(claimCalculation(state, { amount: '100' }), null);
+  const second = claimCalculation(state, { amount: '130' });
+  assert.equal(isLatestCalculation(state, first), false);
+  assert.equal(isLatestCalculation(state, second), true);
+  releaseCalculation(state, first);
+  assert.equal(state.inFlightKey, JSON.stringify({ amount: '130' }));
+  releaseCalculation(state, second);
+  assert.equal(state.inFlightKey, '');
+  assert.ok(claimCalculation(state, { amount: '130' }));
+});
+
+test('step=any is only on number inputs, and whole-number rules still reject fractions', () => {
+  const page = readFileSync('src/pages/calculators/[slug].astro', 'utf8');
+  assert.match(page, /step=\{type === 'number' \? 'any' : undefined\}/);
+  assert.throws(
+    () => calculate('tip-calculator', { bill: 48.12, tip: 18, people: 1.5 }),
+    /whole number of people/
+  );
+  const days = calculate('add-days-calculator', { startdate: '2026-01-01', days: 90 });
+  assert.equal(days.headline, '1 April 2026');
 });
