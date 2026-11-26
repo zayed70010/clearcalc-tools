@@ -40,6 +40,19 @@ function currency(code, value) {
   return usd(value);
 }
 
+function currencyRate(code, value) {
+  const format = (locale, currencyCode) => new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currencyCode,
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4
+  }).format(value);
+  if (code === 'GBP') return format('en-GB', 'GBP');
+  if (code === 'CAD') return format('en-CA', 'CAD');
+  if (code === 'AUD') return format('en-AU', 'AUD');
+  return format('en-US', 'USD');
+}
+
 function levelPayment(principal, annualPercent, payments) {
   const r = annualPercent / 100 / 12;
   if (payments <= 0) throw new Error('Enter a term of at least one month');
@@ -583,29 +596,34 @@ function ukMortgageResult(v) {
   if (type !== 1 && type !== 2) throw new Error('Choose repayment or interest-only');
   const payments = years * 12;
   const r = rate / 1200;
+  const repayment = r === 0 ? principal / payments : principal * r * (1 + r) ** payments / ((1 + r) ** payments - 1);
+  const interestOnly = principal * r;
   if (type === 2) {
-    const interest = principal * r;
     return {
-      headline: `${gbp(interest)} / month`,
+      headline: `${gbp(interestOnly)} / month`,
       details: [
-        `Monthly interest: ${gbp(interest)}`,
+        `Monthly interest: ${gbp(interestOnly)}`,
         `Balance at the end of the term: ${gbp(principal)}`,
-        `Interest over ${payments} months if the rate never changes: ${gbp(interest * payments)}`,
+        `Interest over ${payments} months if the rate never changes: ${gbp(interestOnly * payments)}`,
+        `Repayment on the same amount, rate, and term: ${gbp(repayment)} / month.`,
+        `Repayment interest over the term: ${gbp(repayment * payments - principal)}. Interest-only interest is ${gbp(interestOnly * payments)}, and ${gbp(principal)} is still owed.`,
         'Interest-only. The payment does not reduce the capital. The amount borrowed is still due at the end of the term.',
         'The monthly rate is the annual rate divided by 12. Many UK lenders charge interest daily, so a statement can differ by a small amount from this figure.',
+        'The rate is the one you typed. It is not the Bank of England Bank Rate and not a lender’s product rate.',
         'This is not a mortgage offer. Fees, an introductory rate, and an overpayment are not included.'
       ]
     };
   }
-  const payment = r === 0 ? principal / payments : principal * r * (1 + r) ** payments / ((1 + r) ** payments - 1);
-  const total = payment * payments;
+  const total = repayment * payments;
   return {
-    headline: `${gbp(payment)} / month`,
+    headline: `${gbp(repayment)} / month`,
     details: [
-      `Monthly repayment: ${gbp(payment)}`,
+      `Monthly repayment: ${gbp(repayment)}`,
       `Payments: ${payments}`,
       `Total paid: ${gbp(total)}`,
       `Total interest: ${gbp(total - principal)}`,
+      `Interest-only on the same amount and rate: ${gbp(interestOnly)} / month.`,
+      `Interest-only leaves ${gbp(principal)} owing. Interest over ${payments} months would be ${gbp(interestOnly * payments)}, against ${gbp(total - principal)} on this repayment.`,
       'Repayment mortgage. The payment is the level amount that brings the balance to zero over the term if every payment is made and the rate does not change.',
       'The monthly rate is the annual rate divided by 12. A lender that accrues interest daily will not match to the penny.',
       'Stamp Duty Land Tax is not added. The England stamp duty page estimates that tax in pounds for a purchase in England or Northern Ireland.'
@@ -1039,6 +1057,9 @@ function fuelResult(v) {
   const lPer100 = km === 0 ? 0 : litres / km * 100;
   const usMpg = miles === 0 ? 0 : miles / usGallons;
   const ukMpg = miles === 0 ? 0 : miles / ukGallons;
+  const perLitre = priceUnit === 3 ? price : priceUnit === 1 ? price / US_GALLON_LITRES : price / UK_GALLON_LITRES;
+  const perUsGallon = priceUnit === 1 ? price : perLitre * US_GALLON_LITRES;
+  const perUkGallon = priceUnit === 2 ? price : perLitre * UK_GALLON_LITRES;
   return {
     headline: currency(code, cost),
     details: [
@@ -1046,11 +1067,14 @@ function fuelResult(v) {
       `US gallons: ${num(usGallons, 3)}. UK gallons: ${num(ukGallons, 3)}.`,
       `Economy in other units: ${num(usMpg, 2)} US mpg, ${num(ukMpg, 2)} UK mpg, ${num(lPer100, 2)} L/100 km`,
       `Distance: ${num(miles, 2)} miles, ${num(km, 2)} km`,
+      `Cost per distance at the price you typed: ${currencyRate(code, cost / miles)} per mile, ${currencyRate(code, cost / km)} per kilometre.`,
+      `The typed price restated: ${currencyRate(code, perLitre)} per litre, ${currencyRate(code, perUsGallon)} per US gallon, ${currencyRate(code, perUkGallon)} per UK gallon.`,
+      'A price per litre times 3.785411784 is the price per US gallon. A price per litre times 4.54609 is the price per UK gallon. The trip cost still uses the price unit you selected.',
       'US gallon = 3.785411784 litres. UK gallon = 4.54609 litres. 1 mile = 1.609344 kilometres.',
-      'The cost is the fuel for the trip at the price you typed. It is not a toll, a hire charge, or a round trip unless the distance already includes the return.',
+      'The cost is the fuel for the trip at the price you typed. It is not a live pump price, a toll, a hire charge, or a round trip unless the distance already includes the return.',
       code === 'USD'
-        ? 'The price is labeled in US dollars.'
-        : `The price is labeled in ${code}. The fuel-economy converter is the unit change without a trip cost.`
+        ? 'The price is labeled in US dollars. The label does not convert money.'
+        : `The price is labeled in ${code}. The label does not convert money. The fuel-economy converter is the unit change without a trip cost.`
     ]
   };
 }
