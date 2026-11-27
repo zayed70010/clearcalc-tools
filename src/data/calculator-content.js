@@ -21,6 +21,7 @@ import { attachNov15Context, nov15CalculatorContent } from './nov15-calculator-c
 import { applyDaily15Deepening, attachDaily15Links, daily15CalculatorContent } from './daily15-calculator-content.js';
 import { applyDaily19Deepening, daily19CalculatorContent } from './daily19-calculator-content.js';
 import { applyNov20PriorityContent } from './nov20-priority-content.js';
+import { applyNov26ExistingPages } from './nov26-existing-content.js';
 
 export const calculatorContent = {
   'mortgage-calculator': {
@@ -1579,6 +1580,7 @@ applyDaily15Deepening(calculatorContent);
 attachDaily15Links(calculatorContent);
 applyDaily19Deepening(calculatorContent);
 applyNov20PriorityContent(calculatorContent);
+applyNov26ExistingPages(calculatorContent);
 
 export function contentWordCount(entry) {
   const chunks = [

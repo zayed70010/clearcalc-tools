@@ -4171,9 +4171,9 @@ export function calculate(slug, values) {
 }
 
 const CANADA_GST = {
-  1: { name: 'Alberta', rate: 5, kind: 'gst', pst: 'Alberta has no provincial sales tax.' },
-  2: { name: 'British Columbia', rate: 5, kind: 'gst', pst: 'British Columbia also charges 7% PST, which is not added here.' },
-  3: { name: 'Manitoba', rate: 5, kind: 'gst', pst: 'Manitoba also charges 7% RST, which is not added here.' },
+  1: { name: 'Alberta', rate: 5, kind: 'gst', pst: 'Alberta has no provincial sales tax on the CRA table. GST here is 5%.' },
+  2: { name: 'British Columbia', rate: 5, kind: 'gst', pst: 'British Columbia does not charge HST. GST here is 5%. The CRA table lists 7% PST beside that GST. The general PST rate on many goods is 7%, some supplies use another PST rate, and this page adds none of it.' },
+  3: { name: 'Manitoba', rate: 5, kind: 'gst', pst: 'Manitoba does not charge HST. GST here is 5%. The CRA table lists 7% PST beside that GST, and this page does not add it.' },
   4: { name: 'New Brunswick', rate: 15, kind: 'hst', pst: 'New Brunswick HST is a single 15% tax. There is no separate PST.' },
   5: { name: 'Newfoundland and Labrador', rate: 15, kind: 'hst', pst: 'Newfoundland and Labrador HST is a single 15% tax. There is no separate PST.' },
   6: { name: 'Northwest Territories', rate: 5, kind: 'gst', pst: 'The Northwest Territories have no territorial sales tax.' },
@@ -4182,7 +4182,7 @@ const CANADA_GST = {
   9: { name: 'Ontario', rate: 13, kind: 'hst', pst: 'Ontario HST is a single 13% tax. There is no separate PST.' },
   10: { name: 'Quebec', rate: 5, kind: 'qst', pst: 'Quebec QST is 9.975% of the price before GST. It is not HST.' },
   11: { name: 'Prince Edward Island', rate: 15, kind: 'hst', pst: 'Prince Edward Island HST is a single 15% tax. There is no separate PST.' },
-  12: { name: 'Saskatchewan', rate: 5, kind: 'gst', pst: 'Saskatchewan also charges 6% PST, which is not added here.' },
+  12: { name: 'Saskatchewan', rate: 5, kind: 'gst', pst: 'Saskatchewan does not charge HST. GST here is 5%. The CRA table lists 6% PST, and this page does not add it.' },
   13: { name: 'Yukon', rate: 5, kind: 'gst', pst: 'Yukon has no territorial sales tax.' }
 };
 
@@ -4209,7 +4209,8 @@ function ukVatResult(v) {
         `VAT: ${gbp(vat)}`,
         `Price before VAT: ${gbp(amount)}`,
         `Rate: ${rate}% ${rateName}`,
-        'VAT is rounded to the nearest penny. HMRC’s standard rate is 20%, the reduced rate is 5%, and the zero rate is 0%.',
+        `${gbp(amount)} plus ${rate}% VAT is ${gbp(amount + vat)}.`,
+        'VAT is rounded to the nearest penny. The standing UK rates are standard 20%, reduced 5%, and zero 0%. A temporary rate for one kind of supply is not a fourth choice here.',
         'This is one rate on one amount. It does not decide whether a supply is standard-rated, reduced-rated, zero-rated, or exempt.'
       ]
     };
@@ -4222,6 +4223,7 @@ function ukVatResult(v) {
       `VAT inside the total: ${gbp(vat)}`,
       `Total including VAT: ${gbp(amount)}`,
       `Rate: ${rate}% ${rateName}`,
+      `${gbp(amount)} with ${rate}% VAT included is ${gbp(net)} before VAT.`,
       'The price is the total divided by 1 plus the rate, rounded to the nearest penny.',
       'A zero-rated total has no VAT to remove. An exempt supply is not the same thing as the zero rate, and this form cannot tell them apart.'
     ]
@@ -4339,7 +4341,8 @@ function canadaGstResult(v) {
           `Price before tax: ${cadCents(amount)}`,
           'Quebec: 5% GST and 9.975% QST, each rounded to the nearest cent. QST is calculated on the price before GST.',
           place.pst,
-          'Rates are the CRA provincial table. Zero-rated groceries and other exemptions are not detected.'
+          'Rates follow the CRA provincial table for GST/HST on or after 1 April 2025, which is the table this page uses in 2026. Zero-rated groceries and other exemptions are not detected.',
+          'The amount stays in Canadian dollars. This calculator does not convert it to US dollars.'
         ]
       };
     }
@@ -4365,7 +4368,8 @@ function canadaGstResult(v) {
         `Total: ${cadCents(amount)}`,
         `Rounding gap between the total and GST plus QST plus the price: ${cadCents(amount - net - gst - qst)}`,
         'The price is the total divided by 1.14975 and rounded to the cent, then GST and QST are rebuilt from that price.',
-        place.pst
+        place.pst,
+        'The amount stays in Canadian dollars. This calculator does not convert it to US dollars.'
       ]
     };
   }
@@ -4378,7 +4382,8 @@ function canadaGstResult(v) {
         `Price before tax: ${cadCents(amount)}`,
         `Rate: ${percent(place.rate)}% in ${place.name}`,
         place.pst,
-        'The rate is the CRA GST/HST rate for that province. Place-of-supply rules can charge a different province’s rate when goods are delivered elsewhere.'
+        'The rate is the CRA GST/HST rate for that province on the table in force on or after 1 April 2025, which is the table this page uses in 2026. Place-of-supply rules can charge a different province’s rate when goods are delivered elsewhere.',
+        'The amount stays in Canadian dollars. This calculator does not convert it to US dollars.'
       ]
     };
   }
@@ -4391,7 +4396,8 @@ function canadaGstResult(v) {
       `Total: ${cadCents(amount)}`,
       `Rate removed: ${percent(place.rate)}% in ${place.name}`,
       place.pst,
-      'The price is the total divided by 1 plus the rate, rounded to the nearest cent.'
+      'The price is the total divided by 1 plus the rate, rounded to the nearest cent.',
+      'The amount stays in Canadian dollars. This calculator does not convert it to US dollars.'
     ]
   };
 }
